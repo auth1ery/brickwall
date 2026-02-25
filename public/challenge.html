@@ -70,6 +70,18 @@ body{min-height:100vh;display:flex;align-items:center;justify-content:center;ove
 .blocked-box strong{color:var(--red);font-family:var(--display)}
 
 .noscript-msg{color:var(--red);font-size:12px;margin-top:16px}
+
+.brickwall-badge{
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:20px;
+  background:var(--surface);border:1px solid var(--border);
+  font-size:10px;color:var(--muted);font-family:var(--mono);
+  text-decoration:none;transition:border-color .2s,color .2s;
+  white-space:nowrap;
+}
+.brickwall-badge:hover{border-color:var(--accent);color:var(--text2)}
+.brickwall-badge span{color:var(--accent);font-weight:700}
 </style>
 </head>
 <body>
@@ -114,6 +126,10 @@ body{min-height:100vh;display:flex;align-items:center;justify-content:center;ove
   </div>
 </div>
 
+<a class="brickwall-badge" href="https://brickwall.onrender.com" target="_blank" rel="noopener">
+  protected by brick<span>wall</span>
+</a>
+  
 <script>
 const params = new URLSearchParams(location.search)
 const siteKey = params.get('k')
