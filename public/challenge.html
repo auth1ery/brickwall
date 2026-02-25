@@ -196,12 +196,11 @@ async function run() {
     if (r.status === 429) { showError('too many attempts. try again in ' + (d.retryAfter || 60) + ' seconds.'); return }
     if (!r.ok) { showError(d.error || 'failed to initialize challenge.'); return }
     if (d.skip && d.token) {
-      localStorage.setItem('bw_token_' + siteKey, d.token)
       setStatus('pass')
       document.getElementById('headline').textContent = 'verified'
       document.getElementById('subline').textContent = 'redirecting...'
       setProgress(100)
-      setTimeout(() => { window.location.href = returnUrl }, 600)
+      setTimeout(() => { window.location.href = appendToken(returnUrl, d.token) }, 600)
       return
     }
     initData = d
@@ -236,10 +235,6 @@ async function run() {
   setStep(4, 'active')
   setProgress(90)
 
-  try {
-    localStorage.setItem('bw_token_' + siteKey, token)
-  } catch {}
-
   await new Promise(r => setTimeout(r, 300))
   setStep(4, 'done')
   setProgress(100)
@@ -247,7 +242,18 @@ async function run() {
   document.getElementById('headline').textContent = 'verified'
   document.getElementById('subline').textContent = 'redirecting you now...'
   await new Promise(r => setTimeout(r, 500))
-  window.location.href = returnUrl
+  window.location.href = appendToken(returnUrl, token)
+}
+
+function appendToken(url, token) {
+  try {
+    var u = new URL(url)
+    u.searchParams.set('bw_token', token)
+    return u.toString()
+  } catch {
+    var sep = url.includes('?') ? '&' : '?'
+    return url + sep + 'bw_token=' + encodeURIComponent(token)
+  }
 }
 
 run()
