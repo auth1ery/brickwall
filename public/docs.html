@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>docs — brickwall</title>
+<link rel="stylesheet" href="/css/shared.css">
+<style>
+*{box-sizing:border-box}
+body{display:flex;flex-direction:column;min-height:100vh}
+
+nav{
+  position:sticky;top:0;z-index:100;height:52px;
+  padding:0 40px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg);border-bottom:1px solid var(--border);
+}
+.nav-logo{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:-.4px;text-decoration:none;color:var(--text)}
+.nav-logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:8px}
+
+.layout{display:flex;flex:1;max-width:1160px;width:100%;margin:0 auto;padding:0 40px}
+
+.sidebar{
+  width:220px;flex-shrink:0;padding:32px 0 40px;position:sticky;
+  top:52px;height:calc(100vh - 52px);overflow-y:auto;
+}
+.sidebar-section{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:24px 0 8px;padding-left:12px}
+.sidebar-section:first-child{margin-top:0}
+.sidebar a{
+  display:block;padding:5px 12px;font-size:12px;color:var(--text2);text-decoration:none;
+  border-radius:3px;transition:all .12s;border-left:2px solid transparent;margin-bottom:1px;
+}
+.sidebar a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.sidebar a.active{color:var(--accent2);border-color:var(--accent);background:rgba(217,95,43,.06)}
+
+.content{
+  flex:1;min-width:0;padding:40px 0 80px 52px;
+  border-left:1px solid var(--border);
+}
+
+h2{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-.5px;margin:0 0 8px;line-height:1.2}
+h3{font-family:var(--display);font-size:16px;font-weight:600;letter-spacing:-.2px;margin:40px 0 12px;color:var(--text)}
+h4{font-size:12px;font-weight:600;letter-spacing:.04em;margin:24px 0 8px;color:var(--text2);text-transform:uppercase}
+p{color:var(--text2);font-size:13px;line-height:1.85;margin:0 0 16px}
+p:last-child{margin-bottom:0}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+code{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--border);padding:1px 6px;border-radius:2px;color:var(--accent2)}
+strong{color:var(--text);font-weight:600}
+
+.doc-section{padding-top:56px;margin-top:0;border-top:1px solid var(--border)}
+.doc-section:first-child{border-top:none;padding-top:0}
+.section-badge{font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);font-family:var(--mono);margin-bottom:10px}
+
+.codeblock{
+  background:var(--surface);border:1px solid var(--border);border-radius:4px;
+  overflow:hidden;margin:16px 0;
+}
+.codeblock-header{
+  padding:8px 14px;background:var(--surface2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.codeblock-lang{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.04em}
+.codeblock-copy{font-size:10px;color:var(--muted);cursor:pointer;font-family:var(--mono);background:none;border:none;padding:0;transition:color .15s}
+.codeblock-copy:hover{color:var(--text)}
+.codeblock pre{padding:16px;overflow-x:auto;margin:0;font-size:12px;line-height:1.7;font-family:var(--mono)}
+.codeblock pre .c{color:var(--muted)}
+.codeblock pre .s{color:var(--accent2)}
+.codeblock pre .k{color:var(--accent)}
+.codeblock pre .v{color:var(--green)}
+
+.callout{
+  padding:14px 16px;border-radius:4px;margin:20px 0;font-size:12px;line-height:1.75;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.callout.info{background:rgba(74,120,158,.1);border:1px solid rgba(74,120,158,.2);color:var(--text2)}
+.callout.warn{background:rgba(201,149,58,.08);border:1px solid rgba(201,149,58,.2);color:var(--text2)}
+.callout.tip{background:rgba(74,158,107,.08);border:1px solid rgba(74,158,107,.2);color:var(--text2)}
+.callout-icon{flex-shrink:0;font-size:14px;margin-top:1px}
+
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:12px}
+th{padding:8px 12px;text-align:left;font-size:10px;letter-spacing:.08em;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);background:var(--surface2);text-transform:uppercase}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--text2);line-height:1.6}
+tr:last-child td{border-bottom:none}
+td:first-child{color:var(--text);font-family:var(--mono);font-size:11px}
+
+.param-required{font-size:9px;color:var(--red);letter-spacing:.06em;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+.param-optional{font-size:9px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+
+.method-badge{
+  display:inline-block;padding:2px 8px;border-radius:2px;font-family:var(--mono);font-size:10px;
+  font-weight:700;letter-spacing:.06em;margin-right:8px;
+}
+.method-post{background:rgba(217,95,43,.15);color:var(--accent)}
+.method-get{background:rgba(74,158,107,.12);color:var(--green)}
+.method-delete{background:rgba(196,74,58,.12);color:var(--red)}
+.method-put{background:rgba(74,120,158,.12);color:#7eb8e8}
+.endpoint-path{font-family:var(--mono);font-size:13px;color:var(--text2)}
+
+.env-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px}
+.env-row:last-child{border-bottom:none}
+.env-key{font-family:var(--mono);font-size:11px;color:var(--accent2);width:160px;flex-shrink:0;padding-top:2px}
+.env-desc{color:var(--text2);line-height:1.6;flex:1}
+.env-required{color:var(--red);font-size:10px;margin-left:4px}
+
+@media(max-width:860px){
+  .sidebar{display:none}
+  .layout{padding:0 20px}
+  .content{padding:32px 0 60px;border-left:none}
+  nav{padding:0 20px}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<nav>
+  <a class="nav-logo" href="/">brick<span>wall</span></a>
+  <div class="nav-right">
+    <a href="/" class="btn btn-ghost btn-sm">← home</a>
+    <a href="/dashboard.html" class="btn btn-primary btn-sm">dashboard →</a>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">getting started</div>
+    <a href="#quickstart" class="active" onclick="setActive(this)">quickstart</a>
+    <a href="#how-it-works" onclick="setActive(this)">how it works</a>
+    <a href="#installation" onclick="setActive(this)">installation</a>
+
+    <div class="sidebar-section">configuration</div>
+    <a href="#site-settings" onclick="setActive(this)">site settings</a>
+    <a href="#token-ttl" onclick="setActive(this)">token ttl</a>
+
+    <div class="sidebar-section">api reference</div>
+    <a href="#api-auth" onclick="setActive(this)">authentication</a>
+    <a href="#api-sites" onclick="setActive(this)">sites</a>
+    <a href="#api-challenge" onclick="setActive(this)">challenge</a>
+
+    <div class="sidebar-section">guides</div>
+    <a href="#guide-neocities" onclick="setActive(this)">neocities / static sites</a>
+    <a href="#guide-spa" onclick="setActive(this)">single-page apps</a>
+    <a href="#guide-backend" onclick="setActive(this)">server-side verification</a>
+    <a href="#guide-multiple" onclick="setActive(this)">multiple sites</a>
+
+    <div class="sidebar-section">reference</div>
+    <a href="#edge-cases" onclick="setActive(this)">edge cases</a>
+    <a href="#troubleshooting" onclick="setActive(this)">troubleshooting</a>
+  </aside>
+
+  <main class="content" id="docContent">
+
+    <!-- QUICKSTART -->
+    <div class="doc-section" id="quickstart">
+      <div class="section-badge">getting started</div>
+      <h2>quickstart</h2>
+      <p>add bot protection to any website in under two minutes. you need a brickwall account and one line of html.</p>
+
+      <h3>1. create an account</h3>
+      <p>go to <a href="/">brickwall.onrender.com</a> and register. you'll be taken straight to the dashboard.</p>
+
+      <h3>2. add your site</h3>
+      <p>in the dashboard, click <strong>add site</strong>. enter a name and your domain (e.g. <code>yoursite.neocities.org</code>). brickwall will generate a unique site key.</p>
+
+      <h3>3. add the script tag</h3>
+      <p>paste this into the <code>&lt;head&gt;</code> of every page you want protected:</p>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">html</span><button class="codeblock-copy" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="s">&lt;script</span> <span class="k">src</span>=<span class="v">"https://brickwall.onrender.com/js/protect.min.js"</span>
+        <span class="k">data-site</span>=<span class="v">"YOUR_SITE_KEY"</span><span class="s">&gt;&lt;/script&gt;</span></pre>
+      </div>
+      <p>replace <code>YOUR_SITE_KEY</code> with the key shown in your dashboard under <strong>installation</strong>.</p>
+
+      <h3>4. test it</h3>
+      <p>open your site in a private/incognito window. you should be redirected to the brickwall challenge page, solve it in under 2 seconds, then land back on your site. subsequent visits will be instant — the token is cached in localStorage.</p>
+
+      <div class="callout tip">
+        <span class="callout-icon">✓</span>
+        <div>once you see requests appearing in your dashboard's <strong>all requests</strong> panel, everything is working.</div>
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="doc-section" id="how-it-works">
+      <div class="section-badge">getting started</div>
+      <h2>how it works</h2>
+      <p>brickwall is a lightweight bot-gate. it sits between your visitor and your site's content without requiring any server-side code on your end.</p>
+
+      <h3>the flow</h3>
+      <p><strong>1. visitor arrives →</strong> <code>protect.min.js</code> runs and checks localStorage for a valid signed token.</p>
+      <p><strong>2. no token →</strong> visitor is redirected to <code>brickwall.onrender.com/challenge.html</code> with your site key and their return URL in the query string.</p>
+      <p><strong>3. challenge →</strong> the challenge page runs browser fingerprinting checks and a proof-of-work puzzle (SHA-256 hash with leading zeros). takes ~1–2 seconds for a real browser.</p>
+      <p><strong>4. verification →</strong> the solution is sent to the brickwall server, which checks the hash, validates timing (rejects solutions &lt;200ms — too fast for a human), and issues a signed JWT.</p>
+      <p><strong>5. return →</strong> visitor is redirected back to your site with the token appended as <code>?bw_token=...</code>. the script picks it up, saves it to localStorage, and strips it from the URL.</p>
+      <p><strong>6. subsequent visits →</strong> the token is read from localStorage, the expiry is checked client-side, and the visitor passes through silently. no network request needed.</p>
+
+      <h3>the token</h3>
+      <p>tokens are JWTs signed with a secret only the brickwall server knows. they contain the site ID and an expiry timestamp. the client-side script decodes the expiry from the JWT payload without a server call to check freshness — it only makes a network request when there's no token at all.</p>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <div>tokens are scoped per site key. a token from one site cannot be used on another, even if both are registered to the same account.</div>
+      </div>
+    </div>
+
+    <!-- INSTALLATION -->
+    <div class="doc-section" id="installation">
+      <div class="section-badge">getting started</div>
+      <h2>installation</h2>
+
+      <h3>script tag (recommended)</h3>
+      <p>place this in <code>&lt;head&gt;</code> before other scripts. it must load synchronously to prevent unprotected content from flashing.</p>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">html</span><button class="codeblock-copy" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="s">&lt;head&gt;</span>
+  <span class="c">&lt;!-- brickwall — place before other scripts --&gt;</span>
+  <span class="s">&lt;script</span> <span class="k">src</span>=<span class="v">"https://brickwall.onrender.com/js/protect.min.js"</span>
+          <span class="k">data-site</span>=<span class="v">"bw_live_xxxxxxxxxxxx"</span><span class="s">&gt;&lt;/script&gt;</span>
+<span class="s">&lt;/head&gt;</span></pre>
+      </div>
+
+      <h3>attributes</h3>
+      <table>
+        <thead><tr><th>attribute</th><th>description</th></tr></thead>
+        <tbody>
+          <tr><td>data-site<span class="param-required">required</span></td><td>your site key from the dashboard. starts with <code>bw_live_</code>.</td></tr>
+          <tr><td>data-api<span class="param-optional">optional</span></td><td>override the api base url. defaults to <code>https://brickwall.onrender.com</code>. useful if self-hosting.</td></tr>
+          <tr><td>data-challenge<span class="param-optional">optional</span></td><td>override the challenge page base url. defaults to <code>https://brickwall.onrender.com</code>.</td></tr>
+        </tbody>
+      </table>
+
+      <h3>what the script does</h3>
+      <p>on every page load, <code>protect.min.js</code>:</p>
+      <p>1. checks the URL for a <code>bw_token</code> param (set after a successful challenge) — saves it to localStorage and strips it from the URL using <code>history.replaceState</code>.</p>
+      <p>2. reads the token from localStorage and decodes the JWT expiry field client-side.</p>
+      <p>3. if the token is missing or expired, immediately redirects to the challenge page.</p>
+      <p>4. if the token is valid, does nothing — the user sees the page normally.</p>
+
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <div><strong>stale key warning:</strong> if you see "unknown site key" in the challenge page, your embed script has an old key. rotate and copy the current key from your dashboard's <strong>installation</strong> panel and update the <code>data-site</code> attribute.</div>
+      </div>
+    </div>
+
+    <!-- SITE SETTINGS -->
+    <div class="doc-section" id="site-settings">
+      <div class="section-badge">configuration</div>
+      <h2>site settings</h2>
+      <p>each site has independent settings accessible from the dashboard under <strong>site settings</strong>.</p>
+      <table>
+        <thead><tr><th>setting</th><th>default</th><th>description</th></tr></thead>
+        <tbody>
+          <tr><td>allowCrawlers</td><td>true</td><td>automatically pass googlebot, bingbot, and other known crawlers. they're logged as "crawler" with status "passed".</td></tr>
+          <tr><td>blockTor</td><td>false</td><td>block known tor exit node ip ranges before the challenge. blocked visitors see an access denied page.</td></tr>
+          <tr><td>blockVpn</td><td>false</td><td>flag or block known datacenter asns and vpn exit ip ranges.</td></tr>
+          <tr><td>challengeTtl</td><td>24</td><td>how many hours a verified token lasts. after this, visitors are re-challenged silently.</td></tr>
+          <tr><td>active</td><td>true</td><td>when false, all visitors pass through without any challenge. useful for maintenance or testing.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TOKEN TTL -->
+    <div class="doc-section" id="token-ttl">
+      <div class="section-badge">configuration</div>
+      <h2>token ttl</h2>
+      <p>the token TTL controls how long a verified visitor goes without being re-challenged. the default is <strong>24 hours</strong>. you can set it anywhere from 1 to 720 hours (30 days).</p>
+      <p>for high-security sites, use a shorter TTL (1–6 hours). for low-friction user experience, use 72–168 hours. the re-challenge is transparent to the user — they'll see the brickwall page for ~1 second and be returned.</p>
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <div>token expiry is checked client-side by decoding the JWT payload — no server call required. the token is only validated server-side during the initial challenge flow.</div>
+      </div>
+    </div>
+
+    <!-- API AUTH -->
+    <div class="doc-section" id="api-auth">
+      <div class="section-badge">api reference</div>
+      <h2>authentication api</h2>
+      <p>sessions use http-only cookies (<code>bw_session</code>). no bearer tokens needed for dashboard api calls.</p>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/auth/register</span></h3>
+      <table><thead><tr><th>field</th><th>type</th><th>description</th></tr></thead><tbody>
+        <tr><td>name<span class="param-required">required</span></td><td>string</td><td>display name</td></tr>
+        <tr><td>email<span class="param-required">required</span></td><td>string</td><td>must be unique</td></tr>
+        <tr><td>password<span class="param-required">required</span></td><td>string</td><td>minimum 8 characters</td></tr>
+      </tbody></table>
+      <p>returns <code>{"ok": true, "name": "..."}</code> and sets <code>bw_session</code> cookie.</p>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/auth/login</span></h3>
+      <table><thead><tr><th>field</th><th>type</th><th>description</th></tr></thead><tbody>
+        <tr><td>email<span class="param-required">required</span></td><td>string</td><td></td></tr>
+        <tr><td>password<span class="param-required">required</span></td><td>string</td><td></td></tr>
+      </tbody></table>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/auth/logout</span></h3>
+      <p>clears the session cookie.</p>
+
+      <h3><span class="method-badge method-get">GET</span><span class="endpoint-path">/api/auth/me</span></h3>
+      <p>returns <code>{"id", "email", "name"}</code> for the current session. 401 if not logged in.</p>
+
+      <h3><span class="method-badge method-delete">DELETE</span><span class="endpoint-path">/api/auth/account</span></h3>
+      <p>permanently deletes the account and all associated sites, keys, and request history. clears session cookie.</p>
+    </div>
+
+    <!-- API SITES -->
+    <div class="doc-section" id="api-sites">
+      <div class="section-badge">api reference</div>
+      <h2>sites api</h2>
+      <p>all endpoints require an active session cookie.</p>
+
+      <h3><span class="method-badge method-get">GET</span><span class="endpoint-path">/api/sites</span></h3>
+      <p>returns array of sites belonging to the current user.</p>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/sites</span></h3>
+      <table><thead><tr><th>field</th><th>description</th></tr></thead><tbody>
+        <tr><td>name<span class="param-required">required</span></td><td>display name for the site</td></tr>
+        <tr><td>domain<span class="param-required">required</span></td><td>domain only, e.g. <code>example.com</code>. protocol and path are stripped automatically.</td></tr>
+      </tbody></table>
+
+      <h3><span class="method-badge method-put">PUT</span><span class="endpoint-path">/api/sites/:id</span></h3>
+      <p>update name, settings, or active state. only provided fields are updated.</p>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">json</span><button class="codeblock-copy" onclick="copyCode(this)">copy</button></div>
+        <pre>{
+  <span class="k">"name"</span>: <span class="v">"my site"</span>,
+  <span class="k">"active"</span>: <span class="v">false</span>,
+  <span class="k">"settings"</span>: {
+    <span class="k">"allowCrawlers"</span>: <span class="v">true</span>,
+    <span class="k">"blockTor"</span>: <span class="v">false</span>,
+    <span class="k">"blockVpn"</span>: <span class="v">false</span>,
+    <span class="k">"challengeTtl"</span>: <span class="v">24</span>
+  }
+}</pre>
+      </div>
+
+      <h3><span class="method-badge method-delete">DELETE</span><span class="endpoint-path">/api/sites/:id</span></h3>
+      <p>permanently deletes the site, its api key, and all request history.</p>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/sites/:id/rotate</span></h3>
+      <p>generates a new api key for the site. <strong>all existing visitor tokens are immediately invalidated</strong> — visitors will be re-challenged on their next visit. returns <code>{"key": "bw_live_..."}</code>.</p>
+
+      <h3><span class="method-badge method-get">GET</span><span class="endpoint-path">/api/sites/:id/requests</span></h3>
+      <p>returns the last 500 verification attempts for the site, newest first.</p>
+
+      <h3><span class="method-badge method-get">GET</span><span class="endpoint-path">/api/sites/:id/stats</span></h3>
+      <p>returns <code>{"total", "passed", "blocked", "flagged"}</code> counts for all recorded requests.</p>
+    </div>
+
+    <!-- API CHALLENGE -->
+    <div class="doc-section" id="api-challenge">
+      <div class="section-badge">api reference</div>
+      <h2>challenge api</h2>
+      <p>these endpoints are called by the challenge page and the embed script. you don't need to call them directly unless you're building something custom.</p>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/challenge/init</span></h3>
+      <p>initialize a challenge for a site key. returns a challenge ID and proof-of-work difficulty, or skips straight to a token for known crawlers.</p>
+      <table><thead><tr><th>field</th><th>description</th></tr></thead><tbody>
+        <tr><td>siteKey<span class="param-required">required</span></td><td>the <code>bw_live_...</code> key from the embed script</td></tr>
+        <tr><td>returnUrl<span class="param-optional">optional</span></td><td>url to redirect to after challenge passes</td></tr>
+      </tbody></table>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/challenge/verify</span></h3>
+      <p>submit a proof-of-work solution. returns a signed JWT on success.</p>
+      <table><thead><tr><th>field</th><th>description</th></tr></thead><tbody>
+        <tr><td>challengeId<span class="param-required">required</span></td><td>id from <code>/init</code></td></tr>
+        <tr><td>nonce<span class="param-required">required</span></td><td>the nonce that produces a hash with the required leading zeros</td></tr>
+        <tr><td>elapsed<span class="param-required">required</span></td><td>milliseconds taken to solve. must be ≥ 200ms or the solve is rejected as automated.</td></tr>
+      </tbody></table>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/challenge/check</span></h3>
+      <p>verify a token server-side. returns <code>{"valid": true/false}</code>. useful for backend verification — see <a href="#guide-backend">server-side verification</a>.</p>
+      <table><thead><tr><th>field</th><th>description</th></tr></thead><tbody>
+        <tr><td>token<span class="param-required">required</span></td><td>the JWT from localStorage / the bw_token url param</td></tr>
+        <tr><td>siteKey<span class="param-required">required</span></td><td>your site key</td></tr>
+      </tbody></table>
+    </div>
+
+    <!-- GUIDE: NEOCITIES -->
+    <div class="doc-section" id="guide-neocities">
+      <div class="section-badge">guides</div>
+      <h2>neocities / static sites</h2>
+      <p>brickwall was built with static hosts in mind. there's no server to configure — just paste the script tag.</p>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">html</span><button class="codeblock-copy" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="s">&lt;!DOCTYPE html&gt;</span>
+<span class="s">&lt;html&gt;</span>
+<span class="s">&lt;head&gt;</span>
+  <span class="s">&lt;meta</span> <span class="k">charset</span>=<span class="v">"UTF-8"</span><span class="s">&gt;</span>
+  <span class="c">&lt;!-- add this line --&gt;</span>
+  <span class="s">&lt;script</span> <span class="k">src</span>=<span class="v">"https://brickwall.onrender.com/js/protect.min.js"</span>
+          <span class="k">data-site</span>=<span class="v">"bw_live_your_key_here"</span><span class="s">&gt;&lt;/script&gt;</span>
+  <span class="s">&lt;title&gt;</span>my site<span class="s">&lt;/title&gt;</span>
+<span class="s">&lt;/head&gt;</span>
+<span class="s">&lt;body&gt;</span>
+  ...
+<span class="s">&lt;/body&gt;</span>
+<span class="s">&lt;/html&gt;</span></pre>
+      </div>
+      <p>paste this into every <code>.html</code> file you want protected. on neocities, you can edit files directly in the browser or upload them via the dashboard.</p>
+      <div class="callout tip">
+        <span class="callout-icon">✓</span>
+        <div>if you have many pages, add the script to a shared header/template if your site uses one. otherwise add it to each file individually.</div>
+      </div>
+    </div>
+
+    <!-- GUIDE: SPA -->
+    <div class="doc-section" id="guide-spa">
+      <div class="section-badge">guides</div>
+      <h2>single-page apps</h2>
+      <p>for SPAs (react, vue, svelte, etc.), add the script tag to your <code>index.html</code>. since brickwall redirects at the browser level before js frameworks initialize, it works regardless of your routing setup.</p>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">html — index.html</span><button class="codeblock-copy" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="s">&lt;head&gt;</span>
+  <span class="s">&lt;meta</span> <span class="k">charset</span>=<span class="v">"UTF-8"</span><span class="s">&gt;</span>
+  <span class="c">&lt;!-- brickwall must load before your app bundle --&gt;</span>
+  <span class="s">&lt;script</span> <span class="k">src</span>=<span class="v">"https://brickwall.onrender.com/js/protect.min.js"</span>
+          <span class="k">data-site</span>=<span class="v">"bw_live_your_key_here"</span><span class="s">&gt;&lt;/script&gt;</span>
+  <span class="s">&lt;link</span> <span class="k">rel</span>=<span class="v">"stylesheet"</span> <span class="k">href</span>=<span class="v">"/dist/bundle.css"</span><span class="s">&gt;</span>
+<span class="s">&lt;/head&gt;</span>
+<span class="s">&lt;body&gt;</span>
+  <span class="s">&lt;div</span> <span class="k">id</span>=<span class="v">"root"</span><span class="s">&gt;&lt;/div&gt;</span>
+  <span class="s">&lt;script</span> <span class="k">src</span>=<span class="v">"/dist/bundle.js"</span><span class="s">&gt;&lt;/script&gt;</span>
+<span class="s">&lt;/body&gt;</span></pre>
+      </div>
+      <p>the redirect happens synchronously before your app mounts — if there's no valid token, the browser never renders your app content.</p>
+    </div>
+
+    <!-- GUIDE: BACKEND -->
+    <div class="doc-section" id="guide-backend">
+      <div class="section-badge">guides</div>
+      <h2>server-side verification</h2>
+      <p>if you have an api or backend that should only respond to verified visitors, you can verify tokens server-side using the <code>/api/challenge/check</code> endpoint.</p>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">javascript — express middleware</span><button class="codeblock-copy" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="k">async function</span> <span class="v">requireBrickwall</span>(req, res, next) {
+  <span class="k">const</span> token = req.headers[<span class="s">'x-brickwall-token'</span>]
+  <span class="k">if</span> (!token) <span class="k">return</span> res.status(<span class="v">401</span>).json({ error: <span class="s">'not verified'</span> })
+
+  <span class="k">const</span> r = <span class="k">await</span> fetch(<span class="s">'https://brickwall.onrender.com/api/challenge/check'</span>, {
+    method: <span class="s">'POST'</span>,
+    headers: { <span class="s">'Content-Type'</span>: <span class="s">'application/json'</span> },
+    body: JSON.stringify({ token, siteKey: <span class="v">process.env.BRICKWALL_SITE_KEY</span> })
+  })
+  <span class="k">const</span> { valid } = <span class="k">await</span> r.json()
+  <span class="k">if</span> (!valid) <span class="k">return</span> res.status(<span class="v">403</span>).json({ error: <span class="s">'invalid token'</span> })
+  next()
+}</pre>
+      </div>
+      <p>on the client side, pass the token in a request header:</p>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">javascript — client</span><button class="codeblock-copy" onclick="copyCode(this)">copy</button></div>
+        <pre><span class="k">const</span> token = localStorage.getItem(<span class="s">'bw_token_YOUR_SITE_KEY'</span>)
+fetch(<span class="s">'/api/protected-route'</span>, {
+  headers: { <span class="s">'x-brickwall-token'</span>: token }
+})</pre>
+      </div>
+    </div>
+
+    <!-- GUIDE: MULTIPLE -->
+    <div class="doc-section" id="guide-multiple">
+      <div class="section-badge">guides</div>
+      <h2>multiple sites</h2>
+      <p>each site in your dashboard gets its own unique key. tokens are scoped to a site key — a visitor verified on site A cannot use that token on site B.</p>
+      <p>to protect multiple sites, add each domain in the dashboard and use the corresponding key in each site's script tag. they'll all show up as separate entries in your dashboard with their own request logs and settings.</p>
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <div>there's no limit on the number of sites per account during early access.</div>
+      </div>
+    </div>
+
+    <!-- EDGE CASES -->
+    <div class="doc-section" id="edge-cases">
+      <div class="section-badge">reference</div>
+      <h2>edge cases</h2>
+      <table>
+        <thead><tr><th>scenario</th><th>behavior</th></tr></thead>
+        <tbody>
+          <tr><td>googlebot / bingbot</td><td>auto-bypassed if "allow crawlers" is on. logged as crawler/passed. token issued immediately.</td></tr>
+          <tr><td>tor exit nodes</td><td>blocked before challenge if "block tor" is on. blocked visitors see an access denied screen.</td></tr>
+          <tr><td>vpn / datacenter ips</td><td>flagged in the request log. can be configured to block outright.</td></tr>
+          <tr><td>headless chrome / puppeteer</td><td>blocked by <code>navigator.webdriver === true</code> check on the challenge page.</td></tr>
+          <tr><td>phantomjs / nightmare</td><td>blocked by artifact detection on the challenge page.</td></tr>
+          <tr><td>javascript disabled</td><td>noscript fallback message shown. content is not accessible without js.</td></tr>
+          <tr><td>pow solved in &lt;200ms</td><td>rejected as automated. a human browser cannot solve it that fast.</td></tr>
+          <tr><td>challenge expires (2min)</td><td>user is redirected back to the challenge page cleanly on retry.</td></tr>
+          <tr><td>token expired</td><td>cleared from localStorage, visitor re-challenged transparently.</td></tr>
+          <tr><td>rate limited (15 req/min)</td><td>ip is rate limited for 60 seconds. user sees a countdown message.</td></tr>
+          <tr><td>site set to inactive</td><td>all visitors pass through without a challenge.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- TROUBLESHOOTING -->
+    <div class="doc-section" id="troubleshooting">
+      <div class="section-badge">reference</div>
+      <h2>troubleshooting</h2>
+
+      <h3>"unknown site key"</h3>
+      <p>the key in your embed script doesn't match any site in the database. this usually happens after a server restart when data was previously stored in memory (pre-database). go to your dashboard → <strong>installation</strong>, copy the current key, and update the <code>data-site</code> attribute in your html.</p>
+
+      <h3>"automated browser detected"</h3>
+      <p>the challenge page's headless browser detection triggered. this should only happen for actual automation tools. if you're seeing this on a real browser, open a github issue — it may be a false positive we haven't seen before.</p>
+
+      <h3>infinite redirect loop</h3>
+      <p>the most common cause is the token being saved to the wrong origin. make sure you're using the latest version of <code>protect.min.js</code> — older versions saved the token to brickwall's localStorage instead of your site's. re-deploy with the latest script tag.</p>
+
+      <h3>requests not showing in dashboard</h3>
+      <p>requests are only logged during <code>/api/challenge/init</code> and <code>/api/challenge/verify</code>. if the redirect from your site to the challenge page never happens, no requests are logged. check the browser console for errors from <code>protect.min.js</code>.</p>
+
+      <h3>can't scroll in dashboard</h3>
+      <p>clear your browser cache and hard-reload (<code>ctrl+shift+r</code> / <code>cmd+shift+r</code>). if you deployed before the scroll fix, you may be serving an old cached version.</p>
+
+      <h3>login says "invalid credentials"</h3>
+      <p>if you registered before the postgres migration, your account was stored in memory and lost on restart. register a new account — this time it'll persist in the database.</p>
+    </div>
+
+  </main>
+</div>
+
+<script>
+function setActive(el) {
+  document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'))
+  el.classList.add('active')
+}
+
+function copyCode(btn) {
+  const pre = btn.closest('.codeblock').querySelector('pre')
+  const text = pre.innerText
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = 'copied!'
+    setTimeout(() => btn.textContent = 'copy', 2000)
+  })
+}
+
+// highlight active section on scroll
+const sections = document.querySelectorAll('.doc-section')
+const links = document.querySelectorAll('.sidebar a')
+window.addEventListener('scroll', () => {
+  let current = ''
+  sections.forEach(s => {
+    if (window.scrollY + 80 >= s.offsetTop) current = s.id
+  })
+  links.forEach(a => {
+    a.classList.toggle('active', a.getAttribute('href') === '#' + current)
+  })
+}, { passive: true })
+</script>
+</body>
+</html>
