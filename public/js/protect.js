@@ -5,8 +5,8 @@
   })()
 
   var siteKey = script.getAttribute('data-site')
-  var apiBase = script.getAttribute('data-api') || 'https://api.brickwall.sh'
-  var challengeBase = script.getAttribute('data-challenge') || 'https://brickwall.sh'
+  var apiBase = script.getAttribute('data-api') || 'https://brickwall.onrender.com'
+  var challengeBase = script.getAttribute('data-challenge') || 'https://brickwall.onrender.com'
 
   if (!siteKey) return
 
