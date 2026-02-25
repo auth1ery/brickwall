@@ -62,7 +62,23 @@
     xhr.send(JSON.stringify({ token: token, siteKey: siteKey }))
   }
 
+  function saveTokenFromUrl() {
+    try {
+      var u = new URL(window.location.href)
+      var t = u.searchParams.get('bw_token')
+      if (!t) return
+      u.searchParams.delete('bw_token')
+      try { localStorage.setItem(storageKey, t) } catch {}
+      var clean = u.toString()
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, '', clean)
+      }
+    } catch {}
+  }
+
   function run() {
+    saveTokenFromUrl()
+
     var token = getToken()
 
     if (!token) { redirect(); return }
