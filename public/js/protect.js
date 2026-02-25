@@ -5,7 +5,6 @@
   })()
 
   var siteKey = script.getAttribute('data-site')
-  var apiBase = script.getAttribute('data-api') || 'https://brickwall.onrender.com'
   var challengeBase = script.getAttribute('data-challenge') || 'https://brickwall.onrender.com'
 
   if (!siteKey) return
@@ -36,32 +35,6 @@
     return (exp - TOKEN_MARGIN) > (Date.now() / 1000)
   }
 
-  function getReturnUrl() {
-    return encodeURIComponent(window.location.href)
-  }
-
-  function redirect() {
-    var url = challengeBase + '/challenge.html?k=' + encodeURIComponent(siteKey) + '&r=' + getReturnUrl()
-    window.location.replace(url)
-  }
-
-  function verifyWithServer(token, cb) {
-    var xhr = new XMLHttpRequest()
-    xhr.open('POST', apiBase + '/api/challenge/check', true)
-    xhr.setRequestHeader('Content-Type', 'application/json')
-    xhr.timeout = 5000
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState !== 4) return
-      try {
-        var d = JSON.parse(xhr.responseText)
-        cb(d.valid === true)
-      } catch { cb(false) }
-    }
-    xhr.ontimeout = function() { cb(true) }
-    xhr.onerror = function() { cb(true) }
-    xhr.send(JSON.stringify({ token: token, siteKey: siteKey }))
-  }
-
   function saveTokenFromUrl() {
     try {
       var u = new URL(window.location.href)
@@ -69,11 +42,19 @@
       if (!t) return
       u.searchParams.delete('bw_token')
       try { localStorage.setItem(storageKey, t) } catch {}
-      var clean = u.toString()
       if (window.history && window.history.replaceState) {
-        window.history.replaceState(null, '', clean)
+        window.history.replaceState(null, '', u.toString())
       }
     } catch {}
+  }
+
+  function redirect() {
+    var current = window.location.href
+    var u = new URL(current)
+    u.searchParams.delete('bw_token')
+    var returnUrl = u.toString()
+    var dest = challengeBase + '/challenge.html?k=' + encodeURIComponent(siteKey) + '&r=' + encodeURIComponent(returnUrl)
+    window.location.replace(dest)
   }
 
   function run() {
@@ -88,13 +69,6 @@
       redirect()
       return
     }
-
-    verifyWithServer(token, function(valid) {
-      if (!valid) {
-        clearToken()
-        redirect()
-      }
-    })
   }
 
   if (document.readyState === 'loading') {
