@@ -28,43 +28,6 @@ const challenges = new Map()
 const rateBuckets = new Map()
 const apiKeys = new Map()
 
-function seedDemoData(userId) {
-  const siteId = uuidv4()
-  const key = 'bw_live_' + crypto.randomBytes(16).toString('hex')
-  const site = {
-    id: siteId,
-    userId,
-    name: 'my first site',
-    domain: 'example.com',
-    key,
-    createdAt: Date.now() - 1000 * 60 * 60 * 24 * 3,
-    active: true,
-    settings: { allowCrawlers: true, blockTor: false, blockVpn: false, challengeTtl: 24 }
-  }
-  sites.set(siteId, site)
-  apiKeys.set(key, siteId)
-
-  const countries = ['United States','Germany','France','United Kingdom','Canada','Netherlands','Japan','Brazil']
-  const statuses = ['passed','passed','passed','passed','blocked','passed','flagged','passed','passed','blocked']
-  const detected = ['N/A','vpn','tor','crawler','N/A','N/A','vpn','N/A','N/A','tor']
-  const now = Date.now()
-  const reqs = []
-  for (let i = 0; i < 38; i++) {
-    const ts = now - Math.floor(Math.random() * 1000 * 60 * 60 * 48)
-    const si = Math.floor(Math.random() * statuses.length)
-    reqs.push({
-      id: uuidv4(),
-      siteId,
-      country: countries[Math.floor(Math.random() * countries.length)],
-      detected: detected[si],
-      status: statuses[si],
-      ts,
-      ua: 'Mozilla/5.0'
-    })
-  }
-  reqs.sort((a,b) => b.ts - a.ts)
-  requests.set(siteId, reqs)
-}
 
 app.use(express.json())
 app.use(cookieParser())
@@ -111,7 +74,6 @@ app.post('/api/auth/register', authLimiter, (req, res) => {
   const id = uuidv4()
   const hash = crypto.createHmac('sha256', PASS_SECRET).update(password).digest('hex')
   users.set(id, { id, email: email.toLowerCase(), name, hash, createdAt: Date.now() })
-  seedDemoData(id)
   const token = jwt.sign({ id, email: email.toLowerCase(), name }, SECRET, { expiresIn: '7d' })
   res.cookie('bw_session', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 })
   res.json({ ok: true, name })
