@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>privacy policy — brickwall</title>
+<link rel="stylesheet" href="/css/shared.css">
+<style>
+*{box-sizing:border-box}
+nav{
+  position:sticky;top:0;z-index:100;height:56px;
+  padding:0 48px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg);border-bottom:1px solid var(--border);
+}
+.nav-logo{font-family:var(--display);font-size:16px;font-weight:800;letter-spacing:-.4px;text-decoration:none;color:var(--text)}
+.nav-logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:8px}
+
+.page{max-width:680px;margin:0 auto;padding:72px 48px 120px}
+
+.page-eyebrow{font-size:10px;color:var(--accent);letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px;font-family:var(--mono)}
+.page-title{font-family:var(--display);font-size:clamp(32px,4vw,52px);font-weight:800;letter-spacing:-1.5px;line-height:1;margin-bottom:10px}
+.page-meta{color:var(--muted);font-size:12px;margin-bottom:56px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+
+h2{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.3px;margin:48px 0 12px;color:var(--text)}
+p{color:var(--text2);font-size:13px;line-height:1.9;margin:0 0 14px}
+p:last-child{margin-bottom:0}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+strong{color:var(--text);font-weight:600}
+
+.callout{
+  padding:14px 16px;border-radius:4px;margin:20px 0;font-size:12px;line-height:1.75;
+  display:flex;gap:10px;align-items:flex-start;
+  background:rgba(74,158,107,.08);border:1px solid rgba(74,158,107,.2);color:var(--text2);
+}
+.callout-icon{flex-shrink:0;font-size:14px;margin-top:1px}
+
+footer{border-top:1px solid var(--border);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-logo{font-family:var(--display);font-size:14px;font-weight:800;letter-spacing:-.3px}
+.footer-logo span{color:var(--accent)}
+footer p{color:var(--muted);font-size:11px}
+.footer-links{display:flex;gap:20px}
+.footer-links a{color:var(--muted);font-size:11px;text-decoration:none;transition:color .15s}
+.footer-links a:hover{color:var(--text)}
+
+@media(max-width:640px){
+  nav{padding:0 20px}
+  .page{padding:48px 20px 80px}
+  footer{padding:24px 20px;flex-direction:column;text-align:center}
+  .footer-links{justify-content:center;flex-wrap:wrap;gap:14px}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<nav>
+  <a class="nav-logo" href="/">brick<span>wall</span></a>
+  <div class="nav-right">
+    <a href="/" class="btn btn-ghost btn-sm">← home</a>
+    <a href="/docs.html" class="btn btn-primary btn-sm">docs →</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-eyebrow">legal</div>
+  <h1 class="page-title">privacy policy</h1>
+  <p class="page-meta">last updated: february 2026</p>
+
+  <div class="callout">
+    <span class="callout-icon">✓</span>
+    <div>the short version: we collect as little as possible, we don't store ip addresses, we don't track people across sites, and we don't sell anything to anyone.</div>
+  </div>
+
+  <h2>who we are</h2>
+  <p>brickwall is a bot verification service. when a visitor lands on a site that uses brickwall, they're briefly redirected to a challenge page hosted by us, then returned to the site they came from. this policy explains what we collect during that process and why.</p>
+
+  <h2>what we collect from visitors</h2>
+  <p>when someone passes through a brickwall challenge, we log the following:</p>
+  <p><strong>country</strong> — derived from the visitor's ip address at the time of the request. the ip itself is not stored.</p>
+  <p><strong>detection result</strong> — whether the visitor was identified as a human, a known crawler, a headless browser, a vpn, or a tor exit node.</p>
+  <p><strong>status</strong> — whether they passed, were blocked, or were flagged.</p>
+  <p><strong>timestamp</strong> — when the request happened.</p>
+  <p>that's all that's recorded. ip addresses are used transiently during the request to run checks (rate limiting, tor detection, vpn detection) and are not written to the database.</p>
+  <p>browser fingerprinting is used during the challenge itself to detect automation tools. this data is not stored anywhere — it's used only to make a pass or block decision in the moment.</p>
+
+  <h2>what site owners can see</h2>
+  <p>site owners can view their request log in the dashboard. the log shows country, detection result, status, and timestamp for each request to their site. nothing else. they cannot see ip addresses or any other identifying information.</p>
+
+  <h2>what we as operators can see</h2>
+  <p>the admin panel shows aggregate counts only — total users, total sites, total requests. it does not surface request details, ip addresses, or any visitor data. server logs are limited to errors, warnings, and port activity.</p>
+
+  <h2>what we collect from site owners</h2>
+  <p>when you register an account, we store your name, email address, and a hashed password. we also store the sites you add, your settings, and your request history.</p>
+  <p>we use an http-only session cookie (<code>bw_session</code>) to keep you logged in. this cookie is strictly functional and does not track you across other sites.</p>
+
+  <h2>what gets stored in visitors' browsers</h2>
+  <p>after passing a challenge, a signed verification token (JWT) is stored in the visitor's localStorage under a key scoped to your site. this token is used on return visits to skip the challenge. it contains the site id and an expiry time — nothing personal. it expires and is cleared based on the ttl set by the site owner (default 24 hours).</p>
+
+  <h2>third parties</h2>
+  <p>we don't share data with third parties. we don't use analytics, advertising, or tracking services. brickwall is currently hosted on render.</p>
+
+  <h2>data retention</h2>
+  <p>request logs are kept until you delete your site or account. deleting your account removes everything — your profile, all your sites, all associated request history.</p>
+
+  <h2>your rights</h2>
+  <p>if you have an account, you can delete it at any time from the dashboard. this permanently removes all data associated with your account. if you have other questions or requests about your data, contact us at <a href="mailto:hi@brickwall.onrender.com">hi@brickwall.onrender.com</a>.</p>
+
+  <h2>changes to this policy</h2>
+  <p>if we make meaningful changes, we'll update the date at the top of this page. we won't change how we handle existing data without giving notice first.</p>
+
+  <h2>contact</h2>
+  <p>questions about privacy? reach us at <a href="mailto:hi@brickwall.onrender.com">hi@brickwall.onrender.com</a>.</p>
+</div>
+
+<footer>
+  <div class="footer-logo">brick<span>wall</span></div>
+  <p>© 2025 brickwall — open source, mit license</p>
+  <div class="footer-links">
+    <a href="https://github.com" target="_blank">github</a>
+    <a href="/docs.html">docs</a>
+    <a href="/terms.html">terms</a>
+    <a href="/privacy.html">privacy</a>
+    <a href="mailto:hi@brickwall.onrender.com">contact</a>
+  </div>
+</footer>
+
+</body>
+</html>
