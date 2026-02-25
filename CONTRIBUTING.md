@@ -16,7 +16,7 @@ If you send threats, wish death upon some contributors, or get in arguments beca
 
 ### Contribution Guide
 
-To contribute to Brickwall, simply fork this repository and make changes of your own that you believe is helpful/best. Once you make and finish the changes, ensure your code works and is stable enough. Then, submit a pull request with a detailed title and description, and we may likely merge it
+To contribute to Brickwall, simply fork this repository and make changes of your own that you believe is helpful/best. Once you make and finish the changes, ensure your code works and is stable enough. Then, submit a pull request with a detailed title and description, and we may likely merge it.
 
 Thank you for your interest in contributing to Brickwall!
 
