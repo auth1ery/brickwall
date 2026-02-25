@@ -211,7 +211,7 @@ footer nav a:hover{color:var(--text)}
     <div class="snippet-wrap">
       <div class="snippet-lbl">one line. that's it.</div>
       <div class="snippet-box">
-        <code><span class="dim">&lt;script</span> src="https://cdn.brickwall.sh/v1/protect.min.js" data-site="<span style="color:var(--accent)">YOUR_KEY</span>"<span class="dim">&gt;&lt;/script&gt;</span></code>
+        <code><span class="dim">&lt;script</span> src="https://brickwall.onrender.com/js/protect.min.js" data-site="<span style="color:var(--accent)">YOUR_KEY</span>"<span class="dim">&gt;&lt;/script&gt;</span></code>
         <button class="copy-btn" id="copyBtn" onclick="copySnippet()">copy</button>
       </div>
     </div>
@@ -401,7 +401,7 @@ footer nav a:hover{color:var(--text)}
   <nav>
     <a href="https://github.com" target="_blank">github</a>
     <a href="/docs">docs</a>
-    <a href="mailto:hi@brickwall.sh">contact</a>
+    <a href="mailto:hi@brickwall.onrender.com">contact</a>
   </nav>
 </footer>
 
@@ -505,7 +505,7 @@ async function doRegister() {
 }
 
 function copySnippet() {
-  const code = `<script src="https://cdn.brickwall.sh/v1/protect.min.js" data-site="YOUR_KEY"><\/script>`
+  const code = `<script src="https://brickwall.onrender.com/js/protect.min.js" data-site="YOUR_KEY"><\/script>`
   navigator.clipboard.writeText(code).then(() => {
     const b = document.getElementById('copyBtn')
     b.textContent = 'copied!'
