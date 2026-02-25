@@ -167,14 +167,10 @@ async function solvePoW(challengeId, difficulty) {
 }
 
 function detectHeadless() {
-  const checks = [
-    () => navigator.webdriver,
-    () => !window.chrome && navigator.userAgent.includes('Chrome'),
-    () => window.callPhantom || window._phantom,
-    () => !navigator.plugins || navigator.plugins.length === 0,
-    () => navigator.languages === undefined || navigator.languages.length === 0,
-  ]
-  return checks.filter(Boolean).reduce((acc, fn) => { try { return acc + (fn() ? 1 : 0) } catch { return acc } }, 0) >= 2
+  // only flag things that are dead giveaways — avoid false positives on real browsers
+  if (navigator.webdriver === true) return true
+  if (window.callPhantom || window._phantom || window.__nightmare) return true
+  return false
 }
 
 async function run() {
@@ -193,8 +189,8 @@ async function run() {
     })
     const d = await r.json()
     if (r.status === 403 && d.reason === 'tor') { showBlocked(); return }
-    if (r.status === 429) { showError('too many attempts. try again in ' + (d.retryAfter || 60) + ' seconds.'); return }
-    if (!r.ok) { showError(d.error || 'failed to initialize challenge.'); return }
+    if (r.status === 429) { showError('too many attempts! try again in ' + (d.retryAfter || 60) + ' seconds.'); return }
+    if (!r.ok) { showError((d.error || 'failed to initialize challenge.') + (d.error === 'unknown site key' ? ' — make sure your site key is correct and the site exists in your dashboard.' : '')); return }
     if (d.skip && d.token) {
       setStatus('pass')
       document.getElementById('headline').textContent = 'verified'
@@ -213,7 +209,7 @@ async function run() {
   let powResult
   try {
     powResult = await solvePoW(initData.challengeId, initData.difficulty)
-  } catch { showError('challenge computation failed.'); return }
+  } catch { showError('challenge failed. try again next time?'); return }
 
   setStep(2, 'done')
   setStep(3, 'active')
@@ -227,9 +223,9 @@ async function run() {
       body: JSON.stringify({ challengeId: initData.challengeId, nonce: powResult.nonce, elapsed: powResult.elapsed })
     })
     const d = await r.json()
-    if (!r.ok) { showError('challenge verification failed. you may be a bot.'); return }
+    if (!r.ok) { showError('challenge verification failed. you may be a bot?'); return }
     token = d.token
-  } catch { showError('network error during verification.'); return }
+  } catch { showError('network error during verification. try again...'); return }
 
   setStep(3, 'done')
   setStep(4, 'active')
