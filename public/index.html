@@ -6,12 +6,12 @@
 <title>brickwall — bot protection for any site</title>
 <link rel="stylesheet" href="/css/shared.css">
 <style>
+*{box-sizing:border-box}
 body{overflow-x:hidden}
 
 #loadingScreen{
   position:fixed;inset:0;background:var(--bg);z-index:5000;
-  display:flex;align-items:center;justify-content:center;
-  flex-direction:column;gap:16px;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;
 }
 #loadingScreen .logo-lg{font-family:var(--display);font-size:22px;font-weight:800;letter-spacing:-.5px}
 #loadingScreen .logo-lg span{color:var(--accent)}
@@ -20,153 +20,194 @@ body{overflow-x:hidden}
 
 nav{
   position:fixed;top:0;left:0;right:0;z-index:200;
-  padding:18px 40px;display:flex;align-items:center;justify-content:space-between;
-  border-bottom:1px solid transparent;transition:all .3s;
+  padding:0 48px;height:56px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid transparent;transition:all .25s;
 }
-nav.scrolled{background:rgba(12,11,11,.92);border-color:var(--border);backdrop-filter:blur(10px)}
-.logo{font-family:var(--display);font-size:17px;font-weight:800;letter-spacing:-.4px}
-.logo span{color:var(--accent)}
-.nav-links{display:flex;align-items:center;gap:28px}
-.nav-links a{color:var(--muted);font-size:12px;transition:color .2s}
-.nav-links a:hover{color:var(--text)}
-.nav-actions{display:flex;gap:10px}
+nav.scrolled{background:rgba(12,11,11,.94);border-color:var(--border);backdrop-filter:blur(12px)}
+.nav-logo{font-family:var(--display);font-size:16px;font-weight:800;letter-spacing:-.4px;text-decoration:none;color:var(--text)}
+.nav-logo span{color:var(--accent)}
+.nav-center{display:flex;align-items:center;gap:6px}
+.nav-center a{
+  color:var(--muted);font-size:12px;transition:color .15s;text-decoration:none;
+  padding:5px 12px;border-radius:3px;
+}
+.nav-center a:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.nav-center a.active{color:var(--text)}
+.nav-tag{font-size:9px;color:var(--muted);letter-spacing:.06em;vertical-align:super;margin-left:2px}
+.nav-right{display:flex;align-items:center;gap:8px}
+.nav-sep{width:1px;height:16px;background:var(--border);margin:0 4px}
 
 .hero{
-  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
-  padding:140px 40px 100px;position:relative;overflow:hidden;
+  min-height:100vh;display:flex;align-items:center;
+  padding:0 48px;position:relative;overflow:hidden;
 }
-.hero-scanlines{
-  position:absolute;inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,255,255,.008) 2px,rgba(255,255,255,.008) 4px);
-  pointer-events:none;
+.hero-bg{
+  position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(217,95,43,.07) 0%,transparent 70%);
 }
-.hero-glow{
-  position:absolute;top:-200px;left:-100px;width:700px;height:700px;
-  background:radial-gradient(circle,rgba(217,95,43,.06) 0%,transparent 70%);
-  pointer-events:none;
+.hero-grid{
+  position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:80px 80px;mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 100%);
 }
-.hero-inner{max-width:820px;position:relative;animation:fadeIn .5s ease both}
+.hero-content{
+  display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;
+  width:100%;max-width:1200px;margin:0 auto;padding-top:56px;
+}
+.hero-left{animation:fadeIn .5s ease both}
 .eyebrow{
   display:inline-flex;align-items:center;gap:8px;
   font-size:10px;color:var(--accent2);letter-spacing:.12em;text-transform:uppercase;
   margin-bottom:28px;border:1px solid rgba(232,160,122,.2);padding:4px 12px;border-radius:2px;
+  background:rgba(217,95,43,.04);
 }
 .eyebrow::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--accent);animation:blink 1.6s ease-in-out infinite}
 h1{
-  font-family:var(--display);font-size:clamp(44px,8vw,96px);font-weight:800;
-  line-height:.95;letter-spacing:-3px;margin-bottom:24px;
+  font-family:var(--display);font-size:clamp(40px,5.5vw,72px);font-weight:800;
+  line-height:.96;letter-spacing:-2.5px;margin-bottom:24px;
 }
-h1 .line2{color:var(--muted)}
+h1 .dim{color:var(--muted)}
 h1 em{font-style:normal;color:var(--accent)}
-.hero-sub{font-size:14px;color:var(--text2);max-width:440px;line-height:1.9;margin-bottom:44px}
-.hero-ctas{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.hero-ctas .arrow{color:var(--muted);font-size:12px;margin-left:4px}
+.hero-sub{font-size:14px;color:var(--text2);max-width:420px;line-height:1.9;margin-bottom:40px}
+.hero-ctas{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:48px}
 
-.snippet-wrap{margin-top:64px}
-.snippet-lbl{font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:.06em}
-.snippet-box{
-  display:inline-flex;align-items:center;gap:12px;
-  background:var(--surface);border:1px solid var(--border);border-radius:4px;
-  padding:12px 16px;max-width:100%;
+.hero-right{animation:fadeIn .6s .1s ease both}
+.demo-box{
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;overflow:hidden;
 }
-.snippet-box code{font-size:11px;color:var(--accent2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:440px}
+.demo-bar{
+  padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+}
+.demo-dot{width:10px;height:10px;border-radius:50%}
+.demo-url{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:4px}
+.demo-body{padding:24px}
+.demo-step{
+  display:flex;align-items:flex-start;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--border);
+}
+.demo-step:last-child{border-bottom:none;padding-bottom:0}
+.demo-icon{
+  width:28px;height:28px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;flex-shrink:0;margin-top:1px;
+}
+.demo-icon.check{background:rgba(74,158,107,.12);border:1px solid rgba(74,158,107,.2)}
+.demo-icon.spin{background:rgba(217,95,43,.1);border:1px solid rgba(217,95,43,.2)}
+.demo-icon.block{background:rgba(196,74,58,.1);border:1px solid rgba(196,74,58,.2)}
+.demo-label{font-family:var(--display);font-size:12px;font-weight:600;margin-bottom:3px}
+.demo-desc{font-size:11px;color:var(--muted);line-height:1.5}
+
+.snippet-wrap{padding-top:0}
+.snippet-lbl{font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:.06em;text-transform:uppercase}
+.snippet-box{
+  display:flex;align-items:center;gap:0;
+  background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;
+}
+.snippet-box code{
+  flex:1;padding:12px 14px;font-size:11px;color:var(--accent2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:var(--mono);
+}
 .snippet-box code .dim{color:var(--muted)}
 .copy-btn{
-  background:none;border:1px solid var(--border2);color:var(--muted);
-  padding:3px 10px;border-radius:2px;font-size:10px;cursor:pointer;
-  font-family:var(--mono);transition:all .2s;flex-shrink:0;
+  background:var(--surface2);border:none;border-left:1px solid var(--border);
+  color:var(--muted);padding:12px 14px;font-size:10px;cursor:pointer;
+  font-family:var(--mono);transition:all .15s;flex-shrink:0;
 }
-.copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+.copy-btn:hover{color:var(--text);background:var(--border)}
 
-.section{padding:90px 40px;border-top:1px solid var(--border)}
-.section-lbl{font-size:10px;color:var(--accent);letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px}
-.section-title{font-family:var(--display);font-size:clamp(26px,4vw,42px);font-weight:700;letter-spacing:-1px;margin-bottom:12px;line-height:1.1}
-.section-sub{color:var(--text2);max-width:420px;line-height:1.85;font-size:13px}
+.section{padding:96px 48px;border-top:1px solid var(--border)}
+.section-inner{max-width:1200px;margin:0 auto}
+.section-lbl{font-size:10px;color:var(--accent);letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px;font-family:var(--mono)}
+.section-title{font-family:var(--display);font-size:clamp(24px,3.5vw,40px);font-weight:700;letter-spacing:-1px;margin-bottom:12px;line-height:1.1}
+.section-sub{color:var(--text2);max-width:480px;line-height:1.85;font-size:13px}
 
-.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:0;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-top:52px}
+.steps{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+  border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-top:52px;
+}
 .step{background:var(--surface);padding:32px 26px;border-right:1px solid var(--border)}
 .step:last-child{border-right:none}
-.step-n{font-family:var(--display);font-size:54px;font-weight:800;color:var(--border2);line-height:1;margin-bottom:18px;letter-spacing:-2px}
+.step-n{font-family:var(--display);font-size:48px;font-weight:800;color:var(--border2);line-height:1;margin-bottom:16px;letter-spacing:-2px}
 .step-t{font-family:var(--display);font-size:14px;font-weight:600;margin-bottom:8px}
 .step-d{color:var(--muted);font-size:12px;line-height:1.75}
 
-.feats{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-top:52px}
-.feat{background:var(--surface);padding:28px;transition:background .2s}
+.feats{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:1px;
+  background:var(--border);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-top:52px;
+}
+.feat{background:var(--surface);padding:26px;transition:background .2s}
 .feat:hover{background:var(--surface2)}
-.feat-icon{font-size:18px;margin-bottom:14px;display:block}
-.feat-t{font-family:var(--display);font-size:13px;font-weight:600;margin-bottom:7px}
+.feat-icon{font-size:17px;margin-bottom:12px;display:block}
+.feat-t{font-family:var(--display);font-size:13px;font-weight:600;margin-bottom:6px}
 .feat-d{color:var(--muted);font-size:12px;line-height:1.75}
 
-.edge-cases{margin-top:52px}
-.edge-table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:4px;overflow:hidden}
-.edge-table th{background:var(--surface2);padding:10px 14px;text-align:left;font-size:10px;letter-spacing:.08em;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border)}
+.edge-table{width:100%;border-collapse:collapse;border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-top:52px;display:table}
+.edge-table th{background:var(--surface2);padding:10px 14px;text-align:left;font-size:9px;letter-spacing:.1em;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);text-transform:uppercase}
 .edge-table td{padding:11px 14px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:top}
 .edge-table tr:last-child td{border-bottom:none}
 .edge-table tr:hover td{background:var(--surface)}
-.edge-case-name{color:var(--text2);font-family:var(--display);font-weight:600;font-size:12px}
+.edge-name{color:var(--text2);font-family:var(--display);font-weight:600;font-size:12px}
 
 .pricing-card{
-  background:var(--surface);border:1px solid var(--border);border-radius:4px;
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;
   padding:40px;max-width:400px;margin-top:52px;
 }
-.price-big{font-family:var(--display);font-size:52px;font-weight:800;letter-spacing:-2px;line-height:1}
-.price-big sup{font-size:20px;vertical-align:top;margin-top:10px}
+.price-big{font-family:var(--display);font-size:56px;font-weight:800;letter-spacing:-2px;line-height:1}
+.price-big sup{font-size:22px;vertical-align:top;margin-top:10px;color:var(--accent)}
 .price-sub{color:var(--muted);font-size:12px;margin-top:6px;margin-bottom:28px}
-.price-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:28px}
-.price-features li{font-size:12px;color:var(--text2);display:flex;gap:8px;align-items:flex-start}
-.price-features li::before{content:'→';color:var(--accent);flex-shrink:0}
+.price-features{list-style:none;display:flex;flex-direction:column;gap:10px;margin-bottom:32px}
+.price-features li{font-size:12px;color:var(--text2);display:flex;gap:10px;align-items:flex-start;line-height:1.5}
+.price-features li::before{content:'→';color:var(--accent);flex-shrink:0;margin-top:1px}
 
-.stats-row{display:flex;gap:48px;flex-wrap:wrap;margin-top:52px}
-.stat-item .sn{font-family:var(--display);font-size:46px;font-weight:800;color:var(--accent);line-height:1;letter-spacing:-1px}
-.stat-item .sl{color:var(--muted);font-size:11px;margin-top:4px}
-
-footer{border-top:1px solid var(--border);padding:32px 40px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
-footer .logo{font-size:14px}
+footer{border-top:1px solid var(--border);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-logo{font-family:var(--display);font-size:14px;font-weight:800;letter-spacing:-.3px}
+.footer-logo span{color:var(--accent)}
 footer p{color:var(--muted);font-size:11px}
-footer nav a{color:var(--muted);font-size:11px;margin-left:20px;transition:color .2s}
-footer nav a:hover{color:var(--text)}
+.footer-links{display:flex;gap:20px}
+.footer-links a{color:var(--muted);font-size:11px;text-decoration:none;transition:color .15s}
+.footer-links a:hover{color:var(--text)}
 
 .modal-bg{
-  position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
-  z-index:1000;display:flex;align-items:center;justify-content:center;
+  position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;
   opacity:0;pointer-events:none;transition:opacity .2s;
 }
 .modal-bg.open{opacity:1;pointer-events:all}
 .modal{
-  background:var(--surface);border:1px solid var(--border2);border-radius:5px;
-  padding:36px;width:100%;max-width:380px;
-  transform:translateY(8px);transition:transform .2s;
+  background:var(--surface);border:1px solid var(--border2);border-radius:6px;
+  padding:32px;width:100%;max-width:380px;
+  transform:translateY(8px);transition:transform .2s;position:relative;
 }
 .modal-bg.open .modal{transform:translateY(0)}
 .modal h2{font-family:var(--display);font-size:20px;font-weight:700;margin-bottom:6px;letter-spacing:-.4px}
-.modal p{color:var(--muted);font-size:12px;margin-bottom:28px}
-.modal-form .field{margin-bottom:16px}
-.modal-form .field label{margin-bottom:6px}
+.modal p{color:var(--muted);font-size:12px;margin-bottom:24px}
+.modal-form .field{margin-bottom:14px}
 .modal-error{color:var(--red);font-size:11px;margin-top:10px;display:none}
-.modal-tabs{display:flex;gap:0;margin-bottom:28px;border-bottom:1px solid var(--border)}
-.modal-tab{
-  padding:8px 18px;font-size:12px;cursor:pointer;color:var(--muted);
-  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-family:var(--mono);
-}
+.modal-tabs{display:flex;gap:0;margin-bottom:24px;border-bottom:1px solid var(--border)}
+.modal-tab{padding:8px 18px;font-size:12px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s;font-family:var(--mono)}
 .modal-tab.active{color:var(--text);border-color:var(--accent)}
-.modal-close{
-  position:absolute;top:12px;right:16px;background:none;border:none;
-  color:var(--muted);font-size:18px;cursor:pointer;line-height:1;
-}
-.modal-inner{position:relative}
+.modal-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1}
 
+@media(max-width:900px){
+  .hero-content{grid-template-columns:1fr;gap:40px}
+  .hero-right{display:none}
+  .steps{grid-template-columns:repeat(2,1fr)}
+  .step:nth-child(2){border-right:none}
+  .step:nth-child(1),.step:nth-child(2){border-bottom:1px solid var(--border)}
+  .feats{grid-template-columns:repeat(2,1fr)}
+}
 @media(max-width:640px){
-  nav{padding:14px 20px}
+  nav{padding:0 20px}
+  .nav-center{display:none}
   .hero,.section{padding-left:20px;padding-right:20px}
-  h1{letter-spacing:-2px}
+  .hero{padding-top:80px;min-height:auto;padding-bottom:60px}
+  h1{letter-spacing:-1.5px}
   .steps{grid-template-columns:1fr}
   .step{border-right:none;border-bottom:1px solid var(--border)}
   .step:last-child{border-bottom:none}
-  .stats-row{gap:28px}
+  .feats{grid-template-columns:1fr}
   footer{padding:24px 20px;flex-direction:column;text-align:center}
-  footer nav{margin-top:8px}
-  footer nav a{margin-left:0;margin-right:12px}
-  .snippet-box code{max-width:200px}
+  .footer-links{justify-content:center;flex-wrap:wrap;gap:14px}
 }
 </style>
 </head>
@@ -180,258 +221,210 @@ footer nav a:hover{color:var(--text)}
 </div>
 
 <nav id="nav">
-  <div class="logo">brick<span>wall</span></div>
-  <div class="nav-links">
+  <a class="nav-logo" href="/">brick<span>wall</span></a>
+  <div class="nav-center">
     <a href="#how">how it works</a>
     <a href="#features">features</a>
     <a href="#edge-cases">edge cases</a>
+    <a href="/docs.html">docs</a>
     <a href="#pricing">pricing</a>
   </div>
-  <div class="nav-actions">
-    <button class="btn btn-ghost" onclick="openModal('login')">log in</button>
-    <button class="btn btn-primary" onclick="openModal('register')">get access</button>
+  <div class="nav-right">
+    <button class="btn btn-ghost btn-sm" onclick="openModal('login')">log in</button>
+    <div class="nav-sep"></div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('register')">get access →</button>
   </div>
 </nav>
 
 <section class="hero" id="home">
-  <div class="hero-scanlines"></div>
-  <div class="hero-glow"></div>
-  <div class="hero-inner">
-    <div class="eyebrow">now in early access</div>
-    <h1>
-      a wall<br>
-      <span class="line2">between your site</span><br>
-      and <em>bots</em>
-    </h1>
-    <p class="hero-sub">drop in one script tag. brickwall handles the rest — proof-of-work challenges, signed tokens, zero backend required.</p>
-    <div class="hero-ctas">
-      <button class="btn btn-primary" onclick="openModal('register')">request access <span class="arrow">→</span></button>
-      <button class="btn btn-ghost" onclick="openModal('login')">log in</button>
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-left">
+      <div class="eyebrow">now in early access</div>
+      <h1>
+        a wall<br>
+        <span class="dim">between your site</span><br>
+        and <em>bots</em>
+      </h1>
+      <p class="hero-sub">drop in one script tag. brickwall handles the rest — proof-of-work challenges, signed tokens, zero backend required.</p>
+      <div class="hero-ctas">
+        <button class="btn btn-primary" onclick="openModal('register')">get access →</button>
+        <button class="btn btn-ghost" onclick="openModal('login')">log in</button>
+      </div>
+      <div class="snippet-wrap">
+        <div class="snippet-lbl">one line. that's it. that's literally it.</div>
+        <div class="snippet-box">
+          <code><span class="dim">&lt;script</span> src="https://brickwall.onrender.com/js/protect.min.js" data-site="<span style="color:var(--accent)">YOUR_KEY</span>"<span class="dim">&gt;&lt;/script&gt;</span></code>
+          <button class="copy-btn" id="copyBtn" onclick="copySnippet()">copy</button>
+        </div>
+      </div>
     </div>
-    <div class="snippet-wrap">
-      <div class="snippet-lbl">one line. that's it.</div>
-      <div class="snippet-box">
-        <code><span class="dim">&lt;script</span> src="https://brickwall.onrender.com/js/protect.min.js" data-site="<span style="color:var(--accent)">YOUR_KEY</span>"<span class="dim">&gt;&lt;/script&gt;</span></code>
-        <button class="copy-btn" id="copyBtn" onclick="copySnippet()">copy</button>
+    <div class="hero-right">
+      <div class="demo-box">
+        <div class="demo-bar">
+          <div class="demo-dot" style="background:#c44a3a"></div>
+          <div class="demo-dot" style="background:#b8973a;margin-left:4px"></div>
+          <div class="demo-dot" style="background:#4a9e6b;margin-left:4px"></div>
+          <span class="demo-url">yoursite.com</span>
+        </div>
+        <div class="demo-body">
+          <div style="font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:14px;font-family:var(--mono)">live request log</div>
+          <div class="demo-step">
+            <div class="demo-icon check">✓</div>
+            <div><div class="demo-label">United States</div><div class="demo-desc">human visitor — passed in 1.2s</div></div>
+            <span class="tag tag-green" style="margin-left:auto;flex-shrink:0">passed</span>
+          </div>
+          <div class="demo-step">
+            <div class="demo-icon block">✕</div>
+            <div><div class="demo-label">Netherlands</div><div class="demo-desc">headless browser detected</div></div>
+            <span class="tag tag-red" style="margin-left:auto;flex-shrink:0">blocked</span>
+          </div>
+          <div class="demo-step">
+            <div class="demo-icon check">✓</div>
+            <div><div class="demo-label">Germany</div><div class="demo-desc">returning visitor — token valid</div></div>
+            <span class="tag tag-green" style="margin-left:auto;flex-shrink:0">passed</span>
+          </div>
+          <div class="demo-step">
+            <div class="demo-icon block" style="background:rgba(180,130,50,.1);border-color:rgba(180,130,50,.2)">!</div>
+            <div><div class="demo-label">Unknown</div><div class="demo-desc">vpn / datacenter ip flagged</div></div>
+            <span class="tag tag-yellow" style="margin-left:auto;flex-shrink:0">flagged</span>
+          </div>
+          <div class="demo-step">
+            <div class="demo-icon check">✓</div>
+            <div><div class="demo-label">United Kingdom</div><div class="demo-desc">googlebot — crawler allowed</div></div>
+            <span class="tag tag-muted" style="margin-left:auto;flex-shrink:0">crawler</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
 <section class="section" id="how">
-  <div class="section-lbl">how it works</div>
-  <div class="section-title">four steps, zero backend</div>
-  <p class="section-sub">static sites, jamstack, single-page apps — if it serves html, it works.</p>
-  <div class="steps">
-    <div class="step">
-      <div class="step-n">01</div>
-      <div class="step-t">visitor arrives</div>
-      <p class="step-d">the script checks for a valid signed token stored in the browser. already verified? they pass through instantly, nothing shown.</p>
-    </div>
-    <div class="step">
-      <div class="step-n">02</div>
-      <div class="step-t">challenge page</div>
-      <p class="step-d">no valid token — visitor is redirected to a challenge page. browser fingerprinting + a short proof-of-work puzzle. takes under two seconds for real users.</p>
-    </div>
-    <div class="step">
-      <div class="step-n">03</div>
-      <div class="step-t">signed & returned</div>
-      <p class="step-d">pass the challenge, receive a signed jwt. they get bounced back to where they came from. token lasts 24 hours by default — configurable.</p>
-    </div>
-    <div class="step">
-      <div class="step-n">04</div>
-      <div class="step-t">abuse detection</div>
-      <p class="step-d">repeated failures, abnormal timing, known bad ranges — all trigger rate limits on our end. your server sees none of it.</p>
+  <div class="section-inner">
+    <div class="section-lbl">how it works</div>
+    <div class="section-title">four steps, zero backend</div>
+    <p class="section-sub">static sites, jamstack, single-page apps — if it serves html, brickwall works.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-n">01</div>
+        <div class="step-t">visitor arrives</div>
+        <p class="step-d">the script checks for a valid signed token in localStorage. already verified? pass through instantly — nothing shown, no delay.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">02</div>
+        <div class="step-t">challenge page</div>
+        <p class="step-d">no valid token — visitor is redirected to a challenge page. browser fingerprinting + a short proof-of-work puzzle. under two seconds for real users.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">03</div>
+        <div class="step-t">signed & returned</div>
+        <p class="step-d">pass the challenge, receive a signed jwt. bounced back to where they came from with the token in the url. stored locally, lasts 24h by default.</p>
+      </div>
+      <div class="step">
+        <div class="step-n">04</div>
+        <div class="step-t">abuse detection</div>
+        <p class="step-d">repeated failures, abnormal timing, known bad ip ranges — all handled server-side. your site sees none of it.</p>
+      </div>
     </div>
   </div>
 </section>
 
 <section class="section" id="features">
-  <div class="section-lbl">features</div>
-  <div class="section-title">built to stay out of the way</div>
-  <p class="section-sub">no sdk, no complicated setup. just a script tag and a simple dashboard.</p>
-  <div class="feats">
-    <div class="feat">
-      <span class="feat-icon">⚡</span>
-      <div class="feat-t">tiny footprint</div>
-      <p class="feat-d">client script is under 4kb minified and gzipped. it won't touch your lighthouse score or slow your page.</p>
+  <div class="section-inner">
+    <div class="section-lbl">features</div>
+    <div class="section-title">built to stay out of the way</div>
+    <p class="section-sub">no sdk, no complicated setup. just a script tag and a dashboard.</p>
+    <div class="feats">
+      <div class="feat"><span class="feat-icon">⚡</span><div class="feat-t">tiny footprint</div><p class="feat-d">client script is under 2kb. it won't touch your lighthouse score.</p></div>
+      <div class="feat"><span class="feat-icon">🔐</span><div class="feat-t">signed tokens</div><p class="feat-d">verification state lives in a signed jwt. your site never calls a database.</p></div>
+      <div class="feat"><span class="feat-icon">🚫</span><div class="feat-t">rate limiting</div><p class="feat-d">ip-level limits built in. bots hammering the challenge endpoint get progressively longer timeouts.</p></div>
+      <div class="feat"><span class="feat-icon">🧩</span><div class="feat-t">zero backend needed</div><p class="feat-d">github pages, netlify, s3, cloudflare — anything that serves html works.</p></div>
+      <div class="feat"><span class="feat-icon">👻</span><div class="feat-t">invisible to humans</div><p class="feat-d">verified visitors pass silently every time. no captchas, no checkboxes, no hoops.</p></div>
+      <div class="feat"><span class="feat-icon">📊</span><div class="feat-t">request log</div><p class="feat-d">every attempt logged — country, detection type, pass/block status. real-time.</p></div>
+      <div class="feat"><span class="feat-icon">🔑</span><div class="feat-t">multiple sites</div><p class="feat-d">manage multiple sites from one dashboard. each gets its own key, log, and settings.</p></div>
+      <div class="feat"><span class="feat-icon">⚙️</span><div class="feat-t">per-site settings</div><p class="feat-d">allow crawlers, block tor, flag vpns. set token ttl. toggle per site.</p></div>
+      <div class="feat"><span class="feat-icon">🪶</span><div class="feat-t">open source</div><p class="feat-d">mit licensed. self-host it, fork it, read every single line.</p></div>
     </div>
-    <div class="feat">
-      <span class="feat-icon">🔐</span>
-      <div class="feat-t">signed tokens</div>
-      <p class="feat-d">verification state lives in a signed jwt. your site never calls a database. works entirely at the edge.</p>
-    </div>
-    <div class="feat">
-      <span class="feat-icon">🚫</span>
-      <div class="feat-t">rate limiting</div>
-      <p class="feat-d">ip-level and fingerprint-level limits built in. bots hammering the challenge endpoint get progressively longer timeouts.</p>
-    </div>
-    <div class="feat">
-      <span class="feat-icon">🧩</span>
-      <div class="feat-t">zero backend needed</div>
-      <p class="feat-d">drop it into github pages, netlify, s3, cloudflare pages — anything. no server-side code required on your side.</p>
-    </div>
-    <div class="feat">
-      <span class="feat-icon">🪶</span>
-      <div class="feat-t">low server overhead</div>
-      <p class="feat-d">crypto verification is fast and cheap. no heavy processes per request. the challenge infra is designed for extreme efficiency.</p>
-    </div>
-    <div class="feat">
-      <span class="feat-icon">👻</span>
-      <div class="feat-t">invisible to humans</div>
-      <p class="feat-d">real users who've passed once get a seamless experience. no captchas, no checkboxes, no repeated hoops.</p>
-    </div>
-    <div class="feat">
-      <span class="feat-icon">📊</span>
-      <div class="feat-t">request log</div>
-      <p class="feat-d">every verification attempt logged — country, detection type, pass/block status. see who's hitting your site in real time.</p>
-    </div>
-    <div class="feat">
-      <span class="feat-icon">🔑</span>
-      <div class="feat-t">multiple sites</div>
-      <p class="feat-d">manage multiple protected sites from one dashboard. each gets its own key, log, and settings.</p>
-    </div>
-    <div class="feat">
-      <span class="feat-icon">⚙️</span>
-      <div class="feat-t">per-site settings</div>
-      <p class="feat-d">allow or block crawlers, tor exit nodes, vpns. set token ttl. toggle active state per site.</p>
-    </div>
-  </div>
-  <div class="stats-row">
-    <div class="stat-item"><div class="sn">&lt;4kb</div><div class="sl">client script size</div></div>
-    <div class="stat-item"><div class="sn">~1.5s</div><div class="sl">avg challenge time</div></div>
-    <div class="stat-item"><div class="sn">24h</div><div class="sl">default token ttl</div></div>
-    <div class="stat-item"><div class="sn">0</div><div class="sl">backend required (your side)</div></div>
   </div>
 </section>
 
 <section class="section" id="edge-cases">
-  <div class="section-lbl">edge cases</div>
-  <div class="section-title">we've thought about the weird stuff</div>
-  <p class="section-sub">brickwall handles the edge cases that most tools just block or ignore.</p>
-  <div class="edge-cases">
+  <div class="section-inner">
+    <div class="section-lbl">edge cases</div>
+    <div class="section-title">the messy stuff, handled</div>
+    <p class="section-sub">real traffic is complicated. here's how brickwall handles the edge cases.</p>
     <table class="edge-table">
-      <thead>
-        <tr>
-          <th>scenario</th>
-          <th>default behavior</th>
-          <th>configurable?</th>
-        </tr>
-      </thead>
+      <thead><tr><th>scenario</th><th>what happens</th><th>user sees anything?</th></tr></thead>
       <tbody>
-        <tr>
-          <td><span class="edge-case-name">search engine crawlers</span><br><span style="color:var(--muted);font-size:11px">googlebot, bingbot, etc.</span></td>
-          <td><span class="tag tag-green">auto-pass</span> detected by user-agent, bypass challenge, still logged</td>
-          <td>yes — can block or require challenge</td>
-        </tr>
-        <tr>
-          <td><span class="edge-case-name">tor exit nodes</span><br><span style="color:var(--muted);font-size:11px">known exit ip ranges</span></td>
-          <td><span class="tag tag-yellow">flagged</span> allowed through but marked, higher pow difficulty</td>
-          <td>yes — can block outright</td>
-        </tr>
-        <tr>
-          <td><span class="edge-case-name">vpn / datacenter ips</span><br><span style="color:var(--muted);font-size:11px">known hosting asns</span></td>
-          <td><span class="tag tag-yellow">flagged</span> challenge required, marked in logs</td>
-          <td>yes — can block or auto-pass</td>
-        </tr>
-        <tr>
-          <td><span class="edge-case-name">slow connections</span><br><span style="color:var(--muted);font-size:11px">high latency, 2g/3g</span></td>
-          <td><span class="tag tag-green">graceful</span> pow difficulty scales down, no hard timeout on the challenge</td>
-          <td>no — handled automatically</td>
-        </tr>
-        <tr>
-          <td><span class="edge-case-name">javascript disabled</span><br><span style="color:var(--muted);font-size:11px">no-js browsers</span></td>
-          <td><span class="tag tag-muted">noscript fallback</span> shows a notice, can optionally block</td>
-          <td>yes — block or show message</td>
-        </tr>
-        <tr>
-          <td><span class="edge-case-name">headless browsers</span><br><span style="color:var(--muted);font-size:11px">puppeteer, playwright</span></td>
-          <td><span class="tag tag-red">blocked</span> fingerprinting detects missing browser apis, fails challenge</td>
-          <td>no</td>
-        </tr>
-        <tr>
-          <td><span class="edge-case-name">challenge spam / ddos</span><br><span style="color:var(--muted);font-size=11px">mass challenge requests</span></td>
-          <td><span class="tag tag-red">rate limited</span> progressive backoff per ip, 15 req/min limit</td>
-          <td>no — fixed for abuse prevention</td>
-        </tr>
-        <tr>
-          <td><span class="edge-case-name">token replay attacks</span><br><span style="color:var(--muted);font-size:11px">stolen tokens</span></td>
-          <td><span class="tag tag-muted">jwt expiry</span> tokens tied to site key, expire after ttl, not reusable after rotation</td>
-          <td>ttl is configurable</td>
-        </tr>
-        <tr>
-          <td><span class="edge-case-name">challenge timeout</span><br><span style="color:var(--muted);font-size:11px">user walks away mid-challenge</span></td>
-          <td><span class="tag tag-muted">expires</span> challenge ids expire after 2 minutes, user re-directed cleanly</td>
-          <td>no</td>
-        </tr>
-        <tr>
-          <td><span class="edge-case-name">instant solve (bot speed)</span><br><span style="color:var(--muted);font-size:11px">pow solved in &lt;200ms</span></td>
-          <td><span class="tag tag-red">blocked</span> timing check flags suspiciously fast solves as automated</td>
-          <td>no</td>
-        </tr>
+        <tr><td><span class="edge-name">search engine crawlers</span><br><span style="color:var(--muted);font-size:11px">googlebot, bingbot, etc.</span></td><td><span class="tag tag-green">allowed</span> if enabled, crawlers auto-bypass the challenge and get a token immediately. logged as "crawler".</td><td>no</td></tr>
+        <tr><td><span class="edge-name">tor exit nodes</span><br><span style="color:var(--muted);font-size:11px">known tor ip ranges</span></td><td><span class="tag tag-red">blocked</span> if tor blocking is on, ip is denied before the challenge. shows an access denied message.</td><td>access denied page</td></tr>
+        <tr><td><span class="edge-name">vpn / datacenter ips</span><br><span style="color:var(--muted);font-size:11px">known hosting asns</span></td><td><span class="tag tag-yellow">flagged</span> logged with detection type. configurable to block outright or just flag.</td><td>challenge (not blocked by default)</td></tr>
+        <tr><td><span class="edge-name">headless browsers</span><br><span style="color:var(--muted);font-size:11px">puppeteer, playwright, etc.</span></td><td><span class="tag tag-red">blocked</span> navigator.webdriver check and phantom/nightmare artifact detection on the challenge page.</td><td>verification failed page</td></tr>
+        <tr><td><span class="edge-name">javascript disabled</span><br><span style="color:var(--muted);font-size:11px">noscript users</span></td><td><span class="tag tag-muted">graceful</span> noscript fallback message explains that js is required.</td><td>noscript message</td></tr>
+        <tr><td><span class="edge-name">challenge timeout</span><br><span style="color:var(--muted);font-size:11px">user walks away mid-challenge</span></td><td><span class="tag tag-muted">expires</span> challenge ids expire after 2 minutes. user is re-challenged cleanly on retry.</td><td>no</td></tr>
+        <tr><td><span class="edge-name">instant solve</span><br><span style="color:var(--muted);font-size:11px">pow solved in &lt;200ms</span></td><td><span class="tag tag-red">blocked</span> timing check flags suspiciously fast solves. a human can't solve it that fast.</td><td>verification failed page</td></tr>
+        <tr><td><span class="edge-name">token expired</span><br><span style="color:var(--muted);font-size:11px">returning visitor, ttl elapsed</span></td><td><span class="tag tag-muted">re-challenged</span> expired token cleared, visitor sent back through the challenge flow.</td><td>challenge page (transparent)</td></tr>
       </tbody>
     </table>
   </div>
 </section>
 
 <section class="section" id="pricing">
-  <div class="section-lbl">pricing</div>
-  <div class="section-title">simple, while we're in beta</div>
-  <p class="section-sub">one plan, no surprises. usage-based pricing coming when we leave beta.</p>
-  <div class="pricing-card">
-    <div class="price-big"><sup>$</sup>0</div>
-    <div class="price-sub">free during early access</div>
-    <ul class="price-features">
-      <li>unlimited sites</li>
-      <li>up to 50,000 verified visitors / month</li>
-      <li>full request log (last 500 per site)</li>
-      <li>all edge case handling</li>
-      <li>token signing & verification</li>
-      <li>per-site settings & key rotation</li>
-      <li>early access = help shape what it becomes</li>
-    </ul>
-    <button class="btn btn-primary" style="width:100%" onclick="openModal('register')">request early access →</button>
-    <p style="color:var(--muted);font-size:11px;margin-top:14px;line-height:1.6">no mailing lists. no sales calls. we'll send you a key when you're approved.</p>
+  <div class="section-inner">
+    <div class="section-lbl">pricing</div>
+    <div class="section-title">free while we're in beta</div>
+    <p class="section-sub">one plan, no surprises. usage-based pricing coming post-beta.</p>
+    <div class="pricing-card">
+      <div class="price-big"><sup>$</sup>0</div>
+      <div class="price-sub">free during early access</div>
+      <ul class="price-features">
+        <li>unlimited sites</li>
+        <li>up to 50,000 verified visitors / month</li>
+        <li>full request log (last 500 per site)</li>
+        <li>all edge case handling included</li>
+        <li>token signing & server-side verification</li>
+        <li>per-site settings & key rotation</li>
+        <li>early access = help shape what it becomes</li>
+      </ul>
+      <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="openModal('register')">get early access →</button>
+      <p style="color:var(--muted);font-size:11px;margin-top:14px;line-height:1.6">no mailing lists. no sales calls. register and you're in.</p>
+    </div>
   </div>
 </section>
 
 <footer>
-  <div class="logo">brick<span style="color:var(--accent)">wall</span></div>
-  <p>© 2026 brickwall — licensed with the MIT license.</p>
-  <nav>
-    <a href="https://github.com/auth1ery/brickwall" target="_blank">github</a>
-    <a href="/docs">docs</a>
+  <div class="footer-logo">brick<span>wall</span></div>
+  <p>© 2025 brickwall — open source, mit license</p>
+  <div class="footer-links">
+    <a href="https://github.com" target="_blank">github</a>
+    <a href="/docs.html">docs</a>
+    <a href="#pricing">pricing</a>
     <a href="mailto:hi@brickwall.onrender.com">contact</a>
-  </nav>
+  </div>
 </footer>
 
 <div class="modal-bg" id="modalBg" onclick="closeModal(event)">
-  <div class="modal modal-inner">
+  <div class="modal">
     <button class="modal-close" onclick="closeModalBtn()">×</button>
     <h2 id="modalTitle">welcome back</h2>
     <div class="modal-tabs">
       <div class="modal-tab" id="tabLogin" onclick="switchTab('login')">log in</div>
       <div class="modal-tab" id="tabRegister" onclick="switchTab('register')">register</div>
     </div>
-
     <div id="loginForm">
-      <div class="modal-form">
-        <div class="field"><label>email</label><input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"></div>
-        <div class="field"><label>password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
-        <div class="modal-error" id="loginError"></div>
-        <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="doLogin()" id="loginBtn">log in →</button>
-      </div>
+      <div class="field"><label>email</label><input type="email" id="loginEmail" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="field"><label>password</label><input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="modal-error" id="loginError"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:16px;justify-content:center" onclick="doLogin()" id="loginBtn">log in →</button>
     </div>
-
     <div id="registerForm" style="display:none">
-      <div class="modal-form">
-        <div class="field"><label>name</label><input type="text" id="regName" placeholder="your name" autocomplete="name"></div>
-        <div class="field"><label>email</label><input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email"></div>
-        <div class="field"><label>password <span style="color:var(--muted)">(8+ characters)</span></label><input type="password" id="regPass" placeholder="••••••••" autocomplete="new-password"></div>
-        <div class="modal-error" id="regError"></div>
-        <button class="btn btn-primary" style="width:100%;margin-top:16px" onclick="doRegister()" id="regBtn">create account →</button>
-        <p style="color:var(--muted);font-size:11px;margin-top:12px;line-height:1.6">early access — you're getting in while it's free.</p>
-      </div>
+      <div class="field"><label>name</label><input type="text" id="regName" placeholder="your name" autocomplete="name"></div>
+      <div class="field"><label>email</label><input type="email" id="regEmail" placeholder="you@example.com" autocomplete="email"></div>
+      <div class="field"><label>password <span style="color:var(--muted)">(8+ characters)</span></label><input type="password" id="regPass" placeholder="••••••••" autocomplete="new-password"></div>
+      <div class="modal-error" id="regError"></div>
+      <button class="btn btn-primary" style="width:100%;margin-top:16px;justify-content:center" onclick="doRegister()" id="regBtn">create account →</button>
     </div>
   </div>
 </div>
@@ -440,28 +433,25 @@ footer nav a:hover{color:var(--text)}
 (async () => {
   try {
     const r = await fetch('/api/auth/me')
-    if (r.ok) {
-      window.location.href = '/dashboard.html'
-      return
-    }
+    if (r.ok) { window.location.href = '/dashboard.html'; return }
   } catch {}
   document.getElementById('loadingScreen').classList.add('hidden')
 })()
 
 window.addEventListener('scroll', () => {
-  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 40)
+  document.getElementById('nav').classList.toggle('scrolled', window.scrollY > 20)
 })
 
 function openModal(tab) {
   document.getElementById('modalBg').classList.add('open')
   switchTab(tab)
+  setTimeout(() => {
+    const el = tab === 'login' ? document.getElementById('loginEmail') : document.getElementById('regName')
+    el && el.focus()
+  }, 150)
 }
-function closeModal(e) {
-  if (e.target === document.getElementById('modalBg')) closeModalBtn()
-}
-function closeModalBtn() {
-  document.getElementById('modalBg').classList.remove('open')
-}
+function closeModal(e) { if (e.target === document.getElementById('modalBg')) closeModalBtn() }
+function closeModalBtn() { document.getElementById('modalBg').classList.remove('open') }
 function switchTab(tab) {
   document.getElementById('loginForm').style.display = tab === 'login' ? '' : 'none'
   document.getElementById('registerForm').style.display = tab === 'register' ? '' : 'none'
@@ -470,23 +460,20 @@ function switchTab(tab) {
   document.getElementById('modalTitle').textContent = tab === 'login' ? 'welcome back' : 'get access'
 }
 
-function setBtn(id, loading, text) {
-  const b = document.getElementById(id)
-  b.disabled = loading
-  b.textContent = loading ? 'loading...' : text
-}
-
 async function doLogin() {
   const email = document.getElementById('loginEmail').value.trim()
   const pass = document.getElementById('loginPass').value
   const err = document.getElementById('loginError')
   err.style.display = 'none'
   if (!email || !pass) { err.textContent = 'fill in all fields'; err.style.display = 'block'; return }
-  setBtn('loginBtn', true, '')
-  const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password: pass }) })
-  const data = await r.json()
-  if (!r.ok) { err.textContent = data.error || 'login failed'; err.style.display = 'block'; setBtn('loginBtn', false, 'log in →'); return }
-  window.location.href = '/dashboard.html'
+  const btn = document.getElementById('loginBtn')
+  btn.disabled = true; btn.textContent = 'logging in...'
+  try {
+    const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ email, password: pass }) })
+    const data = await r.json()
+    if (!r.ok) { err.textContent = data.error || 'login failed'; err.style.display = 'block'; btn.disabled=false; btn.textContent='log in →'; return }
+    window.location.href = '/dashboard.html'
+  } catch { err.textContent = 'network error'; err.style.display = 'block'; btn.disabled=false; btn.textContent='log in →' }
 }
 
 async function doRegister() {
@@ -497,20 +484,21 @@ async function doRegister() {
   err.style.display = 'none'
   if (!name || !email || !pass) { err.textContent = 'fill in all fields'; err.style.display = 'block'; return }
   if (pass.length < 8) { err.textContent = 'password must be 8+ characters'; err.style.display = 'block'; return }
-  setBtn('regBtn', true, '')
-  const r = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, email, password: pass }) })
-  const data = await r.json()
-  if (!r.ok) { err.textContent = data.error || 'registration failed'; err.style.display = 'block'; setBtn('regBtn', false, 'create account →'); return }
-  window.location.href = '/dashboard.html'
+  const btn = document.getElementById('regBtn')
+  btn.disabled = true; btn.textContent = 'creating account...'
+  try {
+    const r = await fetch('/api/auth/register', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, email, password: pass }) })
+    const data = await r.json()
+    if (!r.ok) { err.textContent = data.error || 'registration failed'; err.style.display = 'block'; btn.disabled=false; btn.textContent='create account →'; return }
+    window.location.href = '/dashboard.html'
+  } catch { err.textContent = 'network error'; err.style.display = 'block'; btn.disabled=false; btn.textContent='create account →' }
 }
 
 function copySnippet() {
-  const code = `<script src="https://brickwall.onrender.com/js/protect.min.js" data-site="YOUR_KEY"><\/script>`
-  navigator.clipboard.writeText(code).then(() => {
-    const b = document.getElementById('copyBtn')
-    b.textContent = 'copied!'
-    setTimeout(() => b.textContent = 'copy', 2000)
-  })
+  navigator.clipboard.writeText('<script src="https://brickwall.onrender.com/js/protect.min.js" data-site="YOUR_KEY"><\/script>')
+  const b = document.getElementById('copyBtn')
+  b.textContent = 'copied!'
+  setTimeout(() => b.textContent = 'copy', 2000)
 }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn() })
