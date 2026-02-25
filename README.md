@@ -1,6 +1,6 @@
 ### brickwall
 
-brickwall is an open source, extremely easy-to-use, seamless bot protection system for personal sites and more. it is primarily made for sites who want bot protection (cloudflare turnstiles or recaptchas) but cant edit server side code.  
+brickwall is an open source, extremely easy-to-use, customizable, seamless bot protection system for personal sites and more. it is primarily made for sites who want bot protection (cloudflare turnstiles or recaptchas) but cant edit server side code.  
 
 ### features
 here are all the features documented for brickwall:
