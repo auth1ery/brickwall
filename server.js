@@ -16,7 +16,7 @@ const TOKEN_TTL = 60 * 60 * 24
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: process.env.DATABASE_URL?.includes('localhost') ? false : { rejectUnauthorized: false }
 })
 
 const KNOWN_CRAWLERS = [
