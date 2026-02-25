@@ -31,6 +31,13 @@ const apiKeys = new Map()
 
 app.use(express.json())
 app.use(cookieParser())
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  if (req.method === 'OPTIONS') return res.sendStatus(204)
+  next()
+})
 app.use(express.static(path.join(__dirname, 'public')))
 
 const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 20, standardHeaders: true, legacyHeaders: false })
@@ -137,7 +144,7 @@ app.post('/api/sites', requireAuth, (req, res) => {
 app.put('/api/sites/:id', requireAuth, (req, res) => {
   const site = sites.get(req.params.id)
   if (!site || site.userId !== req.user.id) return res.status(404).json({ error: 'not found' })
-  const allowed = ['name','settings']
+  const allowed = ['name','settings','active']
   for (const k of allowed) {
     if (req.body[k] !== undefined) site[k] = req.body[k]
   }
