@@ -5,29 +5,93 @@ const jwt = require('jsonwebtoken')
 const { v4: uuidv4 } = require('uuid')
 const path = require('path')
 const crypto = require('crypto')
+const { Pool } = require('pg')
 
 const app = express()
 const PORT = process.env.PORT || 3000
-const SECRET = process.env.JWT_SECRET || crypto.randomBytes(48).toString('hex')
-const PASS_SECRET = process.env.PASS_SECRET || crypto.randomBytes(48).toString('hex')
+const SECRET = process.env.JWT_SECRET || (() => { console.warn('WARNING: JWT_SECRET not set'); return crypto.randomBytes(48).toString('hex') })()
+const PASS_SECRET = process.env.PASS_SECRET || (() => { console.warn('WARNING: PASS_SECRET not set'); return crypto.randomBytes(48).toString('hex') })()
+const ADMIN_KEY = process.env.ADMIN_KEY || 'changeme'
 const TOKEN_TTL = 60 * 60 * 24
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+})
 
 const KNOWN_CRAWLERS = [
   'googlebot','bingbot','slurp','duckduckbot','baiduspider',
   'yandexbot','sogou','exabot','facebot','ia_archiver',
   'msnbot','ahrefsbot','semrushbot','dotbot','petalbot'
 ]
-
 const TOR_EXIT_PREFIXES = ['185.220.','199.87.154.','162.247.72.','171.25.193.']
-const VPN_ASNS = ['AS9009','AS20473','AS14061','AS16276','AS24940']
 
-const users = new Map()
-const sites = new Map()
-const requests = new Map()
 const challenges = new Map()
 const rateBuckets = new Map()
-const apiKeys = new Map()
 
+async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      email TEXT UNIQUE NOT NULL,
+      name TEXT NOT NULL,
+      hash TEXT NOT NULL,
+      created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000
+    )
+  `)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS sites (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      domain TEXT NOT NULL,
+      key TEXT UNIQUE NOT NULL,
+      created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000,
+      active BOOLEAN NOT NULL DEFAULT TRUE,
+      settings JSONB NOT NULL DEFAULT '{}'
+    )
+  `)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS requests (
+      id TEXT PRIMARY KEY,
+      site_id TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
+      country TEXT NOT NULL DEFAULT 'Unknown',
+      detected TEXT NOT NULL DEFAULT 'N/A',
+      status TEXT NOT NULL,
+      ts BIGINT NOT NULL,
+      ua TEXT
+    )
+  `)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_requests_site_id ON requests(site_id)`)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_sites_user_id ON sites(user_id)`)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_sites_key ON sites(key)`)
+  console.log('db ready')
+}
+
+function dbSiteToObj(row) {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    name: row.name,
+    domain: row.domain,
+    key: row.key,
+    createdAt: Number(row.created_at),
+    active: row.active,
+    settings: row.settings || {}
+  }
+}
+
+function dbReqToObj(row) {
+  return {
+    id: row.id,
+    siteId: row.site_id,
+    country: row.country,
+    detected: row.detected,
+    status: row.status,
+    ts: Number(row.ts),
+    ua: row.ua
+  }
+}
 
 app.use(express.json())
 app.use(cookieParser())
@@ -56,46 +120,59 @@ function requireAuth(req, res, next) {
   }
 }
 
+function requireAdmin(req, res, next) {
+  const key = req.headers['x-admin-key'] || req.query.key
+  if (key !== ADMIN_KEY) return res.status(401).json({ error: 'unauthorized' })
+  next()
+}
+
 function isCrawler(ua) {
   if (!ua) return false
-  const u = ua.toLowerCase()
-  return KNOWN_CRAWLERS.some(c => u.includes(c))
+  return KNOWN_CRAWLERS.some(c => ua.toLowerCase().includes(c))
 }
 
 function looksLikeTor(ip) {
   return TOR_EXIT_PREFIXES.some(p => (ip || '').startsWith(p))
 }
 
-function ipToFlag(ip) {
-  if (!ip) return null
-  if (looksLikeTor(ip)) return 'tor'
-  return null
-}
-
-app.post('/api/auth/register', authLimiter, (req, res) => {
-  const { email, password, name } = req.body
-  if (!email || !password || !name) return res.status(400).json({ error: 'missing fields' })
-  if (password.length < 8) return res.status(400).json({ error: 'password too short' })
-  const existing = [...users.values()].find(u => u.email === email.toLowerCase())
-  if (existing) return res.status(409).json({ error: 'email already registered' })
-  const id = uuidv4()
-  const hash = crypto.createHmac('sha256', PASS_SECRET).update(password).digest('hex')
-  users.set(id, { id, email: email.toLowerCase(), name, hash, createdAt: Date.now() })
-  const token = jwt.sign({ id, email: email.toLowerCase(), name }, SECRET, { expiresIn: '7d' })
-  res.cookie('bw_session', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 })
-  res.json({ ok: true, name })
+app.post('/api/auth/register', authLimiter, async (req, res) => {
+  try {
+    const { email, password, name } = req.body
+    if (!email || !password || !name) return res.status(400).json({ error: 'missing fields' })
+    if (password.length < 8) return res.status(400).json({ error: 'password must be at least 8 characters' })
+    const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email.toLowerCase()])
+    if (existing.rows.length > 0) return res.status(409).json({ error: 'email already registered' })
+    const id = uuidv4()
+    const hash = crypto.createHmac('sha256', PASS_SECRET).update(password).digest('hex')
+    await pool.query(
+      'INSERT INTO users (id, email, name, hash) VALUES ($1, $2, $3, $4)',
+      [id, email.toLowerCase(), name, hash]
+    )
+    const token = jwt.sign({ id, email: email.toLowerCase(), name }, SECRET, { expiresIn: '7d' })
+    res.cookie('bw_session', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 })
+    res.json({ ok: true, name })
+  } catch (e) {
+    console.error('register error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
 })
 
-app.post('/api/auth/login', authLimiter, (req, res) => {
-  const { email, password } = req.body
-  if (!email || !password) return res.status(400).json({ error: 'missing fields' })
-  const user = [...users.values()].find(u => u.email === email.toLowerCase())
-  if (!user) return res.status(401).json({ error: 'invalid credentials' })
-  const hash = crypto.createHmac('sha256', PASS_SECRET).update(password).digest('hex')
-  if (hash !== user.hash) return res.status(401).json({ error: 'invalid credentials' })
-  const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, SECRET, { expiresIn: '7d' })
-  res.cookie('bw_session', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 })
-  res.json({ ok: true, name: user.name })
+app.post('/api/auth/login', authLimiter, async (req, res) => {
+  try {
+    const { email, password } = req.body
+    if (!email || !password) return res.status(400).json({ error: 'missing fields' })
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email.toLowerCase()])
+    if (result.rows.length === 0) return res.status(401).json({ error: 'invalid credentials' })
+    const user = result.rows[0]
+    const hash = crypto.createHmac('sha256', PASS_SECRET).update(password).digest('hex')
+    if (hash !== user.hash) return res.status(401).json({ error: 'invalid credentials' })
+    const token = jwt.sign({ id: user.id, email: user.email, name: user.name }, SECRET, { expiresIn: '7d' })
+    res.cookie('bw_session', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 })
+    res.json({ ok: true, name: user.name })
+  } catch (e) {
+    console.error('login error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
 })
 
 app.post('/api/auth/logout', (req, res) => {
@@ -107,192 +184,300 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ id: req.user.id, email: req.user.email, name: req.user.name })
 })
 
-app.delete("/api/auth/account", requireAuth, (req, res) => {
-  const userId = req.user.id
-  const userSites = [...sites.values()].filter(s => s.userId === userId)
-  for (const s of userSites) {
-    apiKeys.delete(s.key)
-    requests.delete(s.id)
-    sites.delete(s.id)
-  }
-  users.delete(userId)
-  res.clearCookie("bw_session")
-  res.json({ ok: true })
-})
-
-app.get('/api/sites', requireAuth, (req, res) => {
-  const userSites = [...sites.values()].filter(s => s.userId === req.user.id)
-  res.json(userSites)
-})
-
-app.post('/api/sites', requireAuth, (req, res) => {
-  const { name, domain } = req.body
-  if (!name || !domain) return res.status(400).json({ error: 'missing fields' })
-  const id = uuidv4()
-  const key = 'bw_live_' + crypto.randomBytes(16).toString('hex')
-  const site = {
-    id, userId: req.user.id, name, domain: domain.replace(/^https?:\/\//, '').split('/')[0],
-    key, createdAt: Date.now(), active: true,
-    settings: { allowCrawlers: true, blockTor: false, blockVpn: false, challengeTtl: 24 }
-  }
-  sites.set(id, site)
-  apiKeys.set(key, id)
-  requests.set(id, [])
-  res.json(site)
-})
-
-app.put('/api/sites/:id', requireAuth, (req, res) => {
-  const site = sites.get(req.params.id)
-  if (!site || site.userId !== req.user.id) return res.status(404).json({ error: 'not found' })
-  const allowed = ['name','settings','active']
-  for (const k of allowed) {
-    if (req.body[k] !== undefined) site[k] = req.body[k]
-  }
-  sites.set(site.id, site)
-  res.json(site)
-})
-
-app.delete('/api/sites/:id', requireAuth, (req, res) => {
-  const site = sites.get(req.params.id)
-  if (!site || site.userId !== req.user.id) return res.status(404).json({ error: 'not found' })
-  sites.delete(site.id)
-  apiKeys.delete(site.key)
-  requests.delete(site.id)
-  res.json({ ok: true })
-})
-
-app.post('/api/sites/:id/rotate', requireAuth, (req, res) => {
-  const site = sites.get(req.params.id)
-  if (!site || site.userId !== req.user.id) return res.status(404).json({ error: 'not found' })
-  apiKeys.delete(site.key)
-  site.key = 'bw_live_' + crypto.randomBytes(16).toString('hex')
-  apiKeys.set(site.key, site.id)
-  sites.set(site.id, site)
-  res.json({ key: site.key })
-})
-
-app.get('/api/sites/:id/requests', requireAuth, (req, res) => {
-  const site = sites.get(req.params.id)
-  if (!site || site.userId !== req.user.id) return res.status(404).json({ error: 'not found' })
-  const reqs = requests.get(req.params.id) || []
-  res.json(reqs)
-})
-
-app.get('/api/sites/:id/stats', requireAuth, (req, res) => {
-  const site = sites.get(req.params.id)
-  if (!site || site.userId !== req.user.id) return res.status(404).json({ error: 'not found' })
-  const reqs = requests.get(req.params.id) || []
-  const total = reqs.length
-  const passed = reqs.filter(r => r.status === 'passed').length
-  const blocked = reqs.filter(r => r.status === 'blocked').length
-  const flagged = reqs.filter(r => r.status === 'flagged').length
-  res.json({ total, passed, blocked, flagged })
-})
-
-app.post('/api/challenge/init', challengeLimiter, (req, res) => {
-  const { siteKey, returnUrl } = req.body
-  const ua = req.headers['user-agent'] || ''
-  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || ''
-
-  if (!siteKey) return res.status(400).json({ error: 'missing site key' })
-  const siteId = apiKeys.get(siteKey)
-  if (!siteId) return res.status(404).json({ error: 'unknown site key' })
-  const site = sites.get(siteId)
-  if (!site || !site.active) return res.status(403).json({ error: 'site inactive' })
-
-  const crawlerDetected = isCrawler(ua)
-  const torDetected = looksLikeTor(ip)
-
-  if (crawlerDetected && site.settings.allowCrawlers) {
-    const token = jwt.sign({ siteId, type: 'pass', crawler: true }, SECRET, { expiresIn: TOKEN_TTL })
-    const siteReqs = requests.get(siteId) || []
-    siteReqs.unshift({ id: uuidv4(), siteId, country: 'Unknown', detected: 'crawler', status: 'passed', ts: Date.now(), ua })
-    if (siteReqs.length > 500) siteReqs.length = 500
-    requests.set(siteId, siteReqs)
-    return res.json({ token, skip: true })
-  }
-
-  if (torDetected && site.settings.blockTor) {
-    const siteReqs = requests.get(siteId) || []
-    siteReqs.unshift({ id: uuidv4(), siteId, country: 'Unknown', detected: 'tor', status: 'blocked', ts: Date.now(), ua })
-    if (siteReqs.length > 500) siteReqs.length = 500
-    requests.set(siteId, siteReqs)
-    return res.status(403).json({ error: 'blocked', reason: 'tor' })
-  }
-
-  const bucket = rateBuckets.get(ip) || { count: 0, reset: Date.now() + 60000 }
-  if (Date.now() > bucket.reset) { bucket.count = 0; bucket.reset = Date.now() + 60000 }
-  bucket.count++
-  rateBuckets.set(ip, bucket)
-  if (bucket.count > 15) {
-    return res.status(429).json({ error: 'rate limited', retryAfter: Math.ceil((bucket.reset - Date.now()) / 1000) })
-  }
-
-  const challengeId = uuidv4()
-  const target = Math.floor(Math.random() * 900000) + 100000
-  const difficulty = torDetected ? 6 : 4
-  challenges.set(challengeId, {
-    siteId, siteKey, returnUrl, target, difficulty,
-    ip, ua, expires: Date.now() + 120000,
-    torDetected, crawlerDetected
-  })
-
-  setTimeout(() => challenges.delete(challengeId), 120000)
-
-  res.json({ challengeId, target, difficulty, siteId })
-})
-
-app.post('/api/challenge/verify', challengeLimiter, (req, res) => {
-  const { challengeId, nonce, elapsed } = req.body
-  const ch = challenges.get(challengeId)
-  if (!ch || Date.now() > ch.expires) return res.status(410).json({ error: 'challenge expired' })
-  challenges.delete(challengeId)
-
-  const site = sites.get(ch.siteId)
-  if (!site) return res.status(404).json({ error: 'site not found' })
-
-  const ip = req.headers['x-forwarded-for']?.split(',')[0] || req.socket.remoteAddress || ''
-
-  const hash = crypto.createHash('sha256').update(challengeId + nonce).digest('hex')
-  const prefix = '0'.repeat(ch.difficulty)
-  const valid = hash.startsWith(prefix)
-
-  const tooFast = elapsed < 200
-  const suspicious = tooFast || !valid
-
-  const detected = ch.torDetected ? 'tor' : ch.crawlerDetected ? 'crawler' : 'N/A'
-  const status = suspicious ? 'blocked' : 'passed'
-
-  const siteReqs = requests.get(ch.siteId) || []
-  siteReqs.unshift({
-    id: uuidv4(), siteId: ch.siteId,
-    country: 'United States',
-    detected,
-    status,
-    ts: Date.now(),
-    ua: ch.ua
-  })
-  if (siteReqs.length > 500) siteReqs.length = 500
-  requests.set(ch.siteId, siteReqs)
-
-  if (suspicious) return res.status(403).json({ error: 'challenge failed' })
-
-  const ttl = (site.settings.challengeTtl || 24) * 3600
-  const token = jwt.sign({ siteId: ch.siteId, type: 'pass' }, SECRET, { expiresIn: ttl })
-  res.json({ token })
-})
-
-app.post('/api/challenge/check', apiLimiter, (req, res) => {
-  const { token, siteKey } = req.body
-  if (!token || !siteKey) return res.status(400).json({ valid: false })
-  const siteId = apiKeys.get(siteKey)
-  if (!siteId) return res.status(400).json({ valid: false })
+app.delete('/api/auth/account', requireAuth, async (req, res) => {
   try {
+    await pool.query('DELETE FROM users WHERE id = $1', [req.user.id])
+    res.clearCookie('bw_session')
+    res.json({ ok: true })
+  } catch (e) {
+    console.error('delete account error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.get('/api/sites', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM sites WHERE user_id = $1 ORDER BY created_at ASC', [req.user.id])
+    res.json(result.rows.map(dbSiteToObj))
+  } catch (e) {
+    console.error('get sites error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.post('/api/sites', requireAuth, async (req, res) => {
+  try {
+    const { name, domain } = req.body
+    if (!name || !domain) return res.status(400).json({ error: 'missing fields' })
+    const id = uuidv4()
+    const key = 'bw_live_' + crypto.randomBytes(16).toString('hex')
+    const cleanDomain = domain.replace(/^https?:\/\//, '').split('/')[0]
+    const settings = { allowCrawlers: true, blockTor: false, blockVpn: false, challengeTtl: 24 }
+    await pool.query(
+      'INSERT INTO sites (id, user_id, name, domain, key, active, settings) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [id, req.user.id, name, cleanDomain, key, true, JSON.stringify(settings)]
+    )
+    res.json({ id, userId: req.user.id, name, domain: cleanDomain, key, createdAt: Date.now(), active: true, settings })
+  } catch (e) {
+    console.error('create site error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.put('/api/sites/:id', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM sites WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id])
+    if (result.rows.length === 0) return res.status(404).json({ error: 'not found' })
+    const site = dbSiteToObj(result.rows[0])
+    if (req.body.name !== undefined) site.name = req.body.name
+    if (req.body.settings !== undefined) site.settings = req.body.settings
+    if (req.body.active !== undefined) site.active = req.body.active
+    await pool.query(
+      'UPDATE sites SET name = $1, settings = $2, active = $3 WHERE id = $4',
+      [site.name, JSON.stringify(site.settings), site.active, site.id]
+    )
+    res.json(site)
+  } catch (e) {
+    console.error('update site error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.delete('/api/sites/:id', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT id FROM sites WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id])
+    if (result.rows.length === 0) return res.status(404).json({ error: 'not found' })
+    await pool.query('DELETE FROM sites WHERE id = $1', [req.params.id])
+    res.json({ ok: true })
+  } catch (e) {
+    console.error('delete site error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.post('/api/sites/:id/rotate', requireAuth, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM sites WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id])
+    if (result.rows.length === 0) return res.status(404).json({ error: 'not found' })
+    const newKey = 'bw_live_' + crypto.randomBytes(16).toString('hex')
+    await pool.query('UPDATE sites SET key = $1 WHERE id = $2', [newKey, req.params.id])
+    res.json({ key: newKey })
+  } catch (e) {
+    console.error('rotate key error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.get('/api/sites/:id/requests', requireAuth, async (req, res) => {
+  try {
+    const siteCheck = await pool.query('SELECT id FROM sites WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id])
+    if (siteCheck.rows.length === 0) return res.status(404).json({ error: 'not found' })
+    const result = await pool.query('SELECT * FROM requests WHERE site_id = $1 ORDER BY ts DESC LIMIT 500', [req.params.id])
+    res.json(result.rows.map(dbReqToObj))
+  } catch (e) {
+    console.error('get requests error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.get('/api/sites/:id/stats', requireAuth, async (req, res) => {
+  try {
+    const siteCheck = await pool.query('SELECT id FROM sites WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id])
+    if (siteCheck.rows.length === 0) return res.status(404).json({ error: 'not found' })
+    const result = await pool.query(
+      `SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE status = 'passed') AS passed,
+        COUNT(*) FILTER (WHERE status = 'blocked') AS blocked,
+        COUNT(*) FILTER (WHERE status = 'flagged') AS flagged
+       FROM requests WHERE site_id = $1`,
+      [req.params.id]
+    )
+    const row = result.rows[0]
+    res.json({ total: Number(row.total), passed: Number(row.passed), blocked: Number(row.blocked), flagged: Number(row.flagged) })
+  } catch (e) {
+    console.error('get stats error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
+  try {
+    const { siteKey, returnUrl } = req.body
+    const ua = req.headers['user-agent'] || ''
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || ''
+
+    if (!siteKey) return res.status(400).json({ error: 'missing site key' })
+
+    const siteResult = await pool.query('SELECT * FROM sites WHERE key = $1', [siteKey])
+    if (siteResult.rows.length === 0) return res.status(404).json({ error: 'unknown site key' })
+    const site = dbSiteToObj(siteResult.rows[0])
+    if (!site.active) return res.status(403).json({ error: 'site inactive' })
+
+    const crawlerDetected = isCrawler(ua)
+    const torDetected = looksLikeTor(ip)
+
+    if (crawlerDetected && site.settings.allowCrawlers) {
+      const token = jwt.sign({ siteId: site.id, type: 'pass', crawler: true }, SECRET, { expiresIn: TOKEN_TTL })
+      await pool.query(
+        'INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [uuidv4(), site.id, 'Unknown', 'crawler', 'passed', Date.now(), ua]
+      )
+      return res.json({ token, skip: true })
+    }
+
+    if (torDetected && site.settings.blockTor) {
+      await pool.query(
+        'INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [uuidv4(), site.id, 'Unknown', 'tor', 'blocked', Date.now(), ua]
+      )
+      return res.status(403).json({ error: 'blocked', reason: 'tor' })
+    }
+
+    const bucket = rateBuckets.get(ip) || { count: 0, reset: Date.now() + 60000 }
+    if (Date.now() > bucket.reset) { bucket.count = 0; bucket.reset = Date.now() + 60000 }
+    bucket.count++
+    rateBuckets.set(ip, bucket)
+    if (bucket.count > 15) {
+      return res.status(429).json({ error: 'rate limited', retryAfter: Math.ceil((bucket.reset - Date.now()) / 1000) })
+    }
+
+    const challengeId = uuidv4()
+    const difficulty = torDetected ? 6 : 4
+    challenges.set(challengeId, {
+      siteId: site.id, siteKey, returnUrl, difficulty,
+      ip, ua, expires: Date.now() + 120000,
+      torDetected, crawlerDetected
+    })
+    setTimeout(() => challenges.delete(challengeId), 120000)
+
+    res.json({ challengeId, difficulty })
+  } catch (e) {
+    console.error('challenge init error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.post('/api/challenge/verify', challengeLimiter, async (req, res) => {
+  try {
+    const { challengeId, nonce, elapsed } = req.body
+    const ch = challenges.get(challengeId)
+    if (!ch || Date.now() > ch.expires) return res.status(410).json({ error: 'challenge expired' })
+    challenges.delete(challengeId)
+
+    const siteResult = await pool.query('SELECT * FROM sites WHERE id = $1', [ch.siteId])
+    if (siteResult.rows.length === 0) return res.status(404).json({ error: 'site not found' })
+    const site = dbSiteToObj(siteResult.rows[0])
+
+    const hash = crypto.createHash('sha256').update(challengeId + nonce).digest('hex')
+    const prefix = '0'.repeat(ch.difficulty)
+    const valid = hash.startsWith(prefix)
+    const tooFast = elapsed < 200
+    const suspicious = tooFast || !valid
+
+    const detected = ch.torDetected ? 'tor' : ch.crawlerDetected ? 'crawler' : 'N/A'
+    const status = suspicious ? 'blocked' : 'passed'
+
+    await pool.query(
+      'INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+      [uuidv4(), ch.siteId, 'Unknown', detected, status, Date.now(), ch.ua]
+    )
+
+    if (suspicious) return res.status(403).json({ error: 'challenge failed' })
+
+    const ttl = (site.settings.challengeTtl || 24) * 3600
+    const token = jwt.sign({ siteId: ch.siteId, type: 'pass' }, SECRET, { expiresIn: ttl })
+    res.json({ token })
+  } catch (e) {
+    console.error('challenge verify error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.post('/api/challenge/check', apiLimiter, async (req, res) => {
+  try {
+    const { token, siteKey } = req.body
+    if (!token || !siteKey) return res.status(400).json({ valid: false })
+    const siteResult = await pool.query('SELECT id FROM sites WHERE key = $1', [siteKey])
+    if (siteResult.rows.length === 0) return res.json({ valid: false })
+    const siteId = siteResult.rows[0].id
     const payload = jwt.verify(token, SECRET)
-    if (payload.siteId !== siteId) return res.json({ valid: false })
-    res.json({ valid: true })
+    res.json({ valid: payload.siteId === siteId })
   } catch {
     res.json({ valid: false })
+  }
+})
+
+app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+  try {
+    const users = await pool.query('SELECT COUNT(*) AS count FROM users')
+    const sites = await pool.query('SELECT COUNT(*) AS count FROM sites')
+    const requests = await pool.query('SELECT COUNT(*) AS count FROM requests')
+    const recentReqs = await pool.query('SELECT COUNT(*) AS count FROM requests WHERE ts > $1', [Date.now() - 86400000])
+    res.json({
+      users: Number(users.rows[0].count),
+      sites: Number(sites.rows[0].count),
+      requests: Number(requests.rows[0].count),
+      requestsToday: Number(recentReqs.rows[0].count)
+    })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+app.get('/api/admin/users', requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT u.id, u.email, u.name, u.created_at,
+        COUNT(DISTINCT s.id) AS site_count,
+        COUNT(r.id) AS request_count
+      FROM users u
+      LEFT JOIN sites s ON s.user_id = u.id
+      LEFT JOIN requests r ON r.site_id = s.id
+      GROUP BY u.id
+      ORDER BY u.created_at DESC
+    `)
+    res.json(result.rows.map(row => ({
+      id: row.id,
+      email: row.email,
+      name: row.name,
+      createdAt: Number(row.created_at),
+      siteCount: Number(row.site_count),
+      requestCount: Number(row.request_count)
+    })))
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+app.get('/api/admin/sites', requireAdmin, async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT s.*, u.email AS user_email, u.name AS user_name,
+        COUNT(r.id) AS request_count
+      FROM sites s
+      JOIN users u ON u.id = s.user_id
+      LEFT JOIN requests r ON r.site_id = s.id
+      GROUP BY s.id, u.email, u.name
+      ORDER BY s.created_at DESC
+    `)
+    res.json(result.rows.map(row => ({
+      ...dbSiteToObj(row),
+      userEmail: row.user_email,
+      userName: row.user_name,
+      requestCount: Number(row.request_count)
+    })))
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM users WHERE id = $1', [req.params.id])
+    res.json({ ok: true })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
   }
 })
 
@@ -300,6 +485,9 @@ app.use((req, res) => {
   res.status(404).sendFile(path.join(__dirname, 'public', 'index.html'))
 })
 
-app.listen(PORT, () => {
-  console.log(`brickwall running on :${PORT}`)
+initDb().then(() => {
+  app.listen(PORT, () => console.log(`brickwall running on :${PORT}`))
+}).catch(e => {
+  console.error('failed to init db:', e.message)
+  process.exit(1)
 })
