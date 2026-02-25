@@ -6,8 +6,8 @@
 <title>dashboard — brickwall</title>
 <link rel="stylesheet" href="/css/shared.css">
 <style>
-body{display:flex;flex-direction:column;min-height:100vh;overflow:hidden;height:100vh}
-#appShell{display:flex;flex:1;min-height:0;overflow:hidden;height:calc(100vh)}
+body{display:flex;flex-direction:column;height:100vh;overflow:hidden}
+#appShell{display:flex;flex:1;min-height:0;overflow:hidden}
 
 #authWall{
   position:fixed;inset:0;background:var(--bg);z-index:9000;
@@ -66,10 +66,10 @@ body{display:flex;flex-direction:column;min-height:100vh;overflow:hidden;height:
 }
 .logout-btn:hover{color:var(--red)}
 
-.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0;min-height:0}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
 .topbar{
   padding:12px 20px;border-bottom:1px solid var(--border);display:flex;
-  align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;
+  align-items:center;justify-content:space-between;flex-shrink:0;
   background:var(--bg);z-index:10;gap:10px;
 }
 .topbar-left{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
@@ -80,7 +80,7 @@ body{display:flex;flex-direction:column;min-height:100vh;overflow:hidden;height:
 }
 .page-title{font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:-.3px;white-space:nowrap}
 .page-sub{color:var(--muted);font-size:11px;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.content{padding:20px;flex:1;min-height:0}
+.content{padding:20px;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
 
 .panel{display:none}
 .panel.active{display:block;animation:fadeIn .2s ease both}
@@ -619,6 +619,9 @@ function renderInstall(site) {
     <div style="margin-bottom:18px">
       <div style="font-family:var(--display);font-size:15px;font-weight:700;margin-bottom:5px">installation</div>
       <p style="color:var(--muted);font-size:12px;line-height:1.75">follow these steps to protect <strong style="color:var(--text2)">${esc(site.domain)}</strong>. no server-side code needed.</p>
+    </div>
+    <div style="background:rgba(217,95,43,.08);border:1px solid rgba(217,95,43,.25);border-radius:4px;padding:12px 14px;margin-bottom:18px;font-size:11px;line-height:1.75;color:var(--text2)">
+      <strong style="color:var(--accent)">⚠ if you're seeing "unknown site key"</strong> — your embed script still has an old key from before the database migration. copy the fresh key below and update the <code style="color:var(--accent2)">data-site</code> attribute in your html.
     </div>
     <div class="install-steps">
       <div class="install-step">
