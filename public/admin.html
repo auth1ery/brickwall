@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>admin — brickwall</title>
+<link rel="stylesheet" href="/css/shared.css">
+<style>
+body{min-height:100vh;display:flex;flex-direction:column}
+.topbar{
+  padding:12px 24px;border-bottom:1px solid var(--border);display:flex;
+  align-items:center;justify-content:space-between;background:var(--surface);flex-shrink:0;
+}
+.topbar-logo{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:-.4px}
+.topbar-logo span{color:var(--accent)}
+.topbar-badge{font-size:10px;background:rgba(217,95,43,.15);color:var(--accent);border:1px solid rgba(217,95,43,.3);padding:2px 8px;border-radius:2px;font-family:var(--mono);letter-spacing:.04em}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.key-form{display:flex;gap:8px;align-items:center}
+.key-form input{width:220px;font-size:11px}
+
+.main{flex:1;padding:24px;max-width:1100px;width:100%;margin:0 auto}
+
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:24px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:16px 18px}
+.sc-label{font-size:10px;color:var(--muted);letter-spacing:.04em;margin-bottom:6px}
+.sc-value{font-family:var(--display);font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1}
+
+.section{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:18px}
+.section-head{
+  padding:10px 16px;border-bottom:1px solid var(--border);display:flex;
+  align-items:center;justify-content:space-between;
+}
+.section-title{font-family:var(--display);font-size:13px;font-weight:600}
+.section-count{font-size:10px;color:var(--muted);font-family:var(--mono)}
+
+table{width:100%;border-collapse:collapse}
+th{padding:8px 14px;text-align:left;font-size:9px;letter-spacing:.08em;color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);background:var(--surface2);white-space:nowrap}
+td{padding:9px 14px;font-size:11px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.mono{font-family:var(--mono);font-size:10px;color:var(--muted)}
+.site-key{font-family:var(--mono);font-size:10px;color:var(--accent2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.gate{
+  position:fixed;inset:0;background:var(--bg);z-index:100;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+.gate.hidden{display:none}
+.gate-box{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:28px;width:100%;max-width:340px}
+.gate-box h2{font-family:var(--display);font-size:17px;font-weight:700;margin-bottom:6px;letter-spacing:-.3px}
+.gate-box p{color:var(--muted);font-size:11px;margin-bottom:20px;line-height:1.6}
+.gate-error{color:var(--red);font-size:11px;margin-top:8px;display:none}
+
+.empty{text-align:center;padding:32px;color:var(--muted);font-size:12px}
+.loading{text-align:center;padding:32px;color:var(--muted);font-size:12px}
+
+@media(max-width:700px){
+  .stat-cards{grid-template-columns:repeat(2,1fr)}
+  .main{padding:14px}
+  th:nth-child(n+4),td:nth-child(n+4){display:none}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div class="gate" id="gate">
+  <div class="gate-box">
+    <h2>admin access</h2>
+    <p>enter your admin key to continue. set via the <code style="color:var(--accent2)">ADMIN_KEY</code> environment variable.</p>
+    <div class="field">
+      <label>admin key</label>
+      <input type="password" id="keyInput" placeholder="bw_admin_..." onkeydown="if(event.key==='Enter')unlock()">
+    </div>
+    <div class="gate-error" id="gateError">incorrect key</div>
+    <button class="btn btn-primary" style="width:100%;margin-top:12px;justify-content:center" onclick="unlock()">enter →</button>
+  </div>
+</div>
+
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="topbar-logo">brick<span>wall</span></div>
+    <div class="topbar-badge">admin</div>
+  </div>
+  <div class="topbar-right">
+    <span style="font-size:11px;color:var(--muted)" id="lastRefresh"></span>
+    <button class="btn btn-ghost btn-sm" onclick="loadAll()">↻ refresh</button>
+    <a href="/dashboard.html" class="btn btn-ghost btn-sm">← dashboard</a>
+  </div>
+</div>
+
+<div class="main">
+  <div class="stat-cards" id="statCards">
+    <div class="stat-card"><div class="sc-label">total users</div><div class="sc-value">—</div></div>
+    <div class="stat-card"><div class="sc-label">total sites</div><div class="sc-value">—</div></div>
+    <div class="stat-card"><div class="sc-label">total requests</div><div class="sc-value">—</div></div>
+    <div class="stat-card"><div class="sc-label">requests today</div><div class="sc-value">—</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">users</div>
+      <div class="section-count" id="userCount">—</div>
+    </div>
+    <div id="usersTable"><div class="loading">loading...</div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">sites</div>
+      <div class="section-count" id="siteCount">—</div>
+    </div>
+    <div id="sitesTable"><div class="loading">loading...</div></div>
+  </div>
+</div>
+
+<script>
+let adminKey = sessionStorage.getItem('bw_admin_key') || ''
+
+function unlock() {
+  const k = document.getElementById('keyInput').value.trim()
+  if (!k) return
+  adminKey = k
+  sessionStorage.setItem('bw_admin_key', k)
+  loadAll()
+}
+
+async function api(path) {
+  const r = await fetch(path, { headers: { 'x-admin-key': adminKey } })
+  if (r.status === 401) {
+    document.getElementById('gate').classList.remove('hidden')
+    document.getElementById('gateError').style.display = 'block'
+    sessionStorage.removeItem('bw_admin_key')
+    throw new Error('unauthorized')
+  }
+  return r.json()
+}
+
+async function loadAll() {
+  if (!adminKey) { document.getElementById('gate').classList.remove('hidden'); return }
+  document.getElementById('gate').classList.add('hidden')
+  try {
+    const [stats, users, sites] = await Promise.all([
+      api('/api/admin/stats'),
+      api('/api/admin/users'),
+      api('/api/admin/sites')
+    ])
+    renderStats(stats)
+    renderUsers(users)
+    renderSites(sites)
+    document.getElementById('lastRefresh').textContent = 'updated ' + new Date().toLocaleTimeString()
+  } catch (e) {
+    if (e.message !== 'unauthorized') console.error(e)
+  }
+}
+
+function renderStats(d) {
+  document.getElementById('statCards').innerHTML = `
+    <div class="stat-card"><div class="sc-label">total users</div><div class="sc-value">${d.users}</div></div>
+    <div class="stat-card"><div class="sc-label">total sites</div><div class="sc-value">${d.sites}</div></div>
+    <div class="stat-card"><div class="sc-label">total requests</div><div class="sc-value">${d.requests}</div></div>
+    <div class="stat-card"><div class="sc-label">requests today</div><div class="sc-value" style="color:var(--accent)">${d.requestsToday}</div></div>
+  `
+}
+
+function renderUsers(users) {
+  document.getElementById('userCount').textContent = users.length + ' total'
+  if (!users.length) { document.getElementById('usersTable').innerHTML = '<div class="empty">no users yet</div>'; return }
+  document.getElementById('usersTable').innerHTML = `
+    <table>
+      <thead><tr><th>name</th><th>email</th><th>sites</th><th>requests</th><th>joined</th><th></th></tr></thead>
+      <tbody>${users.map(u => `<tr>
+        <td>${esc(u.name)}</td>
+        <td class="mono">${esc(u.email)}</td>
+        <td>${u.siteCount}</td>
+        <td>${u.requestCount}</td>
+        <td class="mono">${fmtDate(u.createdAt)}</td>
+        <td><button class="btn btn-danger btn-sm" style="padding:3px 10px" onclick="deleteUser('${esc(u.id)}','${esc(u.email)}')">delete</button></td>
+      </tr>`).join('')}</tbody>
+    </table>
+  `
+}
+
+function renderSites(sites) {
+  document.getElementById('siteCount').textContent = sites.length + ' total'
+  if (!sites.length) { document.getElementById('sitesTable').innerHTML = '<div class="empty">no sites yet</div>'; return }
+  document.getElementById('sitesTable').innerHTML = `
+    <table>
+      <thead><tr><th>site</th><th>domain</th><th>owner</th><th>requests</th><th>status</th><th>created</th></tr></thead>
+      <tbody>${sites.map(s => `<tr>
+        <td>${esc(s.name)}</td>
+        <td class="mono">${esc(s.domain)}</td>
+        <td class="mono">${esc(s.userEmail)}</td>
+        <td>${s.requestCount}</td>
+        <td><span class="tag ${s.active ? 'tag-green' : 'tag-muted'}">${s.active ? 'active' : 'paused'}</span></td>
+        <td class="mono">${fmtDate(s.createdAt)}</td>
+      </tr>`).join('')}</tbody>
+    </table>
+  `
+}
+
+async function deleteUser(id, email) {
+  if (!confirm(`delete user ${email}? this will delete all their sites and request history.`)) return
+  try {
+    await fetch('/api/admin/users/' + id, { method: 'DELETE', headers: { 'x-admin-key': adminKey } })
+    loadAll()
+  } catch(e) { console.error(e) }
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts)
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0')
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+loadAll()
+</script>
+</body>
+</html>
