@@ -100,6 +100,19 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ id: req.user.id, email: req.user.email, name: req.user.name })
 })
 
+app.delete("/api/auth/account", requireAuth, (req, res) => {
+  const userId = req.user.id
+  const userSites = [...sites.values()].filter(s => s.userId === userId)
+  for (const s of userSites) {
+    apiKeys.delete(s.key)
+    requests.delete(s.id)
+    sites.delete(s.id)
+  }
+  users.delete(userId)
+  res.clearCookie("bw_session")
+  res.json({ ok: true })
+})
+
 app.get('/api/sites', requireAuth, (req, res) => {
   const userSites = [...sites.values()].filter(s => s.userId === req.user.id)
   res.json(userSites)
