@@ -199,6 +199,49 @@ tr:hover td{background:rgba(255,255,255,.02)}
 
 .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:199}
 
+.terminal-modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);
+  z-index:2000;display:flex;align-items:center;justify-content:center;padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .15s;
+}
+.terminal-modal-bg.open{opacity:1;pointer-events:all}
+.terminal-modal{
+  background:var(--bg);border:1px solid var(--border2);border-radius:5px;
+  width:100%;max-width:480px;overflow:hidden;
+  transform:translateY(6px);transition:transform .15s;
+}
+.terminal-modal-bg.open .terminal-modal{transform:translateY(0)}
+.terminal-header{
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:10px 14px;display:flex;align-items:center;gap:8px;
+}
+.terminal-dot{width:10px;height:10px;border-radius:50%;background:var(--border2)}
+.terminal-dot.red{background:#c44a3a}
+.terminal-title{font-size:11px;color:var(--muted);margin-left:4px;font-family:var(--mono)}
+.terminal-body{padding:18px}
+.terminal-desc{font-size:11px;color:var(--text2);line-height:1.75;margin-bottom:16px}
+.terminal-cmd-label{font-size:10px;color:var(--muted);margin-bottom:8px;letter-spacing:.04em}
+.terminal-prompt{
+  font-family:var(--mono);font-size:11px;color:var(--accent2);
+  background:var(--surface);border:1px solid var(--border);border-radius:3px;
+  padding:9px 12px;margin-bottom:14px;word-break:break-all;line-height:1.6;
+  user-select:all;cursor:text;
+}
+.terminal-input-label{font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:.04em}
+.terminal-input-wrap{position:relative;display:flex;align-items:center;gap:0}
+.terminal-caret{
+  font-family:var(--mono);font-size:12px;color:var(--accent);padding:9px 0 9px 12px;
+  background:var(--surface2);border:1px solid var(--border2);border-right:none;border-radius:3px 0 0 3px;
+  flex-shrink:0;line-height:1;
+}
+.terminal-input{
+  border-radius:0 3px 3px 0;border-left:none;background:var(--surface2);
+  border-color:var(--border2);font-size:11px;color:var(--text);
+}
+.terminal-input:focus{border-color:var(--accent);outline:none;box-shadow:none}
+.terminal-error{color:var(--red);font-size:11px;margin-top:8px;display:none}
+.terminal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+
 @media(max-width:900px){.stat-cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:680px){
   .sidebar{position:fixed;left:-240px;top:0;bottom:0;width:240px;z-index:200;transition:left .25s ease}
@@ -257,6 +300,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
   <div class="nav-item" onclick="nav('settings')" id="nav-settings"><span class="icon">⚙</span> site settings</div>
   <div class="sidebar-section">account</div>
   <div class="nav-item" onclick="nav('sites')" id="nav-sites"><span class="icon">◫</span> manage sites</div>
+  <div class="nav-item" onclick="nav('account')" id="nav-account"><span class="icon">⊘</span> account</div>
   <div class="sidebar-bottom">
     <div class="user-chip">
       <div class="user-avatar" id="userAvatar">?</div>
@@ -336,6 +380,32 @@ tr:hover td{background:rgba(255,255,255,.02)}
       <div class="sites-grid" id="sitesGrid"></div>
     </div>
 
+    <div class="panel" id="panel-account">
+      <div class="settings-form">
+        <div class="settings-group">
+          <div class="settings-group-head">account info</div>
+          <div class="settings-group-body">
+            <div class="settings-row">
+              <div><div class="settings-label">name</div></div>
+              <div style="font-size:12px;color:var(--text2)" id="acctName">—</div>
+            </div>
+            <div class="settings-row" style="border-bottom:none;padding-bottom:0">
+              <div><div class="settings-label">email</div></div>
+              <div style="font-size:12px;color:var(--text2)" id="acctEmail">—</div>
+            </div>
+          </div>
+        </div>
+        <div class="danger-zone">
+          <h4>danger zone</h4>
+          <div>
+            <div class="settings-label" style="margin-bottom:4px">delete your account</div>
+            <div class="settings-desc" style="margin-bottom:10px">permanently deletes your account, all sites, all api keys, and all request history. there is no going back.</div>
+            <button class="btn btn-danger btn-sm" onclick="openDeleteAccount()">delete account</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </main>
 </div>
@@ -348,6 +418,32 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="field"><label>domain</label><input type="url" id="newSiteDomain" placeholder="https://yoursite.com" autocomplete="off"></div>
     <div class="modal-error" id="addSiteError"></div>
     <button class="btn btn-primary" style="width:100%;margin-top:8px;justify-content:center" onclick="doAddSite()" id="addSiteBtn">add site →</button>
+  </div>
+</div>
+
+<div class="terminal-modal-bg" id="terminalModal" onclick="if(event.target===this)closeTerminalModal()">
+  <div class="terminal-modal">
+    <div class="terminal-header">
+      <div class="terminal-dot red"></div>
+      <div class="terminal-dot"></div>
+      <div class="terminal-dot"></div>
+      <span class="terminal-title">confirm destructive action</span>
+    </div>
+    <div class="terminal-body">
+      <p class="terminal-desc">this action is <strong style="color:var(--red)">permanent and cannot be undone</strong>. type the command below exactly to confirm.</p>
+      <div class="terminal-cmd-label">command to run</div>
+      <div class="terminal-prompt" id="terminalPrompt" onclick="navigator.clipboard.writeText(this.textContent.slice(2))">$ ...</div>
+      <div class="terminal-input-label">type the command to confirm</div>
+      <div class="terminal-input-wrap">
+        <span class="terminal-caret">$</span>
+        <input class="terminal-input" type="text" id="terminalInput" placeholder="type command here..." autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')confirmTerminalDelete();if(event.key==='Escape')closeTerminalModal()">
+      </div>
+      <div class="terminal-error" id="terminalError"></div>
+      <div class="terminal-actions">
+        <button class="btn btn-ghost btn-sm" onclick="closeTerminalModal()">cancel</button>
+        <button class="btn btn-danger btn-sm" id="terminalConfirmBtn" onclick="confirmTerminalDelete()">confirm delete</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -544,7 +640,7 @@ function renderInstall(site) {
         <div style="flex:1;min-width:0">
           <div class="install-step-title">add the script tag to your site</div>
           <div class="install-step-desc">paste this into the <code style="color:var(--accent2)">&lt;head&gt;</code> of every page you want protected. works on any html — static sites, jamstack, single-page apps.</div>
-          <div class="code-block" id="cb-snippet"><button class="code-copy" onclick="cpSnippet(this,'${site.key}')">copy</button>&lt;script src="https://cdn.brickwall.sh/v1/protect.min.js"
+          <div class="code-block" id="cb-snippet"><button class="code-copy" onclick="cpSnippet(this,'${site.key}')">copy</button>&lt;script src="https://brickwall.onrender.com/js/protect.min.js"
   data-site="${key}"&gt;&lt;/script&gt;</div>
         </div>
       </div>
@@ -574,7 +670,7 @@ Content-Type: application/json
     <div class="install-block">
       <div class="install-block-head">self-hosting the script</div>
       <div class="install-block-body">
-        <div class="code-block"><button class="code-copy" onclick="cpRaw(this,'curl -o protect.min.js https://cdn.brickwall.sh/v1/protect.min.js')">copy</button>curl -o protect.min.js https://cdn.brickwall.sh/v1/protect.min.js</div>
+        <div class="code-block"><button class="code-copy" onclick="cpRaw(this,'curl -o protect.min.js https://brickwall.onrender.com/js/protect.min.js')">copy</button>curl -o protect.min.js https://brickwall.onrender.com/js/protect.min.js</div>
         <p class="install-note">download and serve from your own cdn if preferred. the <code style="color:var(--accent2)">data-site</code> attribute still needs your key, and <code style="color:var(--accent2)">data-api</code> + <code style="color:var(--accent2)">data-challenge</code> attributes can override the default endpoints.</p>
       </div>
     </div>
@@ -582,7 +678,7 @@ Content-Type: application/json
 }
 
 function cpSnippet(btn, key) {
-  navigator.clipboard.writeText(`<script src="https://cdn.brickwall.sh/v1/protect.min.js" data-site="${key}"><\/script>`)
+  navigator.clipboard.writeText(`<script src="https://brickwall.onrender.com/js/protect.min.js" data-site="${key}"><\/script>`)
   btn.textContent='copied!'; setTimeout(()=>btn.textContent='copy',2000)
 }
 
@@ -650,7 +746,16 @@ function renderSettings(site) {
     </div>
     <div class="danger-zone">
       <h4>danger zone</h4>
-      <button class="btn btn-danger btn-sm" onclick="confirmDelete()">delete this site</button>
+      <div style="margin-bottom:14px">
+        <div class="settings-label" style="margin-bottom:4px">delete this site</div>
+        <div class="settings-desc" style="margin-bottom:10px">permanently removes the site, its api key, and all request history.</div>
+        <button class="btn btn-danger btn-sm" onclick="openDeleteSite()">delete site</button>
+      </div>
+      <div>
+        <div class="settings-label" style="margin-bottom:4px">delete your account</div>
+        <div class="settings-desc" style="margin-bottom:10px">deletes your account and all sites permanently. cannot be undone.</div>
+        <button class="btn btn-danger btn-sm" onclick="openDeleteAccount()">delete account</button>
+      </div>
     </div>
   `
 }
@@ -722,13 +827,61 @@ async function rotateKey() {
   if (site) { site.key = d.key; renderInstall(site) }
 }
 
-async function confirmDelete() {
+function openDeleteSite() {
   const site = sites.find(s => s.id === currentSiteId)
-  if (!confirm(`delete "${site?.name}"? this cannot be undone and all request history will be lost.`)) return
-  await fetch('/api/sites/'+currentSiteId,{method:'DELETE'})
-  currentSiteId = null
-  await loadSites()
-  nav('sites')
+  if (!site) return
+  const modal = document.getElementById('terminalModal')
+  const cmd = `sudo delete brickwall-sites ${site.domain}`
+  document.getElementById('terminalPrompt').textContent = '$ ' + cmd
+  document.getElementById('terminalInput').value = ''
+  document.getElementById('terminalError').style.display = 'none'
+  modal.dataset.mode = 'site'
+  modal.dataset.expected = cmd
+  modal.classList.add('open')
+  setTimeout(() => document.getElementById('terminalInput').focus(), 100)
+}
+
+function openDeleteAccount() {
+  const modal = document.getElementById('terminalModal')
+  const cmd = `sudo delete brickwall-accounts ${currentUser.email}`
+  document.getElementById('terminalPrompt').textContent = '$ ' + cmd
+  document.getElementById('terminalInput').value = ''
+  document.getElementById('terminalError').style.display = 'none'
+  modal.dataset.mode = 'account'
+  modal.dataset.expected = cmd
+  modal.classList.add('open')
+  setTimeout(() => document.getElementById('terminalInput').focus(), 100)
+}
+
+function closeTerminalModal() {
+  document.getElementById('terminalModal').classList.remove('open')
+}
+
+async function confirmTerminalDelete() {
+  const modal = document.getElementById('terminalModal')
+  const input = document.getElementById('terminalInput').value.trim()
+  const expected = modal.dataset.expected
+  const err = document.getElementById('terminalError')
+  if (input !== expected) {
+    err.textContent = 'command does not match. copy it exactly.'
+    err.style.display = 'block'
+    document.getElementById('terminalInput').style.animation = 'shake .3s ease'
+    setTimeout(() => document.getElementById('terminalInput').style.animation = '', 300)
+    return
+  }
+  const btn = document.getElementById('terminalConfirmBtn')
+  btn.disabled = true; btn.textContent = 'deleting...'
+  if (modal.dataset.mode === 'site') {
+    await fetch('/api/sites/'+currentSiteId,{method:'DELETE'})
+    modal.classList.remove('open')
+    currentSiteId = null
+    await loadSites()
+    nav('sites')
+  } else {
+    await fetch('/api/auth/account',{method:'DELETE'})
+    window.location.href = '/'
+  }
+  btn.disabled = false; btn.textContent = 'confirm delete'
 }
 
 function openAddSite() { document.getElementById('addSiteModal').classList.add('open') }
@@ -766,6 +919,7 @@ const panelTitles = {
   install:['installation','embed brickwall on your site'],
   settings:['site settings','configure protection options'],
   sites:['manage sites','add, switch, or remove sites'],
+  account:['account','your profile and danger zone'],
 }
 
 function nav(page) {
@@ -779,6 +933,10 @@ function nav(page) {
   document.getElementById('pageSub').textContent = sub||(site?site.domain:'')
   if (page==='requests') renderAllTable()
   if (page==='sites') renderSitesGrid()
+  if (page==='account') {
+    document.getElementById('acctName').textContent = currentUser?.name || '—'
+    document.getElementById('acctEmail').textContent = currentUser?.email || '—'
+  }
   closeSidebar()
 }
 
