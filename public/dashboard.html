@@ -242,6 +242,72 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .terminal-error{color:var(--red);font-size:11px;margin-top:8px;display:none}
 .terminal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
 
+.customize-group{background:var(--surface);border:1px solid var(--border);border-radius:4px;margin-bottom:12px;overflow:hidden}
+.customize-group-head{padding:11px 16px;border-bottom:1px solid var(--border);font-family:var(--display);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.customize-group-body{padding:14px 16px}
+.customize-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px solid var(--border)}
+.customize-row:last-child{border-bottom:none;padding-bottom:0}
+.customize-row:first-child{padding-top:0}
+.customize-label{font-size:12px;color:var(--text2)}
+.customize-desc{font-size:10px;color:var(--muted);margin-top:3px;line-height:1.5}
+.color-input-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.color-swatch{
+  width:28px;height:28px;border-radius:3px;border:1px solid var(--border2);
+  cursor:pointer;overflow:hidden;position:relative;flex-shrink:0;
+}
+.color-swatch input[type=color]{
+  position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);
+  opacity:0;cursor:pointer;border:none;padding:0;
+}
+.color-swatch-preview{position:absolute;inset:0;pointer-events:none;border-radius:2px}
+.color-hex{width:74px;font-size:10px;font-family:var(--mono);color:var(--text2);background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 8px;letter-spacing:.04em}
+.color-hex:focus{outline:none;border-color:var(--accent)}
+
+.preset-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-bottom:4px}
+.preset-btn{
+  background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  padding:9px 10px;cursor:pointer;transition:border-color .15s;
+  display:flex;flex-direction:column;gap:6px;align-items:flex-start;
+}
+.preset-btn:hover{border-color:var(--border2)}
+.preset-btn.active-preset{border-color:var(--accent)}
+.preset-name{font-size:10px;color:var(--text2);font-family:var(--mono)}
+.preset-swatches{display:flex;gap:3px}
+.preset-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+.font-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:6px}
+.font-opt{
+  background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  padding:10px 12px;cursor:pointer;transition:border-color .15s;
+}
+.font-opt:hover{border-color:var(--border2)}
+.font-opt.active-font{border-color:var(--accent)}
+.font-opt-name{font-size:11px;color:var(--text2);margin-bottom:3px}
+.font-opt-sample{font-size:13px;color:var(--text);font-weight:700;letter-spacing:-.3px;line-height:1.2}
+
+.customize-reset-btn{font-size:10px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:3px;padding:4px 10px;cursor:pointer;font-family:var(--mono);transition:all .2s}
+.customize-reset-btn:hover{border-color:var(--red);color:var(--red)}
+
+.sidebar-density-opt{display:flex;gap:6px;flex-shrink:0}
+.density-btn{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 12px;font-size:10px;color:var(--muted);cursor:pointer;font-family:var(--mono);transition:all .15s}
+.density-btn:hover{border-color:var(--border2);color:var(--text2)}
+.density-btn.active-density{border-color:var(--accent);color:var(--accent)}
+
+body.density-compact .nav-item{padding:6px 12px}
+body.density-compact .settings-row{padding:7px 0}
+body.density-compact .customize-row{padding:7px 0}
+body.density-compact .stat-card{padding:10px 12px}
+body.density-compact .sc-value{font-size:22px}
+body.density-compact td{padding:7px 12px}
+body.density-compact .install-step{padding:12px 14px}
+
+body.density-spacious .nav-item{padding:12px 14px}
+body.density-spacious .settings-row{padding:14px 0}
+body.density-spacious .customize-row{padding:14px 0}
+body.density-spacious .stat-card{padding:20px 22px}
+body.density-spacious .sc-value{font-size:30px}
+body.density-spacious td{padding:12px 14px}
+
 @media(max-width:900px){.stat-cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:680px){
   .sidebar{position:fixed;left:-240px;top:0;bottom:0;width:240px;z-index:200;transition:left .25s ease}
@@ -260,6 +326,8 @@ tr:hover td{background:rgba(255,255,255,.02)}
   .key-actions{width:100%}
   .key-actions .btn{flex:1;justify-content:center}
   .settings-ttl{gap:6px}
+  .preset-grid{grid-template-columns:repeat(3,1fr)}
+  .font-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:440px){
   .stat-cards{grid-template-columns:1fr 1fr}
@@ -395,6 +463,48 @@ tr:hover td{background:rgba(255,255,255,.02)}
             </div>
           </div>
         </div>
+
+        <div style="font-family:var(--display);font-size:15px;font-weight:700;margin:20px 0 12px;letter-spacing:-.3px">customize dashboard</div>
+
+        <div class="customize-group">
+          <div class="customize-group-head">
+            <span>presets</span>
+            <button class="customize-reset-btn" onclick="resetCustomize()">reset to default</button>
+          </div>
+          <div class="customize-group-body">
+            <div class="preset-grid" id="presetGrid"></div>
+          </div>
+        </div>
+
+        <div class="customize-group">
+          <div class="customize-group-head">colors</div>
+          <div class="customize-group-body" id="colorRows"></div>
+        </div>
+
+        <div class="customize-group">
+          <div class="customize-group-head">typography</div>
+          <div class="customize-group-body">
+            <div class="customize-row" style="padding-bottom:12px;border-bottom:none">
+              <div><div class="customize-label">display font</div><div class="customize-desc">used for headings, numbers, and ui labels</div></div>
+            </div>
+            <div class="font-grid" id="fontGrid"></div>
+          </div>
+        </div>
+
+        <div class="customize-group">
+          <div class="customize-group-head">density</div>
+          <div class="customize-group-body">
+            <div class="customize-row" style="border-bottom:none;padding-bottom:0">
+              <div><div class="customize-label">layout density</div><div class="customize-desc">controls padding and spacing throughout the ui</div></div>
+              <div class="sidebar-density-opt" id="densityBtns">
+                <button class="density-btn" onclick="setDensity('compact')">compact</button>
+                <button class="density-btn active-density" onclick="setDensity('default')">default</button>
+                <button class="density-btn" onclick="setDensity('spacious')">spacious</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="danger-zone">
           <h4>danger zone</h4>
           <div>
@@ -454,7 +564,353 @@ let currentSiteId = null
 let allRequests = []
 let filteredRequests = []
 
+const CUSTOMIZE_KEY = 'bw_customize'
+
+const COLOR_VARS = [
+  { key: '--bg', label: 'background', desc: 'main page background' },
+  { key: '--surface', label: 'surface', desc: 'cards, panels, sidebar' },
+  { key: '--surface2', label: 'surface 2', desc: 'table headers, inputs' },
+  { key: '--accent', label: 'accent', desc: 'primary brand color' },
+  { key: '--accent2', label: 'accent 2', desc: 'code and key text color' },
+  { key: '--text', label: 'text', desc: 'primary text color' },
+  { key: '--text2', label: 'text secondary', desc: 'labels and secondary text' },
+  { key: '--muted', label: 'muted', desc: 'placeholder and dim text' },
+  { key: '--border', label: 'border', desc: 'standard borders' },
+  { key: '--border2', label: 'border 2', desc: 'focused / stronger borders' },
+  { key: '--green', label: 'passed color', desc: 'passed tag and stats' },
+  { key: '--red', label: 'blocked / danger', desc: 'blocked tag, delete actions' },
+  { key: '--yellow', label: 'flagged color', desc: 'flagged tag and warnings' },
+]
+
+const PRESETS = [
+  {
+    id: 'default',
+    name: 'default',
+    colors: {
+      '--bg': '#0d0d0d',
+      '--surface': '#131313',
+      '--surface2': '#181818',
+      '--accent': '#d95f2b',
+      '--accent2': '#c8a97e',
+      '--text': '#e8e4de',
+      '--text2': '#a89f95',
+      '--muted': '#5a5450',
+      '--border': '#222',
+      '--border2': '#333',
+      '--green': '#4a8a5c',
+      '--red': '#c44a3a',
+      '--yellow': '#b58a3a',
+    },
+    font: 'default'
+  },
+  {
+    id: 'slate',
+    name: 'slate',
+    colors: {
+      '--bg': '#0f1117',
+      '--surface': '#161b27',
+      '--surface2': '#1c2235',
+      '--accent': '#6366f1',
+      '--accent2': '#818cf8',
+      '--text': '#e2e8f0',
+      '--text2': '#94a3b8',
+      '--muted': '#475569',
+      '--border': '#1e2a3a',
+      '--border2': '#2d3c50',
+      '--green': '#22c55e',
+      '--red': '#ef4444',
+      '--yellow': '#eab308',
+    },
+    font: 'default'
+  },
+  {
+    id: 'chalk',
+    name: 'chalk',
+    colors: {
+      '--bg': '#f5f2ee',
+      '--surface': '#ebe7e1',
+      '--surface2': '#ddd9d2',
+      '--accent': '#c0392b',
+      '--accent2': '#8b4513',
+      '--text': '#1a1614',
+      '--text2': '#4a3f38',
+      '--muted': '#8a7f78',
+      '--border': '#ccc8c0',
+      '--border2': '#b0aba3',
+      '--green': '#2d6a4f',
+      '--red': '#c0392b',
+      '--yellow': '#b7791f',
+    },
+    font: 'mono'
+  },
+  {
+    id: 'forest',
+    name: 'forest',
+    colors: {
+      '--bg': '#0e1a14',
+      '--surface': '#132018',
+      '--surface2': '#1a2b20',
+      '--accent': '#4ade80',
+      '--accent2': '#86efac',
+      '--text': '#dcfce7',
+      '--text2': '#86efac',
+      '--muted': '#3d6b4f',
+      '--border': '#1f3329',
+      '--border2': '#2d4a38',
+      '--green': '#4ade80',
+      '--red': '#f87171',
+      '--yellow': '#fbbf24',
+    },
+    font: 'default'
+  },
+  {
+    id: 'noir',
+    name: 'noir',
+    colors: {
+      '--bg': '#050505',
+      '--surface': '#0a0a0a',
+      '--surface2': '#111',
+      '--accent': '#ffffff',
+      '--accent2': '#cccccc',
+      '--text': '#ffffff',
+      '--text2': '#aaaaaa',
+      '--muted': '#444444',
+      '--border': '#1a1a1a',
+      '--border2': '#282828',
+      '--green': '#888888',
+      '--red': '#cccccc',
+      '--yellow': '#999999',
+    },
+    font: 'mono'
+  },
+  {
+    id: 'synthwave',
+    name: 'synthwave',
+    colors: {
+      '--bg': '#0d0221',
+      '--surface': '#130432',
+      '--surface2': '#1a0845',
+      '--accent': '#ff2d78',
+      '--accent2': '#00f5ff',
+      '--text': '#f0e6ff',
+      '--text2': '#c084fc',
+      '--muted': '#6b3fa0',
+      '--border': '#2a0d5e',
+      '--border2': '#3d1a80',
+      '--green': '#39ff14',
+      '--red': '#ff2d78',
+      '--yellow': '#ffdd00',
+    },
+    font: 'default'
+  },
+]
+
+const FONTS = [
+  { id: 'default', name: 'default', family: 'inherit', sample: 'Brickwall' },
+  { id: 'mono', name: 'monospace', family: 'var(--mono)', sample: 'Brickwall' },
+  { id: 'serif', name: 'serif', family: 'Georgia, "Times New Roman", serif', sample: 'Brickwall' },
+  { id: 'system', name: 'system ui', family: 'system-ui, -apple-system, sans-serif', sample: 'Brickwall' },
+  { id: 'rounded', name: 'rounded', family: '"Trebuchet MS", Optima, Candara, sans-serif', sample: 'Brickwall' },
+  { id: 'slab', name: 'slab', family: '"Rockwell", "Courier New", monospace', sample: 'Brickwall' },
+]
+
+let customizeState = {}
+
+function loadCustomize() {
+  try {
+    const raw = localStorage.getItem(CUSTOMIZE_KEY)
+    if (raw) customizeState = JSON.parse(raw)
+  } catch { customizeState = {} }
+  applyCustomize()
+}
+
+function saveCustomize() {
+  localStorage.setItem(CUSTOMIZE_KEY, JSON.stringify(customizeState))
+}
+
+function applyCustomize() {
+  const root = document.documentElement
+  if (customizeState.colors) {
+    Object.entries(customizeState.colors).forEach(([k, v]) => root.style.setProperty(k, v))
+  }
+  if (customizeState.font) {
+    const f = FONTS.find(x => x.id === customizeState.font)
+    if (f) root.style.setProperty('--display', f.family)
+  }
+  if (customizeState.density) {
+    document.body.classList.remove('density-compact', 'density-spacious')
+    if (customizeState.density !== 'default') document.body.classList.add('density-' + customizeState.density)
+  }
+}
+
+function resetCustomize() {
+  customizeState = {}
+  localStorage.removeItem(CUSTOMIZE_KEY)
+  const root = document.documentElement
+  COLOR_VARS.forEach(v => root.style.removeProperty(v.key))
+  root.style.removeProperty('--display')
+  document.body.classList.remove('density-compact', 'density-spacious')
+  renderCustomizePanel()
+}
+
+function getComputedColor(varName) {
+  if (customizeState.colors && customizeState.colors[varName]) return customizeState.colors[varName]
+  return rgbToHex(getComputedStyle(document.documentElement).getPropertyValue(varName).trim())
+}
+
+function rgbToHex(val) {
+  if (!val) return '#000000'
+  if (val.startsWith('#')) return val.length === 4
+    ? '#' + val[1]+val[1]+val[2]+val[2]+val[3]+val[3]
+    : val
+  const m = val.match(/\d+/g)
+  if (!m || m.length < 3) return '#000000'
+  return '#' + m.slice(0,3).map(n => parseInt(n).toString(16).padStart(2,'0')).join('')
+}
+
+function setColor(varName, hexVal) {
+  if (!customizeState.colors) customizeState.colors = {}
+  customizeState.colors[varName] = hexVal
+  document.documentElement.style.setProperty(varName, hexVal)
+  saveCustomize()
+  syncColorRow(varName, hexVal)
+}
+
+function syncColorRow(varName, hexVal) {
+  const swatch = document.querySelector('[data-swatch="'+varName+'"]')
+  if (swatch) swatch.style.background = hexVal
+  const hexInput = document.querySelector('[data-hexinput="'+varName+'"]')
+  if (hexInput && document.activeElement !== hexInput) hexInput.value = hexVal
+  const colorInput = document.querySelector('[data-colorinput="'+varName+'"]')
+  if (colorInput) colorInput.value = hexVal
+  updateActivePreset()
+}
+
+function setFont(fontId) {
+  customizeState.font = fontId
+  const f = FONTS.find(x => x.id === fontId)
+  if (f) document.documentElement.style.setProperty('--display', f.family)
+  saveCustomize()
+  renderFontGrid()
+}
+
+function setDensity(d) {
+  customizeState.density = d
+  document.body.classList.remove('density-compact', 'density-spacious')
+  if (d !== 'default') document.body.classList.add('density-' + d)
+  saveCustomize()
+  document.querySelectorAll('.density-btn').forEach(b => b.classList.remove('active-density'))
+  document.querySelectorAll('.density-btn').forEach(b => {
+    if (b.textContent.trim() === d) b.classList.add('active-density')
+  })
+}
+
+function applyPreset(presetId) {
+  const p = PRESETS.find(x => x.id === presetId)
+  if (!p) return
+  customizeState.colors = Object.assign({}, p.colors)
+  customizeState.font = p.font
+  if (!customizeState.density) customizeState.density = 'default'
+  applyCustomize()
+  saveCustomize()
+  renderCustomizePanel()
+}
+
+function updateActivePreset() {
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    const pid = btn.dataset.preset
+    const p = PRESETS.find(x => x.id === pid)
+    if (!p) return
+    const isActive = COLOR_VARS.every(cv => {
+      const cur = customizeState.colors?.[cv.key]
+      return !cur || cur.toLowerCase() === p.colors[cv.key].toLowerCase()
+    })
+    btn.classList.toggle('active-preset', isActive)
+  })
+}
+
+function renderPresetGrid() {
+  const grid = document.getElementById('presetGrid')
+  grid.innerHTML = PRESETS.map(p => {
+    const swatchKeys = ['--bg','--surface','--accent','--accent2','--text']
+    const dots = swatchKeys.map(k => `<div class="preset-dot" style="background:${p.colors[k]}"></div>`).join('')
+    const isActive = customizeState.colors
+      ? COLOR_VARS.every(cv => !customizeState.colors[cv.key] || customizeState.colors[cv.key].toLowerCase() === p.colors[cv.key].toLowerCase())
+      : p.id === 'default'
+    return `<button class="preset-btn ${isActive?'active-preset':''}" data-preset="${p.id}" onclick="applyPreset('${p.id}')">
+      <div class="preset-swatches">${dots}</div>
+      <div class="preset-name">${p.name}</div>
+    </button>`
+  }).join('')
+}
+
+function renderColorRows() {
+  const wrap = document.getElementById('colorRows')
+  wrap.innerHTML = COLOR_VARS.map(cv => {
+    const hex = getComputedColor(cv.key)
+    return `<div class="customize-row">
+      <div>
+        <div class="customize-label">${cv.label}</div>
+        <div class="customize-desc">${cv.desc}</div>
+      </div>
+      <div class="color-input-wrap">
+        <div class="color-swatch" title="click to pick color">
+          <div class="color-swatch-preview" data-swatch="${cv.key}" style="background:${hex}"></div>
+          <input type="color" value="${hex}" data-colorinput="${cv.key}"
+            oninput="setColor('${cv.key}',this.value);syncColorRow('${cv.key}',this.value)"
+            onchange="setColor('${cv.key}',this.value)">
+        </div>
+        <input class="color-hex" type="text" value="${hex}" maxlength="7" data-hexinput="${cv.key}"
+          oninput="onHexInput('${cv.key}',this)"
+          onblur="onHexBlur('${cv.key}',this)">
+      </div>
+    </div>`
+  }).join('')
+}
+
+function onHexInput(varName, input) {
+  const v = input.value.trim()
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    setColor(varName, v)
+    const ci = document.querySelector('[data-colorinput="'+varName+'"]')
+    if (ci) ci.value = v
+    const sw = document.querySelector('[data-swatch="'+varName+'"]')
+    if (sw) sw.style.background = v
+  }
+}
+
+function onHexBlur(varName, input) {
+  const v = input.value.trim()
+  if (!/^#[0-9a-fA-F]{6}$/.test(v)) input.value = getComputedColor(varName)
+}
+
+function renderFontGrid() {
+  const grid = document.getElementById('fontGrid')
+  const active = customizeState.font || 'default'
+  grid.innerHTML = FONTS.map(f => `
+    <div class="font-opt ${f.id===active?'active-font':''}" onclick="setFont('${f.id}')">
+      <div class="font-opt-name">${f.name}</div>
+      <div class="font-opt-sample" style="font-family:${f.family}">${f.sample}</div>
+    </div>
+  `).join('')
+}
+
+function renderDensityBtns() {
+  const active = customizeState.density || 'default'
+  document.querySelectorAll('.density-btn').forEach(b => {
+    b.classList.toggle('active-density', b.textContent.trim() === active)
+  })
+}
+
+function renderCustomizePanel() {
+  renderPresetGrid()
+  renderColorRows()
+  renderFontGrid()
+  renderDensityBtns()
+}
+
 async function init() {
+  loadCustomize()
   try {
     const r = await fetch('/api/auth/me')
     if (!r.ok) { window.location.href = '/'; return }
@@ -939,6 +1395,7 @@ function nav(page) {
   if (page==='account') {
     document.getElementById('acctName').textContent = currentUser?.name || '—'
     document.getElementById('acctEmail').textContent = currentUser?.email || '—'
+    renderCustomizePanel()
   }
   closeSidebar()
 }
