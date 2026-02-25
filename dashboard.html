@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dashboard — brickwall</title>
+<link rel="stylesheet" href="/css/shared.css">
+<style>
+body{display:flex;flex-direction:column;min-height:100vh;overflow:hidden}
+#appShell{display:flex;flex:1;min-height:0;height:100vh}
+
+#authWall{
+  position:fixed;inset:0;background:var(--bg);z-index:9000;
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;
+}
+#authWall .logo{font-family:var(--display);font-size:20px;font-weight:800;letter-spacing:-.4px}
+#authWall .logo span{color:var(--accent)}
+#authWall p{color:var(--muted);font-size:12px}
+#authWall.hidden{display:none}
+
+.sidebar{
+  width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.sidebar-logo{
+  padding:20px 18px 16px;border-bottom:1px solid var(--border);
+  font-family:var(--display);font-size:16px;font-weight:800;letter-spacing:-.4px;
+}
+.sidebar-logo span{color:var(--accent)}
+.sidebar-section{padding:10px 10px 4px;font-size:9px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:9px;padding:8px 12px;margin:1px 6px;
+  border-radius:3px;cursor:pointer;font-size:12px;color:var(--text2);
+  transition:all .15s;border:1px solid transparent;
+}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--bg);border-color:var(--border);color:var(--text)}
+.nav-item .icon{font-size:13px;width:16px;text-align:center;flex-shrink:0}
+
+.site-picker{padding:10px 8px;border-bottom:1px solid var(--border)}
+.site-select-wrap{position:relative}
+.site-select-wrap select{
+  padding-right:28px;cursor:pointer;appearance:none;
+  font-size:11px;border-color:var(--border);color:var(--text);
+  background:var(--bg);
+}
+.site-select-wrap::after{
+  content:'▾';position:absolute;right:10px;top:50%;transform:translateY(-50%);
+  color:var(--muted);pointer-events:none;font-size:10px;
+}
+
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding:12px 8px}
+.user-chip{
+  display:flex;align-items:center;gap:8px;padding:8px;
+  border-radius:3px;cursor:pointer;transition:background .15s;
+}
+.user-chip:hover{background:var(--surface2)}
+.user-avatar{
+  width:26px;height:26px;border-radius:3px;background:var(--accent);
+  display:flex;align-items:center;justify-content:center;font-size:11px;
+  font-family:var(--display);font-weight:700;color:#fff;flex-shrink:0;
+}
+.user-name{font-size:11px;color:var(--text2)}
+.logout-btn{
+  background:none;border:none;color:var(--muted);font-size:10px;cursor:pointer;
+  padding:4px 8px;font-family:var(--mono);transition:color .2s;display:block;width:100%;text-align:left;
+}
+.logout-btn:hover{color:var(--red)}
+
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  padding:14px 28px;border-bottom:1px solid var(--border);display:flex;
+  align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;
+  background:var(--bg);z-index:10;
+}
+.page-title{font-family:var(--display);font-size:16px;font-weight:700;letter-spacing:-.3px}
+.page-sub{color:var(--muted);font-size:11px;margin-top:2px}
+.content{padding:24px 28px;flex:1}
+
+.panel{display:none}
+.panel.active{display:block;animation:fadeIn .2s ease both}
+
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:4px;
+  padding:16px 18px;
+}
+.sc-label{font-size:10px;color:var(--muted);letter-spacing:.04em;margin-bottom:8px}
+.sc-value{font-family:var(--display);font-size:28px;font-weight:700;letter-spacing:-1px;line-height:1}
+.sc-sub{font-size:10px;color:var(--muted);margin-top:5px}
+
+.req-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.req-table-head{
+  padding:10px 16px;border-bottom:1px solid var(--border);display:flex;
+  align-items:center;justify-content:space-between;
+}
+.req-table-head-title{font-family:var(--display);font-size:13px;font-weight:600}
+.req-table-head-actions{display:flex;gap:8px;align-items:center}
+.filter-input{width:160px;font-size:11px}
+table{width:100%;border-collapse:collapse}
+th{
+  padding:8px 14px;text-align:left;font-size:9px;letter-spacing:.08em;
+  color:var(--muted);font-weight:500;border-bottom:1px solid var(--border);
+  background:var(--surface2);white-space:nowrap;
+}
+td{padding:9px 14px;font-size:11px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.req-country{font-size:12px;font-weight:500}
+.req-detected{font-size:10px;color:var(--muted)}
+.req-ts{color:var(--muted);font-size:10px;white-space:nowrap}
+.empty-state{text-align:center;padding:40px;color:var(--muted);font-size:12px}
+
+.install-wrap{max-width:680px}
+.install-block{background:var(--surface);border:1px solid var(--border);border-radius:4px;margin-bottom:16px;overflow:hidden}
+.install-block-head{
+  padding:10px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.install-block-title{font-family:var(--display);font-size:13px;font-weight:600}
+.install-block-body{padding:16px}
+.code-block{
+  background:var(--bg);border:1px solid var(--border2);border-radius:3px;
+  padding:14px 16px;font-size:11px;color:var(--accent2);
+  font-family:var(--mono);overflow-x:auto;white-space:pre;line-height:1.7;
+  position:relative;
+}
+.code-copy{
+  position:absolute;top:8px;right:8px;
+  background:var(--surface);border:1px solid var(--border);color:var(--muted);
+  padding:3px 10px;border-radius:2px;font-size:10px;cursor:pointer;
+  font-family:var(--mono);transition:all .2s;
+}
+.code-copy:hover{border-color:var(--accent);color:var(--accent)}
+.install-note{color:var(--muted);font-size:11px;line-height:1.75;margin-top:10px}
+
+.key-row{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg);border:1px solid var(--border2);border-radius:3px;padding:10px 14px;
+  font-size:11px;font-family:var(--mono);color:var(--accent2);
+}
+.key-row .key-val{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.key-row .btn{flex-shrink:0}
+
+.settings-form{max-width:480px}
+.settings-group{background:var(--surface);border:1px solid var(--border);border-radius:4px;margin-bottom:16px;overflow:hidden}
+.settings-group-head{padding:12px 18px;border-bottom:1px solid var(--border);font-family:var(--display);font-size:13px;font-weight:600}
+.settings-group-body{padding:18px}
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.settings-row:last-child{border-bottom:none;padding-bottom:0}
+.settings-label{font-size:12px;color:var(--text2)}
+.settings-desc{font-size:10px;color:var(--muted);margin-top:2px}
+.toggle{position:relative;width:34px;height:19px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;background:var(--border2);border-radius:10px;cursor:pointer;transition:.2s;
+}
+.toggle-slider::before{
+  content:'';position:absolute;width:13px;height:13px;background:#fff;border-radius:50%;
+  bottom:3px;left:3px;transition:.2s;
+}
+.toggle input:checked + .toggle-slider{background:var(--accent)}
+.toggle input:checked + .toggle-slider::before{transform:translateX(15px)}
+.settings-ttl{display:flex;align-items:center;gap:10px}
+.ttl-input{width:80px}
+
+.sites-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px}
+.site-card{
+  background:var(--surface);border:1px solid var(--border);border-radius:4px;
+  padding:18px;cursor:pointer;transition:border-color .15s;
+}
+.site-card:hover{border-color:var(--border2)}
+.site-card.selected{border-color:var(--accent)}
+.site-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
+.site-card-name{font-family:var(--display);font-size:14px;font-weight:600;letter-spacing:-.3px}
+.site-card-domain{color:var(--muted);font-size:11px;margin-top:2px}
+.site-card-stats{display:flex;gap:14px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.scs-item .scs-v{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.5px}
+.scs-item .scs-l{font-size:9px;color:var(--muted)}
+
+.add-site-btn{
+  background:var(--surface);border:1px dashed var(--border2);border-radius:4px;
+  padding:18px;cursor:pointer;transition:all .15s;display:flex;align-items:center;
+  justify-content:center;gap:8px;color:var(--muted);font-size:12px;min-height:110px;
+}
+.add-site-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  z-index:1000;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.modal-bg.open{opacity:1;pointer-events:all}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);border-radius:5px;
+  padding:28px;width:100%;max-width:360px;position:relative;
+  transform:translateY(8px);transition:transform .2s;
+}
+.modal-bg.open .modal{transform:translateY(0)}
+.modal h3{font-family:var(--display);font-size:17px;font-weight:700;margin-bottom:18px;letter-spacing:-.3px}
+.modal .field{margin-bottom:14px}
+.modal-close{
+  position:absolute;top:10px;right:14px;background:none;border:none;
+  color:var(--muted);font-size:18px;cursor:pointer;line-height:1;
+}
+.modal-error{color:var(--red);font-size:11px;margin-top:8px;display:none}
+
+.danger-zone{margin-top:24px;padding-top:20px;border-top:1px solid var(--border)}
+.danger-zone h4{font-family:var(--display);font-size:13px;font-weight:600;color:var(--red);margin-bottom:12px}
+
+@media(max-width:800px){
+  .sidebar{width:180px}
+  .stat-cards{grid-template-columns:repeat(2,1fr)}
+  .content{padding:16px}
+}
+@media(max-width:600px){
+  #appShell{flex-direction:column}
+  .sidebar{width:100%;flex-direction:row;overflow-x:auto;border-right:none;border-bottom:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<div id="authWall">
+  <div class="logo">brick<span>wall</span></div>
+  <div class="spinner"></div>
+  <p>loading...</p>
+</div>
+
+<div id="appShell" style="display:none">
+<aside class="sidebar">
+  <div class="sidebar-logo">brick<span>wall</span></div>
+  <div class="site-picker">
+    <label>active site</label>
+    <div class="site-select-wrap">
+      <select id="siteSelect" onchange="onSiteChange()">
+        <option value="">loading...</option>
+      </select>
+    </div>
+  </div>
+  <div class="sidebar-section">overview</div>
+  <div class="nav-item active" onclick="nav('overview')" id="nav-overview">
+    <span class="icon">▦</span> overview
+  </div>
+  <div class="nav-item" onclick="nav('requests')" id="nav-requests">
+    <span class="icon">◈</span> all requests
+  </div>
+  <div class="sidebar-section">setup</div>
+  <div class="nav-item" onclick="nav('install')" id="nav-install">
+    <span class="icon">⌥</span> installation
+  </div>
+  <div class="nav-item" onclick="nav('settings')" id="nav-settings">
+    <span class="icon">⚙</span> site settings
+  </div>
+  <div class="sidebar-section">account</div>
+  <div class="nav-item" onclick="nav('sites')" id="nav-sites">
+    <span class="icon">◫</span> manage sites
+  </div>
+  <div class="sidebar-bottom">
+    <div class="user-chip">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div class="user-name" id="userName">loading...</div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">→ log out</button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="pageTitle">overview</div>
+      <div class="page-sub" id="pageSub">loading your data...</div>
+    </div>
+    <div id="topbarActions"></div>
+  </div>
+  <div class="content">
+
+    <div class="panel active" id="panel-overview">
+      <div class="stat-cards" id="statCards">
+        <div class="stat-card"><div class="sc-label">total requests</div><div class="sc-value">—</div></div>
+        <div class="stat-card"><div class="sc-label">passed</div><div class="sc-value">—</div></div>
+        <div class="stat-card"><div class="sc-label">blocked</div><div class="sc-value">—</div></div>
+        <div class="stat-card"><div class="sc-label">flagged</div><div class="sc-value">—</div></div>
+      </div>
+      <div class="req-table-wrap">
+        <div class="req-table-head">
+          <div class="req-table-head-title">recent requests</div>
+          <button class="btn btn-ghost btn-sm" onclick="nav('requests')">view all →</button>
+        </div>
+        <div id="recentReqsTable"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-requests">
+      <div class="req-table-wrap">
+        <div class="req-table-head">
+          <div class="req-table-head-title">all requests</div>
+          <div class="req-table-head-actions">
+            <input class="filter-input" type="text" placeholder="filter by country or status..." oninput="filterReqs(this.value)" id="reqFilter">
+            <button class="btn btn-ghost btn-sm" onclick="loadRequests()">↻ refresh</button>
+          </div>
+        </div>
+        <div id="allReqsTable"></div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-install">
+      <div class="install-wrap">
+        <div class="install-block">
+          <div class="install-block-head">
+            <div class="install-block-title">your site key</div>
+          </div>
+          <div class="install-block-body">
+            <div class="key-row">
+              <span class="key-val" id="siteKeyDisplay">loading...</span>
+              <button class="btn btn-ghost btn-sm" onclick="copyKey()">copy</button>
+              <button class="btn btn-ghost btn-sm" onclick="rotateKey()">rotate</button>
+            </div>
+            <p class="install-note">rotating your key will immediately invalidate all existing visitor tokens for this site. visitors will be re-challenged on next visit.</p>
+          </div>
+        </div>
+        <div class="install-block">
+          <div class="install-block-head">
+            <div class="install-block-title">script tag (recommended)</div>
+          </div>
+          <div class="install-block-body">
+            <div class="code-block" id="installSnippet1"><button class="code-copy" onclick="copyCode(0)">copy</button>loading...</div>
+            <p class="install-note">drop this into the <code style="color:var(--accent2)">&lt;head&gt;</code> of any page you want to protect. works on static sites with no backend required.</p>
+          </div>
+        </div>
+        <div class="install-block">
+          <div class="install-block-head">
+            <div class="install-block-title">server-side token verification (optional)</div>
+          </div>
+          <div class="install-block-body">
+            <div class="code-block" id="installSnippet2"><button class="code-copy" onclick="copyCode(1)">copy</button>loading...</div>
+            <p class="install-note">if your backend needs to verify the token independently, POST to this endpoint with the token and site key. returns <code style="color:var(--accent2)">{"valid":true}</code>.</p>
+          </div>
+        </div>
+        <div class="install-block">
+          <div class="install-block-head">
+            <div class="install-block-title">downloading the script locally</div>
+          </div>
+          <div class="install-block-body">
+            <div class="code-block"><button class="code-copy" onclick="copyCode(2)">copy</button>curl -o protect.min.js https://cdn.brickwall.sh/v1/protect.min.js</div>
+            <p class="install-note">self-host the script if you prefer. the <code style="color:var(--accent2)">data-site</code> attribute still needs to be set to your site key.</p>
+          </div>
+        </div>
+        <div class="install-block">
+          <div class="install-block-head">
+            <div class="install-block-title">edge cases & configuration</div>
+          </div>
+          <div class="install-block-body">
+            <p class="install-note" style="margin:0">configure crawler handling, tor blocking, vpn detection, and token ttl in <a href="#" onclick="nav('settings');return false" style="color:var(--accent2)">site settings</a>. all options are applied server-side — no script changes needed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-settings">
+      <div class="settings-form">
+        <div class="settings-group">
+          <div class="settings-group-head">site info</div>
+          <div class="settings-group-body">
+            <div class="field" style="margin-bottom:14px"><label>site name</label><input type="text" id="settingName" placeholder="my site"></div>
+            <button class="btn btn-primary btn-sm" onclick="saveName()">save name</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-head">access control</div>
+          <div class="settings-group-body">
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">allow search engine crawlers</div>
+                <div class="settings-desc">googlebot, bingbot, etc. auto-bypass the challenge</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="setCrawlers" onchange="saveSetting('allowCrawlers',this.checked)"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">block tor exit nodes</div>
+                <div class="settings-desc">known tor exit ip ranges are denied outright</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="setTor" onchange="saveSetting('blockTor',this.checked)"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">block vpn / datacenter ips</div>
+                <div class="settings-desc">known hosting asns flagged, optionally blocked</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="setVpn" onchange="saveSetting('blockVpn',this.checked)"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-head">token lifetime</div>
+          <div class="settings-group-body">
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">token ttl</div>
+                <div class="settings-desc">how long a verified token lasts before re-challenge</div>
+              </div>
+              <div class="settings-ttl">
+                <input type="number" class="ttl-input" id="setTtl" min="1" max="720" value="24">
+                <span style="color:var(--muted);font-size:12px">hours</span>
+                <button class="btn btn-ghost btn-sm" onclick="saveTtl()">save</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-group-head">site status</div>
+          <div class="settings-group-body">
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">active</div>
+                <div class="settings-desc">when disabled, all visitors bypass brickwall</div>
+              </div>
+              <label class="toggle"><input type="checkbox" id="setActive" onchange="saveActive(this.checked)"><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+        </div>
+        <div class="danger-zone">
+          <h4>danger zone</h4>
+          <button class="btn btn-danger btn-sm" onclick="confirmDelete()">delete this site</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-sites">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div>
+          <div style="font-family:var(--display);font-size:15px;font-weight:700">all sites</div>
+          <div style="color:var(--muted);font-size:11px;margin-top:2px">manage all your protected sites</div>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="openAddSite()">+ add site</button>
+      </div>
+      <div class="sites-grid" id="sitesGrid"></div>
+    </div>
+
+  </div>
+</main>
+</div>
+
+<div class="modal-bg" id="addSiteModal" onclick="closeAddSite(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="document.getElementById('addSiteModal').classList.remove('open')">×</button>
+    <h3>add a new site</h3>
+    <div class="field"><label>site name</label><input type="text" id="newSiteName" placeholder="my blog"></div>
+    <div class="field"><label>domain</label><input type="url" id="newSiteDomain" placeholder="https://example.com"></div>
+    <div class="modal-error" id="addSiteError"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px" onclick="doAddSite()" id="addSiteBtn">add site →</button>
+  </div>
+</div>
+
+<script>
+let currentUser = null
+let sites = []
+let currentSiteId = null
+let allRequests = []
+let filteredRequests = []
+
+async function init() {
+  try {
+    const r = await fetch('/api/auth/me')
+    if (!r.ok) { window.location.href = '/'; return }
+    currentUser = await r.json()
+    document.getElementById('userName').textContent = currentUser.name
+    document.getElementById('userAvatar').textContent = currentUser.name[0].toUpperCase()
+    document.getElementById('authWall').classList.add('hidden')
+    document.getElementById('appShell').style.display = 'flex'
+    await loadSites()
+  } catch {
+    window.location.href = '/'
+  }
+}
+
+async function loadSites() {
+  const r = await fetch('/api/sites')
+  if (!r.ok) return
+  sites = await r.json()
+  const sel = document.getElementById('siteSelect')
+  sel.innerHTML = ''
+  if (sites.length === 0) {
+    sel.innerHTML = '<option value="">no sites yet</option>'
+    document.getElementById('pageSub').textContent = 'add your first site to get started'
+    return
+  }
+  sites.forEach(s => {
+    const o = document.createElement('option')
+    o.value = s.id
+    o.textContent = s.name + ' (' + s.domain + ')'
+    sel.appendChild(o)
+  })
+  if (!currentSiteId || !sites.find(s => s.id === currentSiteId)) {
+    currentSiteId = sites[0].id
+  }
+  sel.value = currentSiteId
+  await refreshData()
+}
+
+async function onSiteChange() {
+  currentSiteId = document.getElementById('siteSelect').value
+  allRequests = []
+  await refreshData()
+}
+
+async function refreshData() {
+  if (!currentSiteId) return
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  document.getElementById('pageSub').textContent = site.domain
+  await Promise.all([loadStats(), loadRequests(), updateInstall(site), updateSettings(site)])
+  renderSitesGrid()
+}
+
+async function loadStats() {
+  const r = await fetch('/api/sites/' + currentSiteId + '/stats')
+  if (!r.ok) return
+  const d = await r.json()
+  document.getElementById('statCards').innerHTML = `
+    <div class="stat-card"><div class="sc-label">total requests</div><div class="sc-value">${d.total}</div><div class="sc-sub">all time</div></div>
+    <div class="stat-card"><div class="sc-label">passed</div><div class="sc-value" style="color:var(--green)">${d.passed}</div><div class="sc-sub">${d.total ? Math.round(d.passed/d.total*100) : 0}% pass rate</div></div>
+    <div class="stat-card"><div class="sc-label">blocked</div><div class="sc-value" style="color:var(--red)">${d.blocked}</div><div class="sc-sub">bots stopped</div></div>
+    <div class="stat-card"><div class="sc-label">flagged</div><div class="sc-value" style="color:var(--yellow)">${d.flagged}</div><div class="sc-sub">suspicious</div></div>
+  `
+}
+
+async function loadRequests() {
+  const r = await fetch('/api/sites/' + currentSiteId + '/requests')
+  if (!r.ok) return
+  allRequests = await r.json()
+  filteredRequests = [...allRequests]
+  renderRecentTable()
+  renderAllTable()
+}
+
+function renderRecentTable() {
+  document.getElementById('recentReqsTable').innerHTML = buildReqTable(allRequests.slice(0, 10))
+}
+
+function renderAllTable() {
+  document.getElementById('allReqsTable').innerHTML = buildReqTable(filteredRequests)
+}
+
+function filterReqs(val) {
+  const v = val.toLowerCase()
+  filteredRequests = allRequests.filter(r =>
+    r.country.toLowerCase().includes(v) || r.status.includes(v) || r.detected.includes(v)
+  )
+  renderAllTable()
+}
+
+function buildReqTable(reqs) {
+  if (!reqs.length) return '<div class="empty-state">no requests yet — add a site and embed the script to start seeing data.</div>'
+  return `<table>
+    <thead><tr>
+      <th>location</th>
+      <th>detected as</th>
+      <th>status</th>
+      <th>time</th>
+    </tr></thead>
+    <tbody>${reqs.map(r => `<tr>
+      <td><span class="req-country">${r.country}</span></td>
+      <td><span class="req-detected">${r.detected === 'N/A' ? '—' : r.detected}</span></td>
+      <td>${statusTag(r.status)}</td>
+      <td class="req-ts">${fmtDate(r.ts)}</td>
+    </tr>`).join('')}</tbody>
+  </table>`
+}
+
+function statusTag(s) {
+  const map = { passed: 'tag-green', blocked: 'tag-red', flagged: 'tag-yellow' }
+  return `<span class="tag ${map[s] || 'tag-muted'}">${s}</span>`
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts)
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0') + ' ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0')
+}
+
+function updateInstall(site) {
+  document.getElementById('siteKeyDisplay').textContent = site.key
+  const snippet1 = `<script src="https://cdn.brickwall.sh/v1/protect.min.js"\n  data-site="${site.key}"><\/script>`
+  const snippet2 = `POST https://api.brickwall.sh/v1/challenge/check\nContent-Type: application/json\n\n{\n  "token": "<bw_token from visitor>",\n  "siteKey": "${site.key}"\n}`
+  document.getElementById('installSnippet1').innerHTML = `<button class="code-copy" onclick="copyCode(0)">copy</button>${escHtml(snippet1)}`
+  document.getElementById('installSnippet2').innerHTML = `<button class="code-copy" onclick="copyCode(1)">copy</button>${escHtml(snippet2)}`
+}
+
+function updateSettings(site) {
+  document.getElementById('settingName').value = site.name
+  document.getElementById('setCrawlers').checked = !!site.settings.allowCrawlers
+  document.getElementById('setTor').checked = !!site.settings.blockTor
+  document.getElementById('setVpn').checked = !!site.settings.blockVpn
+  document.getElementById('setTtl').value = site.settings.challengeTtl || 24
+  document.getElementById('setActive').checked = !!site.active
+}
+
+function renderSitesGrid() {
+  const grid = document.getElementById('sitesGrid')
+  grid.innerHTML = sites.map(s => `
+    <div class="site-card ${s.id === currentSiteId ? 'selected' : ''}" onclick="selectSite('${s.id}')">
+      <div class="site-card-top">
+        <div>
+          <div class="site-card-name">${escHtml(s.name)}</div>
+          <div class="site-card-domain">${escHtml(s.domain)}</div>
+        </div>
+        <span class="tag ${s.active ? 'tag-green' : 'tag-muted'}">${s.active ? 'active' : 'paused'}</span>
+      </div>
+      <div class="site-card-stats">
+        <div class="scs-item"><div class="scs-v" style="color:var(--accent)">${escHtml(s.key.slice(0,12))}...</div><div class="scs-l">api key</div></div>
+      </div>
+    </div>
+  `).join('') + `<div class="add-site-btn" onclick="openAddSite()"><span>+</span> add site</div>`
+}
+
+async function selectSite(id) {
+  currentSiteId = id
+  document.getElementById('siteSelect').value = id
+  await refreshData()
+}
+
+async function saveSetting(key, val) {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  site.settings[key] = val
+  await fetch('/api/sites/' + currentSiteId, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ settings: site.settings }) })
+  sites = sites.map(s => s.id === currentSiteId ? site : s)
+}
+
+async function saveName() {
+  const name = document.getElementById('settingName').value.trim()
+  if (!name) return
+  await fetch('/api/sites/' + currentSiteId, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name }) })
+  await loadSites()
+}
+
+async function saveTtl() {
+  const ttl = parseInt(document.getElementById('setTtl').value)
+  if (!ttl || ttl < 1) return
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  site.settings.challengeTtl = ttl
+  await fetch('/api/sites/' + currentSiteId, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ settings: site.settings }) })
+}
+
+async function saveActive(val) {
+  await fetch('/api/sites/' + currentSiteId, { method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ active: val }) })
+  const site = sites.find(s => s.id === currentSiteId)
+  if (site) site.active = val
+}
+
+async function rotateKey() {
+  if (!confirm('rotate the api key? all existing visitor tokens for this site will be invalidated.')) return
+  const r = await fetch('/api/sites/' + currentSiteId + '/rotate', { method:'POST' })
+  if (!r.ok) return
+  const d = await r.json()
+  const site = sites.find(s => s.id === currentSiteId)
+  if (site) site.key = d.key
+  updateInstall(site)
+  document.getElementById('siteKeyDisplay').textContent = d.key
+}
+
+function copyKey() {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (site) navigator.clipboard.writeText(site.key)
+}
+
+const codeSnippets = [
+  () => {
+    const site = sites.find(s => s.id === currentSiteId)
+    return site ? `<script src="https://cdn.brickwall.sh/v1/protect.min.js" data-site="${site.key}"><\/script>` : ''
+  },
+  () => {
+    const site = sites.find(s => s.id === currentSiteId)
+    return site ? `POST https://api.brickwall.sh/v1/challenge/check\nContent-Type: application/json\n\n{\n  "token": "<bw_token from visitor>",\n  "siteKey": "${site.key}"\n}` : ''
+  },
+  () => 'curl -o protect.min.js https://cdn.brickwall.sh/v1/protect.min.js'
+]
+
+function copyCode(i) {
+  navigator.clipboard.writeText(codeSnippets[i]())
+  const btns = document.querySelectorAll('.code-copy')
+  if (btns[i]) { btns[i].textContent = 'copied!'; setTimeout(() => btns[i].textContent = 'copy', 2000) }
+}
+
+async function confirmDelete() {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!confirm(`delete "${site?.name}"? this cannot be undone. all request logs will be lost.`)) return
+  await fetch('/api/sites/' + currentSiteId, { method:'DELETE' })
+  currentSiteId = null
+  await loadSites()
+  nav('sites')
+}
+
+function openAddSite() { document.getElementById('addSiteModal').classList.add('open') }
+function closeAddSite(e) { if (e.target === document.getElementById('addSiteModal')) document.getElementById('addSiteModal').classList.remove('open') }
+
+async function doAddSite() {
+  const name = document.getElementById('newSiteName').value.trim()
+  const domain = document.getElementById('newSiteDomain').value.trim()
+  const err = document.getElementById('addSiteError')
+  err.style.display = 'none'
+  if (!name || !domain) { err.textContent = 'fill in both fields'; err.style.display = 'block'; return }
+  const btn = document.getElementById('addSiteBtn')
+  btn.disabled = true; btn.textContent = 'adding...'
+  const r = await fetch('/api/sites', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ name, domain }) })
+  if (!r.ok) { const d = await r.json(); err.textContent = d.error || 'failed'; err.style.display = 'block'; btn.disabled=false; btn.textContent='add site →'; return }
+  const site = await r.json()
+  document.getElementById('addSiteModal').classList.remove('open')
+  document.getElementById('newSiteName').value = ''
+  document.getElementById('newSiteDomain').value = ''
+  btn.disabled=false; btn.textContent='add site →'
+  currentSiteId = site.id
+  await loadSites()
+  nav('install')
+}
+
+const panelTitles = {
+  overview: ['overview', 'recent activity & stats'],
+  requests: ['all requests', 'every verification attempt'],
+  install: ['installation', 'embed brickwall on your site'],
+  settings: ['site settings', 'configure protection options'],
+  sites: ['manage sites', 'add, switch, or remove sites'],
+}
+
+function nav(page) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+  document.getElementById('panel-' + page).classList.add('active')
+  document.getElementById('nav-' + page)?.classList.add('active')
+  const [title, sub] = panelTitles[page] || [page, '']
+  document.getElementById('pageTitle').textContent = title
+  document.getElementById('pageSub').textContent = sub
+  if (page === 'requests') renderAllTable()
+  if (page === 'sites') renderSitesGrid()
+}
+
+async function doLogout() {
+  await fetch('/api/auth/logout', { method:'POST' })
+  window.location.href = '/'
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+init()
+</script>
+</body>
+</html>

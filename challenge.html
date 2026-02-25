@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>verifying... — brickwall</title>
+<link rel="stylesheet" href="/css/shared.css">
+<style>
+body{min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+.bg-lines{position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 40px,rgba(255,255,255,.018) 40px,rgba(255,255,255,.018) 41px),repeating-linear-gradient(90deg,transparent,transparent 40px,rgba(255,255,255,.012) 40px,rgba(255,255,255,.012) 41px);pointer-events:none}
+.glow{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:600px;height:600px;background:radial-gradient(circle,rgba(217,95,43,.05) 0%,transparent 70%);pointer-events:none}
+
+.box{
+  width:100%;max-width:340px;padding:0 20px;text-align:center;
+  animation:fadeIn .4s ease both;
+}
+.logo{
+  font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:-.3px;
+  color:var(--muted);margin-bottom:40px;display:block;
+}
+.logo span{color:var(--accent)}
+
+.status-ring{
+  width:72px;height:72px;border-radius:50%;border:2px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;margin:0 auto 24px;
+  position:relative;transition:border-color .3s;
+}
+.status-ring.checking{border-color:var(--accent);animation:pulse-ring 1.2s ease-in-out infinite}
+.status-ring.pass{border-color:var(--green)}
+.status-ring.fail{border-color:var(--red)}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 0 0 rgba(217,95,43,.3)}50%{box-shadow:0 0 0 8px rgba(217,95,43,0)}}
+
+.status-inner{width:36px;height:36px;border-radius:50%;border:2px solid var(--border2);border-top-color:var(--accent);animation:spin .7s linear infinite;transition:all .3s}
+.status-ring.pass .status-inner{animation:none;border-color:var(--green);background:rgba(74,158,107,.12)}
+.status-ring.fail .status-inner{animation:none;border-color:var(--red);background:rgba(196,74,58,.12)}
+.pass-check,.fail-x{display:none;position:absolute;font-size:18px}
+.status-ring.pass .pass-check{display:block;color:var(--green)}
+.status-ring.fail .fail-x{display:block;color:var(--red)}
+.status-ring.pass .status-inner,.status-ring.fail .status-inner{opacity:0}
+
+.headline{font-family:var(--display);font-size:18px;font-weight:700;margin-bottom:8px;letter-spacing:-.3px}
+.subline{color:var(--muted);font-size:12px;line-height:1.7;max-width:260px;margin:0 auto}
+
+.progress-bar{
+  margin-top:28px;height:2px;background:var(--border);border-radius:1px;overflow:hidden;
+}
+.progress-fill{height:100%;background:var(--accent);width:0%;transition:width .3s ease;border-radius:1px}
+
+.steps-log{
+  margin-top:24px;text-align:left;background:var(--surface);border:1px solid var(--border);
+  border-radius:4px;padding:12px 14px;font-size:10px;font-family:var(--mono);
+  color:var(--muted);max-height:100px;overflow:hidden;
+}
+.log-line{opacity:.5;transition:opacity .3s;margin-bottom:2px}
+.log-line.done{opacity:1;color:var(--text2)}
+.log-line.active{opacity:1;color:var(--accent2);animation:blink 1s ease-in-out infinite}
+.log-line::before{content:'> '}
+
+.error-box{
+  margin-top:20px;background:rgba(196,74,58,.08);border:1px solid rgba(196,74,58,.2);
+  border-radius:4px;padding:12px;font-size:11px;color:var(--red);display:none;line-height:1.6;
+}
+.retry-btn{margin-top:16px;display:none}
+
+.blocked-box{
+  margin-top:20px;background:rgba(196,74,58,.06);border:1px solid rgba(196,74,58,.15);
+  border-radius:4px;padding:16px;font-size:11px;color:var(--text2);display:none;line-height:1.7;
+  text-align:left;
+}
+.blocked-box strong{color:var(--red);font-family:var(--display)}
+
+.noscript-msg{color:var(--red);font-size:12px;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+<div class="bg-lines"></div>
+<div class="glow"></div>
+
+<noscript>
+<div class="box">
+  <a class="logo" href="/">brick<span>wall</span></a>
+  <p class="noscript-msg">javascript is required to complete verification. please enable it and reload.</p>
+</div>
+</noscript>
+
+<div class="box" id="mainBox">
+  <a class="logo" href="/">brick<span>wall</span></a>
+
+  <div class="status-ring checking" id="statusRing">
+    <div class="status-inner"></div>
+    <span class="pass-check">✓</span>
+    <span class="fail-x">✕</span>
+  </div>
+
+  <div class="headline" id="headline">verifying your browser</div>
+  <p class="subline" id="subline">this only takes a moment. you won't see this again for a while.</p>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <div class="steps-log" id="stepsLog">
+    <div class="log-line active" id="step1">checking environment</div>
+    <div class="log-line" id="step2">running proof-of-work</div>
+    <div class="log-line" id="step3">verifying result</div>
+    <div class="log-line" id="step4">issuing token</div>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+  <button class="btn btn-ghost retry-btn" id="retryBtn" onclick="location.reload()">try again</button>
+
+  <div class="blocked-box" id="blockedBox">
+    <strong>access denied</strong><br>
+    your connection has been blocked by this site's protection settings. this may be because you're using a vpn, tor, or a known datacenter ip range. if you think this is a mistake, contact the site owner.
+  </div>
+</div>
+
+<script>
+const params = new URLSearchParams(location.search)
+const siteKey = params.get('k')
+const returnUrl = params.get('r') || '/'
+
+function setProgress(p) { document.getElementById('progressFill').style.width = p + '%' }
+function setStep(i, state) {
+  const el = document.getElementById('step' + i)
+  if (!el) return
+  el.classList.remove('active','done')
+  if (state) el.classList.add(state)
+}
+function setStatus(state) {
+  const ring = document.getElementById('statusRing')
+  ring.className = 'status-ring ' + state
+}
+
+function showError(msg) {
+  setStatus('fail')
+  document.getElementById('headline').textContent = 'verification failed'
+  document.getElementById('subline').textContent = 'something went wrong.'
+  const eb = document.getElementById('errorBox')
+  eb.textContent = msg
+  eb.style.display = 'block'
+  document.getElementById('retryBtn').style.display = 'inline-flex'
+}
+
+function showBlocked() {
+  setStatus('fail')
+  document.getElementById('headline').textContent = 'access denied'
+  document.getElementById('subline').textContent = ''
+  document.getElementById('stepsLog').style.display = 'none'
+  document.getElementById('blockedBox').style.display = 'block'
+}
+
+async function hashCheck(id, nonce) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(id + nonce))
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('')
+}
+
+async function solvePoW(challengeId, difficulty) {
+  const prefix = '0'.repeat(difficulty)
+  let nonce = 0
+  const start = Date.now()
+  while (true) {
+    const h = await hashCheck(challengeId, String(nonce))
+    if (h.startsWith(prefix)) return { nonce: String(nonce), elapsed: Date.now() - start }
+    nonce++
+    if (nonce % 500 === 0) await new Promise(r => setTimeout(r, 0))
+  }
+}
+
+function detectHeadless() {
+  const checks = [
+    () => navigator.webdriver,
+    () => !window.chrome && navigator.userAgent.includes('Chrome'),
+    () => window.callPhantom || window._phantom,
+    () => !navigator.plugins || navigator.plugins.length === 0,
+    () => navigator.languages === undefined || navigator.languages.length === 0,
+  ]
+  return checks.filter(Boolean).reduce((acc, fn) => { try { return acc + (fn() ? 1 : 0) } catch { return acc } }, 0) >= 2
+}
+
+async function run() {
+  if (!siteKey) { showError('missing site key. this page should not be accessed directly.'); return }
+  if (detectHeadless()) { showError('automated browser detected.'); return }
+
+  setProgress(10)
+  setStep(1, 'active')
+
+  let initData
+  try {
+    const r = await fetch('/api/challenge/init', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ siteKey, returnUrl })
+    })
+    const d = await r.json()
+    if (r.status === 403 && d.reason === 'tor') { showBlocked(); return }
+    if (r.status === 429) { showError('too many attempts. try again in ' + (d.retryAfter || 60) + ' seconds.'); return }
+    if (!r.ok) { showError(d.error || 'failed to initialize challenge.'); return }
+    if (d.skip && d.token) {
+      localStorage.setItem('bw_token_' + siteKey, d.token)
+      setStatus('pass')
+      document.getElementById('headline').textContent = 'verified'
+      document.getElementById('subline').textContent = 'redirecting...'
+      setProgress(100)
+      setTimeout(() => { window.location.href = returnUrl }, 600)
+      return
+    }
+    initData = d
+  } catch { showError('network error. check your connection.'); return }
+
+  setStep(1, 'done')
+  setStep(2, 'active')
+  setProgress(30)
+
+  let powResult
+  try {
+    powResult = await solvePoW(initData.challengeId, initData.difficulty)
+  } catch { showError('challenge computation failed.'); return }
+
+  setStep(2, 'done')
+  setStep(3, 'active')
+  setProgress(70)
+
+  let token
+  try {
+    const r = await fetch('/api/challenge/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challengeId: initData.challengeId, nonce: powResult.nonce, elapsed: powResult.elapsed })
+    })
+    const d = await r.json()
+    if (!r.ok) { showError('challenge verification failed. you may be a bot.'); return }
+    token = d.token
+  } catch { showError('network error during verification.'); return }
+
+  setStep(3, 'done')
+  setStep(4, 'active')
+  setProgress(90)
+
+  try {
+    localStorage.setItem('bw_token_' + siteKey, token)
+  } catch {}
+
+  await new Promise(r => setTimeout(r, 300))
+  setStep(4, 'done')
+  setProgress(100)
+  setStatus('pass')
+  document.getElementById('headline').textContent = 'verified'
+  document.getElementById('subline').textContent = 'redirecting you now...'
+  await new Promise(r => setTimeout(r, 500))
+  window.location.href = returnUrl
+}
+
+run()
+</script>
+</body>
+</html>
