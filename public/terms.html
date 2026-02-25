@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>terms of service — brickwall</title>
+<link rel="stylesheet" href="/css/shared.css">
+<style>
+*{box-sizing:border-box}
+nav{
+  position:sticky;top:0;z-index:100;height:56px;
+  padding:0 48px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg);border-bottom:1px solid var(--border);
+}
+.nav-logo{font-family:var(--display);font-size:16px;font-weight:800;letter-spacing:-.4px;text-decoration:none;color:var(--text)}
+.nav-logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:8px}
+
+.page{max-width:680px;margin:0 auto;padding:72px 48px 120px}
+
+.page-eyebrow{font-size:10px;color:var(--accent);letter-spacing:.14em;text-transform:uppercase;margin-bottom:14px;font-family:var(--mono)}
+.page-title{font-family:var(--display);font-size:clamp(32px,4vw,52px);font-weight:800;letter-spacing:-1.5px;line-height:1;margin-bottom:10px}
+.page-meta{color:var(--muted);font-size:12px;margin-bottom:56px;padding-bottom:32px;border-bottom:1px solid var(--border)}
+
+h2{font-family:var(--display);font-size:18px;font-weight:700;letter-spacing:-.3px;margin:48px 0 12px;color:var(--text)}
+p{color:var(--text2);font-size:13px;line-height:1.9;margin:0 0 14px}
+p:last-child{margin-bottom:0}
+a{color:var(--accent2);text-decoration:none}
+a:hover{text-decoration:underline}
+strong{color:var(--text);font-weight:600}
+
+footer{border-top:1px solid var(--border);padding:32px 48px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.footer-logo{font-family:var(--display);font-size:14px;font-weight:800;letter-spacing:-.3px}
+.footer-logo span{color:var(--accent)}
+footer p{color:var(--muted);font-size:11px}
+.footer-links{display:flex;gap:20px}
+.footer-links a{color:var(--muted);font-size:11px;text-decoration:none;transition:color .15s}
+.footer-links a:hover{color:var(--text)}
+
+@media(max-width:640px){
+  nav{padding:0 20px}
+  .page{padding:48px 20px 80px}
+  footer{padding:24px 20px;flex-direction:column;text-align:center}
+  .footer-links{justify-content:center;flex-wrap:wrap;gap:14px}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<nav>
+  <a class="nav-logo" href="/">brick<span>wall</span></a>
+  <div class="nav-right">
+    <a href="/" class="btn btn-ghost btn-sm">← home</a>
+    <a href="/docs.html" class="btn btn-primary btn-sm">docs →</a>
+  </div>
+</nav>
+
+<div class="page">
+  <div class="page-eyebrow">legal</div>
+  <h1 class="page-title">terms of service</h1>
+  <p class="page-meta">last updated: february 2026</p>
+
+  <h2>who this applies to</h2>
+  <p>these terms apply to anyone using brickwall — either as a <strong>site owner</strong> (someone who registers an account and embeds brickwall on their site) or as a <strong>visitor</strong> (someone who passes through a brickwall challenge on a protected site).</p>
+
+  <h2>what brickwall is</h2>
+  <p>brickwall is a lightweight bot verification service. site owners embed a script tag on their site, and visitors complete a short challenge before accessing the content. that's the whole thing.</p>
+  <p>brickwall is currently in early access. features, availability, and pricing may change. we'll try to give reasonable notice before anything significant changes.</p>
+
+  <h2>your account</h2>
+  <p>you're responsible for keeping your account credentials secure. don't share your site keys publicly. if you think a key has been compromised, rotate it from the dashboard immediately — this invalidates all existing visitor tokens.</p>
+  <p>you must be a real human to register. automated account creation is not allowed.</p>
+  <p>one account per person. don't create accounts on behalf of others without their knowledge.</p>
+
+  <h2>using brickwall on your site</h2>
+  <p>by embedding brickwall on your site, you take responsibility for informing your users that a third-party verification service is in use. a note in your privacy policy is sufficient.</p>
+  <p>don't use brickwall to gate access to illegal content, or to target or discriminate against any group of people. don't attempt to abuse or overload the service.</p>
+  <p>you're responsible for making sure your use of brickwall complies with applicable laws in your region, including any data protection or privacy laws that apply to your site and its users.</p>
+
+  <h2>uptime and availability</h2>
+  <p>brickwall is currently hosted on render's free tier. this means the service may experience cold starts, brief downtime, or degraded performance occasionally. we don't offer any uptime guarantees during early access.</p>
+  <p>if brickwall goes down, your protected sites will redirect visitors to a challenge page that won't load. keep this in mind if you're protecting something critical. the <code>data-api</code> and <code>data-challenge</code> attributes in the script tag allow you to point at a self-hosted instance if you need more reliability.</p>
+
+  <h2>open source</h2>
+  <p>brickwall is mit licensed. you're free to fork it, self-host it, and modify it. the license terms are in the repository.</p>
+
+  <h2>termination</h2>
+  <p>you can delete your account at any time from the dashboard. this permanently removes your account, all your sites, keys, and request history.</p>
+  <p>we reserve the right to suspend or terminate accounts that violate these terms, abuse the service, or act in bad faith.</p>
+
+  <h2>liability</h2>
+  <p>brickwall is provided as-is. we do our best to keep it working well, but we're not liable for any damages, losses, or security issues that result from using or being unable to use the service.</p>
+
+  <h2>changes to these terms</h2>
+  <p>if we make significant changes, we'll update the date at the top of this page. continued use of the service after changes means you accept the updated terms.</p>
+
+  <h2>contact</h2>
+  <p>questions? reach us at <a href="mailto:hi@brickwall.onrender.com">hi@brickwall.onrender.com</a>.</p>
+</div>
+
+<footer>
+  <div class="footer-logo">brick<span>wall</span></div>
+  <p>© 2025 brickwall — open source, mit license</p>
+  <div class="footer-links">
+    <a href="https://github.com/auth1ery/brickwall" target="_blank">github</a>
+    <a href="/docs.html">docs</a>
+    <a href="/terms.html">terms</a>
+    <a href="/privacy.html">privacy</a>
+    <a href="mailto:hi@brickwall.onrender.com">contact</a>
+  </div>
+</footer>
+
+</body>
+</html>
