@@ -10,7 +10,7 @@ We do not allow:
 
 - Racist (or any topics relating to it) contributions with verbal harm against religions, cultures, races, etc. We are all equal.
 - Sexual + NSFW/predatory contributions. We do not want relating topics to NSFW content in contributions to Brickwall, as well as fetishes, and more. We also don't want to see money begging contributions (example, an aggressively priced subscription, or no free tier)
-- Anything that is not safe for work, uninclusive topics, or all of the above.
+- Anything that is not safe for work, uninclusive topics, or otherwise hostile.
 
 If you send threats, wish death upon some contributors, or get in arguments because we denied your pull request, we will fully exclude you and reject any other pull requests you submit.
 
