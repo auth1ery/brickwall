@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>blog — brickwall</title>
+<link rel="stylesheet" href="/css/shared.css">
+<link rel="alternate" type="application/rss+xml" title="brickwall blog" href="/rss.xml">
+<style>
+*{box-sizing:border-box}
+body{display:flex;flex-direction:column;min-height:100vh}
+
+nav{
+  position:sticky;top:0;z-index:100;height:52px;
+  padding:0 40px;display:flex;align-items:center;justify-content:space-between;
+  background:var(--bg);border-bottom:1px solid var(--border);
+}
+.nav-logo{font-family:var(--display);font-size:15px;font-weight:800;letter-spacing:-.4px;text-decoration:none;color:var(--text)}
+.nav-logo span{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:8px}
+
+.page{max-width:720px;width:100%;margin:0 auto;padding:56px 40px 100px}
+
+.blog-header{margin-bottom:48px}
+.blog-header h1{font-family:var(--display);font-size:32px;font-weight:800;letter-spacing:-.7px;margin:0 0 10px}
+.blog-header p{color:var(--muted);font-size:13px;line-height:1.7;margin:0;display:flex;align-items:center;gap:12px}
+.rss-link{
+  display:inline-flex;align-items:center;gap:5px;
+  color:var(--accent);font-size:11px;font-family:var(--mono);text-decoration:none;
+  border:1px solid rgba(217,95,43,.3);border-radius:2px;padding:2px 7px;
+  transition:all .15s;
+}
+.rss-link:hover{background:rgba(217,95,43,.08);text-decoration:none}
+
+.post-list{display:flex;flex-direction:column;gap:0}
+.post-item{
+  padding:24px 0;border-bottom:1px solid var(--border);cursor:pointer;
+  transition:all .15s;
+}
+.post-item:first-child{border-top:1px solid var(--border)}
+.post-item:hover .post-title{color:var(--accent2)}
+.post-meta{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.post-date{font-size:10px;color:var(--muted);font-family:var(--mono);letter-spacing:.04em}
+.post-title{
+  font-family:var(--display);font-size:20px;font-weight:700;letter-spacing:-.4px;
+  margin:0 0 8px;line-height:1.3;color:var(--text);transition:color .15s;
+}
+.post-excerpt{font-size:13px;color:var(--text2);line-height:1.75;margin:0}
+.post-read-more{font-size:11px;color:var(--accent);margin-top:10px;font-family:var(--mono)}
+
+.empty-state{text-align:center;padding:80px 24px;color:var(--muted);font-size:13px;line-height:1.8}
+.empty-state strong{color:var(--text2);display:block;font-family:var(--display);font-size:18px;margin-bottom:8px}
+
+.loading-state{text-align:center;padding:80px 24px;color:var(--muted);font-size:12px;font-family:var(--mono)}
+
+/* single post view */
+#postView{display:none}
+.post-nav{display:flex;align-items:center;gap:8px;margin-bottom:40px}
+.back-btn{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:11px;color:var(--muted);text-decoration:none;cursor:pointer;
+  font-family:var(--mono);border:1px solid var(--border);border-radius:3px;
+  padding:5px 10px;background:none;transition:all .15s;
+}
+.back-btn:hover{color:var(--text);border-color:var(--border2);background:var(--surface)}
+.post-full-meta{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.post-full-title{font-family:var(--display);font-size:30px;font-weight:800;letter-spacing:-.7px;margin:0 0 28px;line-height:1.2}
+.post-full-sep{border:none;border-top:1px solid var(--border);margin:32px 0}
+
+/* markdown render styles */
+.post-body{color:var(--text2);font-size:14px;line-height:1.9}
+.post-body h1{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:-.4px;color:var(--text);margin:40px 0 14px}
+.post-body h2{font-family:var(--display);font-size:19px;font-weight:700;letter-spacing:-.3px;color:var(--text);margin:36px 0 12px}
+.post-body h3{font-family:var(--display);font-size:15px;font-weight:600;color:var(--text);margin:28px 0 10px}
+.post-body p{margin:0 0 18px}
+.post-body p:last-child{margin-bottom:0}
+.post-body strong{color:var(--text);font-weight:600}
+.post-body em{font-style:italic;color:var(--text2)}
+.post-body a{color:var(--accent2);text-decoration:underline;text-underline-offset:2px}
+.post-body a:hover{color:var(--accent)}
+.post-body code{
+  font-family:var(--mono);font-size:11px;
+  background:var(--surface);border:1px solid var(--border);
+  padding:2px 6px;border-radius:2px;color:var(--accent2);
+}
+.post-body pre{
+  background:var(--surface);border:1px solid var(--border);border-radius:4px;
+  padding:16px;overflow-x:auto;margin:20px 0;
+}
+.post-body pre code{background:none;border:none;padding:0;font-size:12px;color:var(--text2)}
+.post-body blockquote{
+  border-left:3px solid var(--accent);padding:2px 0 2px 16px;
+  margin:20px 0;color:var(--muted);font-style:italic;
+}
+.post-body ul,.post-body ol{padding-left:24px;margin:0 0 18px}
+.post-body li{margin-bottom:6px;line-height:1.75}
+.post-body hr{border:none;border-top:1px solid var(--border);margin:32px 0}
+.post-body img{max-width:100%;border-radius:4px;border:1px solid var(--border)}
+
+@media(max-width:600px){
+  nav{padding:0 16px}
+  .page{padding:32px 16px 80px}
+  .blog-header{margin-bottom:32px}
+  .blog-header h1{font-size:24px}
+  .post-full-title{font-size:22px}
+}
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<nav>
+  <a class="nav-logo" href="/">brick<span>wall</span></a>
+  <div class="nav-right">
+    <a href="/docs.html" class="btn btn-ghost btn-sm">docs</a>
+    <a href="/dashboard.html" class="btn btn-primary btn-sm">dashboard →</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <!-- list view -->
+  <div id="listView">
+    <div class="blog-header">
+      <h1>blog</h1>
+      <p>
+        updates, guides, and notes from brickwall.
+        <a class="rss-link" href="/rss.xml" target="_blank">⊕ rss feed</a>
+      </p>
+    </div>
+    <div id="postList"><div class="loading-state">loading posts...</div></div>
+  </div>
+
+  <!-- single post view -->
+  <div id="postView">
+    <div class="post-nav">
+      <button class="back-btn" onclick="showList()">← all posts</button>
+    </div>
+    <div class="post-full-meta">
+      <span class="post-date" id="postFullDate"></span>
+    </div>
+    <h1 class="post-full-title" id="postFullTitle"></h1>
+    <hr class="post-full-sep">
+    <div class="post-body" id="postFullBody"></div>
+  </div>
+
+</div>
+
+<script>
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+}
+
+function fmtDate(ts) {
+  const d = new Date(ts)
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
+}
+
+function renderMarkdown(raw) {
+  // escape html first, then restore intentional html tags we add
+  let t = raw
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+
+  // fenced code blocks
+  t = t.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+    `<pre><code${lang?' class="lang-'+lang+'"':''}>${code.trimEnd()}</code></pre>`)
+
+  // inline code
+  t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>')
+
+  // headers
+  t = t.replace(/^### (.+)$/gm, '<h3>$1</h3>')
+  t = t.replace(/^## (.+)$/gm, '<h2>$1</h2>')
+  t = t.replace(/^# (.+)$/gm, '<h1>$1</h1>')
+
+  // bold / italic
+  t = t.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>')
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  t = t.replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+
+  // blockquote
+  t = t.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+  // merge consecutive blockquotes
+  t = t.replace(/<\/blockquote>\n<blockquote>/g, '\n')
+
+  // horizontal rule
+  t = t.replace(/^---$/gm, '<hr>')
+
+  // links [text](url)
+  t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g,
+    '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
+
+  // images ![alt](url)
+  t = t.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1">')
+
+  // unordered lists
+  t = t.replace(/((?:^[*\-] .+\n?)+)/gm, m => {
+    const items = m.trim().split('\n').map(l => '<li>'+l.replace(/^[*\-] /,'')+' </li>').join('')
+    return '<ul>'+items+'</ul>'
+  })
+
+  // ordered lists
+  t = t.replace(/((?:^\d+\. .+\n?)+)/gm, m => {
+    const items = m.trim().split('\n').map(l => '<li>'+l.replace(/^\d+\. /,'')+' </li>').join('')
+    return '<ol>'+items+'</ol>'
+  })
+
+  // paragraphs
+  const blocks = t.split(/\n{2,}/)
+  t = blocks.map(b => {
+    b = b.trim()
+    if (!b) return ''
+    if (/^<(h[1-6]|pre|ul|ol|blockquote|hr)/.test(b)) return b
+    return '<p>' + b.replace(/\n/g, '<br>') + '</p>'
+  }).filter(Boolean).join('\n')
+
+  return t
+}
+
+async function loadPosts() {
+  try {
+    const r = await fetch('/api/blog')
+    const posts = await r.json()
+    const el = document.getElementById('postList')
+    if (!posts.length) {
+      el.innerHTML = '<div class="empty-state"><strong>nothing here yet</strong>check back soon.</div>'
+      return
+    }
+    el.innerHTML = posts.map(p => `
+      <div class="post-item" onclick="showPost('${esc(p.slug)}')">
+        <div class="post-meta">
+          <span class="post-date">${fmtDate(p.publishedAt)}</span>
+        </div>
+        <div class="post-title">${esc(p.title)}</div>
+        <div class="post-excerpt">${esc(p.excerpt)}${p.excerpt.length >= 219 ? '…' : ''}</div>
+        <div class="post-read-more">read more →</div>
+      </div>
+    `).join('')
+  } catch {
+    document.getElementById('postList').innerHTML =
+      '<div class="empty-state"><strong>couldn\'t load posts</strong>try refreshing.</div>'
+  }
+}
+
+async function showPost(slug) {
+  document.getElementById('listView').style.display = 'none'
+  document.getElementById('postView').style.display = 'block'
+  document.getElementById('postFullTitle').textContent = 'loading...'
+  document.getElementById('postFullBody').innerHTML = ''
+  window.scrollTo(0, 0)
+  history.pushState(null, '', '?post=' + encodeURIComponent(slug))
+  document.title = 'loading... — brickwall blog'
+
+  try {
+    const r = await fetch('/api/blog/' + encodeURIComponent(slug))
+    if (!r.ok) { showList(); return }
+    const post = await r.json()
+    document.getElementById('postFullDate').textContent = fmtDate(post.publishedAt)
+    document.getElementById('postFullTitle').textContent = post.title
+    document.getElementById('postFullBody').innerHTML = renderMarkdown(post.content)
+    document.title = post.title + ' — brickwall blog'
+  } catch {
+    document.getElementById('postFullBody').innerHTML =
+      '<p style="color:var(--red)">failed to load post. try refreshing.</p>'
+  }
+}
+
+function showList() {
+  document.getElementById('postView').style.display = 'none'
+  document.getElementById('listView').style.display = 'block'
+  history.pushState(null, '', '/blog.html')
+  document.title = 'blog — brickwall'
+  window.scrollTo(0, 0)
+}
+
+// on load, check if a post slug is in the query string
+const slug = new URLSearchParams(location.search).get('post')
+if (slug) {
+  showPost(slug)
+} else {
+  loadPosts()
+}
+
+// handle browser back/forward
+window.addEventListener('popstate', () => {
+  const s = new URLSearchParams(location.search).get('post')
+  if (s) showPost(s)
+  else { showList(); loadPosts() }
+})
+</script>
+</body>
+</html>
