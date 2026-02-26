@@ -1440,7 +1440,11 @@ function renderSettings(site) {
           </div>
         </div>
         <div class="settings-row" style="padding-bottom:0;border-bottom:none">
-          <div><div class="settings-label">domain</div><div class="settings-desc">${esc(site.domain)}</div></div>
+          <div><div class="settings-label">domain</div><div class="settings-desc">changing this rotates the key and takes you to installation</div></div>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+            <input type="text" id="settingDomain" value="${esc(site.domain)}" placeholder="example.com" style="width:160px;font-size:11px;font-family:var(--mono)">
+            <button class="btn btn-ghost btn-sm" onclick="saveDomain()">save</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1820,6 +1824,35 @@ async function saveName() {
   await loadSites()
 }
 
+async function saveDomain() {
+  const input = document.getElementById('settingDomain')
+  if (!input) return
+  const raw = input.value.trim()
+  if (!raw) return
+  const domain = raw.replace(/^https?:\/\//,'').split('/')[0]
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  if (domain === site.domain) return
+  const btn = input.nextElementSibling
+  if (btn) { btn.disabled = true; btn.textContent = 'saving...' }
+  const r = await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain})})
+  if (!r.ok) {
+    if (btn) { btn.disabled = false; btn.textContent = 'save' }
+    return
+  }
+  const updated = await r.json()
+  sites = sites.map(s => s.id === currentSiteId ? { ...s, domain: updated.domain, key: updated.key } : s)
+  const sel = document.getElementById('siteSelect')
+  if (sel) {
+    Array.from(sel.options).forEach(o => {
+      if (o.value === currentSiteId) o.textContent = updated.name + ' (' + updated.domain + ')'
+    })
+  }
+  document.getElementById('pageSub').textContent = updated.domain
+  await refreshData()
+  nav('install')
+}
+
 async function saveTtl() {
   const ttl = parseInt(document.getElementById('setTtl').value)
   if (!ttl || ttl < 1) return
@@ -1847,6 +1880,24 @@ async function rotateKey() {
   const d = await r.json()
   const site = sites.find(s => s.id === currentSiteId)
   if (site) { site.key = d.key; renderInstall(site) }
+}
+
+function saveDomain() {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  const raw = document.getElementById('settingDomain')?.value.trim() || ''
+  const newDomain = raw.replace(/^https?:\/\//,'').split('/')[0]
+  if (!newDomain || newDomain === site.domain) return
+  const modal = document.getElementById('terminalModal')
+  const cmd = `sudo apt install brickwall-sites new-domain ${newDomain}`
+  document.getElementById('terminalPrompt').textContent = '$ ' + cmd
+  document.getElementById('terminalInput').value = ''
+  document.getElementById('terminalError').style.display = 'none'
+  modal.dataset.mode = 'domain'
+  modal.dataset.expected = cmd
+  modal.dataset.newDomain = newDomain
+  modal.classList.add('open')
+  setTimeout(() => document.getElementById('terminalInput').focus(), 100)
 }
 
 function openDeleteSite() {
@@ -1892,8 +1943,25 @@ async function confirmTerminalDelete() {
     return
   }
   const btn = document.getElementById('terminalConfirmBtn')
-  btn.disabled = true; btn.textContent = 'deleting...'
-  if (modal.dataset.mode === 'site') {
+  btn.disabled = true; btn.textContent = 'applying...'
+  if (modal.dataset.mode === 'domain') {
+    const newDomain = modal.dataset.newDomain
+    const r = await fetch('/api/sites/'+currentSiteId+'/domain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:newDomain})})
+    if (!r.ok) {
+      const d = await r.json()
+      err.textContent = d.error || 'failed to update domain'
+      err.style.display = 'block'
+      btn.disabled = false; btn.textContent = 'confirm delete'
+      return
+    }
+    const d = await r.json()
+    const site = sites.find(s => s.id === currentSiteId)
+    if (site) { site.domain = d.domain; site.key = d.key }
+    sites = sites.map(s => s.id===currentSiteId ? (site||s) : s)
+    modal.classList.remove('open')
+    await loadSites()
+    nav('install')
+  } else if (modal.dataset.mode === 'site') {
     await fetch('/api/sites/'+currentSiteId,{method:'DELETE'})
     modal.classList.remove('open')
     currentSiteId = null
