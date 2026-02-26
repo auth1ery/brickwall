@@ -288,6 +288,16 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .customize-reset-btn{font-size:10px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:3px;padding:4px 10px;cursor:pointer;font-family:var(--mono);transition:all .2s}
 .customize-reset-btn:hover{border-color:var(--red);color:var(--red)}
 
+.challenge-color-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:0}
+.challenge-color-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid var(--border)}
+.challenge-color-row:last-child{border-bottom:none}
+.css-textarea{width:100%;min-height:120px;resize:vertical;font-family:var(--mono);font-size:10px;color:var(--accent2);background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px 12px;line-height:1.6;margin-top:2px;box-sizing:border-box}
+.css-textarea:focus{outline:none;border-color:var(--accent)}
+.challenge-text-input{font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:6px 10px;color:var(--text);width:180px;flex-shrink:0}
+.challenge-text-input:focus{outline:none;border-color:var(--accent)}
+.challenge-preview-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface2)}
+.challenge-save-btn{font-size:11px}
+
 .sidebar-density-opt{display:flex;gap:6px;flex-shrink:0}
 .density-btn{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 12px;font-size:10px;color:var(--muted);cursor:pointer;font-family:var(--mono);transition:all .15s}
 .density-btn:hover{border-color:var(--border2);color:var(--text2)}
@@ -1216,7 +1226,174 @@ function renderSettings(site) {
         <button class="btn btn-danger btn-sm" onclick="openDeleteAccount()">delete account</button>
       </div>
     </div>
+  ` + renderChallengeSettings(site)
+}
+
+const CHALLENGE_COLOR_VARS = [
+  { key: 'bg', label: 'background', desc: 'page background color' },
+  { key: 'accent', label: 'accent', desc: 'spinner, progress bar, highlights' },
+  { key: 'surface', label: 'surface', desc: 'log panel background' },
+  { key: 'text', label: 'text', desc: 'headline text color' },
+  { key: 'text2', label: 'text secondary', desc: 'secondary labels' },
+  { key: 'muted', label: 'muted', desc: 'subline and log text' },
+  { key: 'border', label: 'border', desc: 'panel borders' },
+  { key: 'border2', label: 'border 2', desc: 'ring and input borders' },
+]
+
+function getChallengeUi(site) {
+  return site.settings.challengeUi || {}
+}
+
+function renderChallengeSettings(site) {
+  const ui = getChallengeUi(site)
+  const colors = ui.colors || {}
+  const colorRows = CHALLENGE_COLOR_VARS.map(cv => {
+    const val = colors[cv.key] || ''
+    const swatchColor = val || '#888888'
+    return `<div class="challenge-color-row">
+      <div>
+        <div class="customize-label">${cv.label}</div>
+        <div class="customize-desc">${cv.desc}</div>
+      </div>
+      <div class="color-input-wrap">
+        <div class="color-swatch" title="click to pick">
+          <div class="color-swatch-preview" id="chal-swatch-${cv.key}" style="background:${val||'var(--border2)'}${val?'':';opacity:.4'}"></div>
+          <input type="color" value="${val||'#000000'}" id="chal-color-${cv.key}"
+            oninput="onChalColorInput('${cv.key}',this.value)"
+            onchange="onChalColorInput('${cv.key}',this.value)">
+        </div>
+        <input class="color-hex" type="text" value="${val}" maxlength="7" id="chal-hex-${cv.key}"
+          placeholder="inherit"
+          oninput="onChalHexInput('${cv.key}',this)"
+          onblur="onChalHexBlur('${cv.key}',this)">
+      </div>
+    </div>`
+  }).join('')
+
+  return `
+    <div class="settings-group" style="margin-top:20px">
+      <div class="settings-group-head" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span>challenge page</span>
+        <button class="customize-reset-btn" onclick="resetChallengeUi()">reset</button>
+      </div>
+      <div class="settings-group-body">
+        <div class="settings-row">
+          <div><div class="settings-label">headline text</div><div class="settings-desc">overrides "verifying your browser"</div></div>
+          <input class="challenge-text-input" type="text" id="chal-headline" value="${esc(ui.headline||'')}" placeholder="verifying your browser" maxlength="120">
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">subline text</div><div class="settings-desc">overrides the small description below the headline</div></div>
+          <input class="challenge-text-input" type="text" id="chal-subline" value="${esc(ui.subline||'')}" placeholder="this only takes a moment..." maxlength="300">
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">logo text</div><div class="settings-desc">replaces "brickwall" in the top logo — plain text only</div></div>
+          <input class="challenge-text-input" type="text" id="chal-logoText" value="${esc(ui.logoText||'')}" placeholder="brickwall" maxlength="60">
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-label">hide progress log</div><div class="settings-desc">hides the &gt; checking environment / running pow... panel</div></div>
+          <label class="toggle"><input type="checkbox" id="chal-hideStepsLog" ${ui.hideStepsLog?'checked':''} onchange="saveChallengeToggle('hideStepsLog',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-row" style="border-bottom:none;padding-bottom:0">
+          <div><div class="settings-label">hide "protected by brickwall" badge</div><div class="settings-desc">removes the footer attribution link</div></div>
+          <label class="toggle"><input type="checkbox" id="chal-hideBadge" ${ui.hideBadge?'checked':''} onchange="saveChallengeToggle('hideBadge',this.checked)"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+    </div>
+    <div class="settings-group">
+      <div class="settings-group-head">challenge page colors</div>
+      <div class="settings-group-body" style="padding:0 16px">
+        ${colorRows}
+      </div>
+    </div>
+    <div class="settings-group">
+      <div class="settings-group-head">custom css</div>
+      <div class="settings-group-body">
+        <div style="color:var(--muted);font-size:11px;margin-bottom:10px;line-height:1.6">injected into the challenge page after all other styles. full css supported — target <code style="color:var(--accent2)">.box</code>, <code style="color:var(--accent2)">.headline</code>, <code style="color:var(--accent2)">.status-ring</code>, <code style="color:var(--accent2)">.steps-log</code>, <code style="color:var(--accent2)">.brickwall-badge</code>, etc.</div>
+        <textarea class="css-textarea" id="chal-css" placeholder="/* e.g. .brickwall-badge { display: none; } */">${esc(ui.css||'')}</textarea>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px">
+      <button class="btn btn-primary btn-sm challenge-save-btn" onclick="saveChallengeUi()">save challenge settings</button>
+      <button class="btn btn-ghost btn-sm" onclick="previewChallengeUi()">preview →</button>
+    </div>
   `
+}
+
+function onChalColorInput(key, val) {
+  const swatch = document.getElementById('chal-swatch-'+key)
+  if (swatch) { swatch.style.background = val; swatch.style.opacity = '1' }
+  const hex = document.getElementById('chal-hex-'+key)
+  if (hex && document.activeElement !== hex) hex.value = val
+}
+
+function onChalHexInput(key, input) {
+  const v = input.value.trim()
+  if (/^#[0-9a-fA-F]{6}$/.test(v)) {
+    const ci = document.getElementById('chal-color-'+key)
+    if (ci) ci.value = v
+    const sw = document.getElementById('chal-swatch-'+key)
+    if (sw) { sw.style.background = v; sw.style.opacity = '1' }
+  }
+}
+
+function onChalHexBlur(key, input) {
+  const v = input.value.trim()
+  if (v && !/^#[0-9a-fA-F]{6}$/.test(v)) input.value = ''
+}
+
+async function saveChallengeToggle(field, val) {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  if (!site.settings.challengeUi) site.settings.challengeUi = {}
+  site.settings.challengeUi[field] = val
+  await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
+  sites = sites.map(s => s.id===currentSiteId?site:s)
+}
+
+async function saveChallengeUi() {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  const colors = {}
+  CHALLENGE_COLOR_VARS.forEach(cv => {
+    const hex = document.getElementById('chal-hex-'+cv.key)?.value.trim()
+    if (hex && /^#[0-9a-fA-F]{6}$/.test(hex)) colors[cv.key] = hex
+  })
+  const headline = document.getElementById('chal-headline')?.value.trim() || ''
+  const subline = document.getElementById('chal-subline')?.value.trim() || ''
+  const logoText = document.getElementById('chal-logoText')?.value.trim() || ''
+  const css = document.getElementById('chal-css')?.value || ''
+  const hideStepsLog = document.getElementById('chal-hideStepsLog')?.checked || false
+  const hideBadge = document.getElementById('chal-hideBadge')?.checked || false
+  const challengeUi = {}
+  if (Object.keys(colors).length) challengeUi.colors = colors
+  if (headline) challengeUi.headline = headline
+  if (subline) challengeUi.subline = subline
+  if (logoText) challengeUi.logoText = logoText
+  if (css.trim()) challengeUi.css = css
+  if (hideStepsLog) challengeUi.hideStepsLog = true
+  if (hideBadge) challengeUi.hideBadge = true
+  site.settings.challengeUi = challengeUi
+  const r = await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
+  if (r.ok) {
+    sites = sites.map(s => s.id===currentSiteId?site:s)
+    const btn = document.querySelector('.challenge-save-btn')
+    if (btn) { btn.textContent = 'saved ✓'; setTimeout(()=>btn.textContent='save challenge settings',2000) }
+  }
+}
+
+async function resetChallengeUi() {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  site.settings.challengeUi = {}
+  await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
+  sites = sites.map(s => s.id===currentSiteId?site:s)
+  renderSettings(site)
+}
+
+function previewChallengeUi() {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  window.open('/challenge.html?k='+encodeURIComponent(site.key)+'&r='+encodeURIComponent(location.href), '_blank')
 }
 
 function renderSitesGrid() {
