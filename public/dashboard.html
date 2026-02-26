@@ -361,6 +361,40 @@ tr.req-clickable.selected td{background:rgba(255,255,255,.05)}
 .challenge-preview-bar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--border);background:var(--surface2)}
 .challenge-save-btn{font-size:11px}
 
+.botlist-wrap{display:flex;flex-direction:column;gap:10px}
+.botlist-input-row{display:flex;gap:6px;align-items:center}
+.botlist-input{flex:1;font-size:11px}
+.botlist-chips{display:flex;flex-wrap:wrap;gap:5px;min-height:24px}
+.botlist-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--surface2);border:1px solid var(--border2);border-radius:3px;
+  padding:3px 8px;font-size:10px;color:var(--text2);font-family:var(--mono);
+}
+.botlist-chip-remove{
+  background:none;border:none;color:var(--muted);cursor:pointer;
+  font-size:12px;line-height:1;padding:0 0 0 2px;
+  transition:color .15s;
+}
+.botlist-chip-remove:hover{color:var(--red)}
+.botlist-empty{font-size:10px;color:var(--muted);font-style:italic}
+.botlist-tabs{display:flex;gap:0;border:1px solid var(--border);border-radius:3px;overflow:hidden;margin-bottom:12px}
+.botlist-tab{
+  flex:1;padding:7px 10px;font-size:10px;font-family:var(--mono);color:var(--muted);
+  background:var(--bg);border:none;cursor:pointer;transition:all .15s;text-align:center;
+}
+.botlist-tab:first-child{border-right:1px solid var(--border)}
+.botlist-tab.active-tab{background:var(--surface2);color:var(--text)}
+.botlist-tab-panel{display:none}
+.botlist-tab-panel.active-tab-panel{display:block}
+.botlist-hint{font-size:10px;color:var(--muted);line-height:1.6;margin-bottom:8px}
+.known-bots-grid{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.known-bot-btn{
+  background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  padding:3px 8px;font-size:10px;font-family:var(--mono);color:var(--muted);
+  cursor:pointer;transition:all .15s;
+}
+.known-bot-btn:hover{border-color:var(--accent);color:var(--accent)}
+
 .sidebar-density-opt{display:flex;gap:6px;flex-shrink:0}
 .density-btn{background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:5px 12px;font-size:10px;color:var(--muted);cursor:pointer;font-family:var(--mono);transition:all .15s}
 .density-btn:hover{border-color:var(--border2);color:var(--text2)}
@@ -1077,6 +1111,7 @@ async function refreshData() {
   document.getElementById('overviewTableWrap').style.display = ''
   await Promise.all([loadStats(), loadRequests(), renderInstall(site), renderSettings(site)])
   renderSitesGrid()
+  renderBotAllowlist(site)
 }
 
 async function loadStats() {
@@ -1427,6 +1462,41 @@ function renderSettings(site) {
       </div>
     </div>
     <div class="settings-group">
+      <div class="settings-group-head" style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+        <span>bot allowlist</span>
+        <span style="font-size:10px;color:var(--muted);font-family:var(--mono);font-weight:400">auto-pass, logged as "allowed"</span>
+      </div>
+      <div class="settings-group-body">
+        <div class="botlist-tabs">
+          <button class="botlist-tab active-tab" id="botTabName" onclick="switchBotTab('name')">robots.txt name</button>
+          <button class="botlist-tab" id="botTabUa" onclick="switchBotTab('ua')">ua string match</button>
+        </div>
+        <div class="botlist-tab-panel active-tab-panel" id="botPanelName">
+          <div class="botlist-hint">enter the bot name as it appears in robots.txt — e.g. <code style="color:var(--accent2)">Twitterbot</code>. matched case-insensitively against the user agent.</div>
+          <div class="botlist-input-row">
+            <input class="botlist-input" type="text" id="botNameInput" placeholder="e.g. Twitterbot" autocomplete="off" onkeydown="if(event.key==='Enter')addAllowedBot('name')">
+            <button class="btn btn-ghost btn-sm" onclick="addAllowedBot('name')">add</button>
+          </div>
+          <div style="margin-top:8px">
+            <div class="known-bots-grid" id="knownBotBtns"></div>
+          </div>
+          <div style="margin-top:10px">
+            <div class="botlist-chips" id="allowedNameChips"></div>
+          </div>
+        </div>
+        <div class="botlist-tab-panel" id="botPanelUa">
+          <div class="botlist-hint">enter any substring to match against the raw user agent string. useful for internal tools or custom bots.</div>
+          <div class="botlist-input-row">
+            <input class="botlist-input" type="text" id="botUaInput" placeholder="e.g. MyCustomBot/1.0" autocomplete="off" onkeydown="if(event.key==='Enter')addAllowedBot('ua')">
+            <button class="btn btn-ghost btn-sm" onclick="addAllowedBot('ua')">add</button>
+          </div>
+          <div style="margin-top:10px">
+            <div class="botlist-chips" id="allowedUaChips"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-group">
       <div class="settings-group-head">token lifetime</div>
       <div class="settings-group-body">
         <div class="settings-row">
@@ -1629,6 +1699,87 @@ function previewChallengeUi() {
   const site = sites.find(s => s.id === currentSiteId)
   if (!site) return
   window.open('/challenge.html?k='+encodeURIComponent(site.key)+'&r='+encodeURIComponent(location.href), '_blank')
+}
+
+const KNOWN_BOT_NAMES = [
+  'Twitterbot','Discordbot','Slackbot','LinkedInBot','WhatsApp',
+  'Telegrambot','Pinterestbot','redditbot','Applebot','Facebot',
+  'ia_archiver','AhrefsBot','SemrushBot','MJ12bot','DotBot',
+  'UptimeRobot','Dataprovider','Screaming Frog','SiteAuditBot','GPTBot',
+  'ClaudeBot','PerplexityBot','YouBot','ChatGPT-User','Bytespider'
+]
+
+let botTabActive = 'name'
+
+function switchBotTab(tab) {
+  botTabActive = tab
+  document.getElementById('botTabName').classList.toggle('active-tab', tab === 'name')
+  document.getElementById('botTabUa').classList.toggle('active-tab', tab === 'ua')
+  document.getElementById('botPanelName').classList.toggle('active-tab-panel', tab === 'name')
+  document.getElementById('botPanelUa').classList.toggle('active-tab-panel', tab === 'ua')
+}
+
+function renderBotAllowlist(site) {
+  const allowed = site.settings.allowedBots || { names: [], uaStrings: [] }
+  const names = allowed.names || []
+  const uaStrings = allowed.uaStrings || []
+
+  const nameChips = document.getElementById('allowedNameChips')
+  const uaChips = document.getElementById('allowedUaChips')
+  const knownGrid = document.getElementById('knownBotBtns')
+  if (!nameChips || !uaChips || !knownGrid) return
+
+  knownGrid.innerHTML = KNOWN_BOT_NAMES
+    .filter(b => !names.some(n => n.toLowerCase() === b.toLowerCase()))
+    .map(b => `<button class="known-bot-btn" onclick="addKnownBot('${esc(b)}')">${esc(b)}</button>`)
+    .join('')
+
+  nameChips.innerHTML = names.length
+    ? names.map((n,i) => `<span class="botlist-chip">${esc(n)}<button class="botlist-chip-remove" onclick="removeAllowedBot('name',${i})" title="remove">×</button></span>`).join('')
+    : '<span class="botlist-empty">no names added yet</span>'
+
+  uaChips.innerHTML = uaStrings.length
+    ? uaStrings.map((u,i) => `<span class="botlist-chip">${esc(u)}<button class="botlist-chip-remove" onclick="removeAllowedBot('ua',${i})" title="remove">×</button></span>`).join('')
+    : '<span class="botlist-empty">no ua strings added yet</span>'
+}
+
+async function addAllowedBot(type) {
+  const inputId = type === 'name' ? 'botNameInput' : 'botUaInput'
+  const input = document.getElementById(inputId)
+  if (!input) return
+  const val = input.value.trim()
+  if (!val) return
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  if (!site.settings.allowedBots) site.settings.allowedBots = { names: [], uaStrings: [] }
+  const list = type === 'name' ? site.settings.allowedBots.names : site.settings.allowedBots.uaStrings
+  if (list.some(x => x.toLowerCase() === val.toLowerCase())) { input.value = ''; return }
+  list.push(val)
+  input.value = ''
+  await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
+  sites = sites.map(s => s.id===currentSiteId?site:s)
+  renderBotAllowlist(site)
+}
+
+async function addKnownBot(name) {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  if (!site.settings.allowedBots) site.settings.allowedBots = { names: [], uaStrings: [] }
+  if (site.settings.allowedBots.names.some(x => x.toLowerCase() === name.toLowerCase())) return
+  site.settings.allowedBots.names.push(name)
+  await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
+  sites = sites.map(s => s.id===currentSiteId?site:s)
+  renderBotAllowlist(site)
+}
+
+async function removeAllowedBot(type, idx) {
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site || !site.settings.allowedBots) return
+  const list = type === 'name' ? site.settings.allowedBots.names : site.settings.allowedBots.uaStrings
+  list.splice(idx, 1)
+  await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
+  sites = sites.map(s => s.id===currentSiteId?site:s)
+  renderBotAllowlist(site)
 }
 
 function renderSitesGrid() {
