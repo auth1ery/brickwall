@@ -117,6 +117,7 @@ td:first-child{color:var(--text);font-family:var(--mono);font-size:11px}
 <nav>
   <a class="nav-logo" href="/">brick<span>wall</span></a>
   <div class="nav-right">
+    <a href="/blog.html" class="btn btn-ghost btn-sm">blog</a>
     <a href="/" class="btn btn-ghost btn-sm">← home</a>
     <a href="/dashboard.html" class="btn btn-primary btn-sm">dashboard →</a>
   </div>
@@ -132,11 +133,16 @@ td:first-child{color:var(--text);font-family:var(--mono);font-size:11px}
     <div class="sidebar-section">configuration</div>
     <a href="#site-settings" onclick="setActive(this)">site settings</a>
     <a href="#token-ttl" onclick="setActive(this)">token ttl</a>
+    <a href="#bot-allowlist" onclick="setActive(this)">bot allowlist</a>
+    <a href="#domain-migration" onclick="setActive(this)">domain migration</a>
+    <a href="#challenge-customization" onclick="setActive(this)">challenge page</a>
+    <a href="#dashboard-customization" onclick="setActive(this)">dashboard</a>
 
     <div class="sidebar-section">api reference</div>
     <a href="#api-auth" onclick="setActive(this)">authentication</a>
     <a href="#api-sites" onclick="setActive(this)">sites</a>
     <a href="#api-challenge" onclick="setActive(this)">challenge</a>
+    <a href="#api-blog" onclick="setActive(this)">blog</a>
 
     <div class="sidebar-section">guides</div>
     <a href="#guide-neocities" onclick="setActive(this)">neocities / static sites</a>
@@ -145,6 +151,8 @@ td:first-child{color:var(--text);font-family:var(--mono);font-size:11px}
     <a href="#guide-multiple" onclick="setActive(this)">multiple sites</a>
 
     <div class="sidebar-section">reference</div>
+    <a href="#request-detail" onclick="setActive(this)">request detail</a>
+    <a href="#detection" onclick="setActive(this)">detection</a>
     <a href="#edge-cases" onclick="setActive(this)">edge cases</a>
     <a href="#troubleshooting" onclick="setActive(this)">troubleshooting</a>
   </aside>
@@ -251,11 +259,13 @@ td:first-child{color:var(--text);font-family:var(--mono);font-size:11px}
       <table>
         <thead><tr><th>setting</th><th>default</th><th>description</th></tr></thead>
         <tbody>
-          <tr><td>allowCrawlers</td><td>true</td><td>automatically pass googlebot, bingbot, and other known crawlers. they're logged as "crawler" with status "passed".</td></tr>
+          <tr><td>allowCrawlers</td><td>true</td><td>automatically pass googlebot, bingbot, and other known crawlers. logged as "crawler / passed".</td></tr>
           <tr><td>blockTor</td><td>false</td><td>block known tor exit node ip ranges before the challenge. blocked visitors see an access denied page.</td></tr>
-          <tr><td>blockVpn</td><td>false</td><td>flag or block known datacenter asns and vpn exit ip ranges.</td></tr>
-          <tr><td>challengeTtl</td><td>24</td><td>how many hours a verified token lasts. after this, visitors are re-challenged silently.</td></tr>
-          <tr><td>active</td><td>true</td><td>when false, all visitors pass through without any challenge. useful for maintenance or testing.</td></tr>
+          <tr><td>blockVpn</td><td>false</td><td>flag or block known datacenter asns and vpn exit ip ranges using geoip org lookup.</td></tr>
+          <tr><td>challengeTtl</td><td>24</td><td>how many hours a verified token lasts. after this, visitors are re-challenged.</td></tr>
+          <tr><td>active</td><td>true</td><td>when false, all visitors pass through without any challenge.</td></tr>
+          <tr><td>allowedBots</td><td>{}</td><td>per-site bot allowlist. see <a href="#bot-allowlist">bot allowlist</a>.</td></tr>
+          <tr><td>challengeUi</td><td>{}</td><td>per-site challenge page appearance. see <a href="#challenge-customization">challenge page</a>.</td></tr>
         </tbody>
       </table>
     </div>
@@ -269,6 +279,133 @@ td:first-child{color:var(--text);font-family:var(--mono);font-size:11px}
       <div class="callout info">
         <span class="callout-icon">ℹ</span>
         <div>token expiry is checked client-side by decoding the JWT payload — no server call required. the token is only validated server-side during the initial challenge flow.</div>
+      </div>
+    </div>
+
+    <!-- BOT ALLOWLIST -->
+    <div class="doc-section" id="bot-allowlist">
+      <div class="section-badge">configuration</div>
+      <h2>bot allowlist</h2>
+      <p>the bot allowlist lets you pass through specific bots that aren't in the built-in crawler list. common uses: uptime monitors, link preview bots (discord, slack, twitter), custom scrapers you own, analytics crawlers.</p>
+      <p>allowlisted bots skip the challenge entirely and are logged as <code>detected: allowed / status: passed</code>. the check runs before all other detection, including headless browser detection — so it takes full priority.</p>
+
+      <h3>robots.txt name matching</h3>
+      <p>enter a bot name exactly as you'd write it in a <code>robots.txt</code> file, e.g. <code>Twitterbot</code>, <code>UptimeRobot</code>, <code>GPTBot</code>. the match is <strong>case-insensitive</strong> and checks if the name appears anywhere in the user agent string.</p>
+      <p>the dashboard includes a quick-add grid of 25 common bots so you can add them in one click.</p>
+
+      <h3>ua string matching</h3>
+      <p>match any substring against the raw user agent string. useful for internal tools or custom bots with non-standard names.</p>
+
+      <div class="callout tip">
+        <span class="callout-icon">✓</span>
+        <div>both lists are checked independently — a request passes if it matches <em>either</em> a name or a ua string entry.</div>
+      </div>
+
+      <h3>settings shape</h3>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">json — settings.allowedBots</span><button class="codeblock-copy" onclick="copyCode(this)">copy</button></div>
+        <pre>{
+  <span class="k">"names"</span>: [<span class="v">"Twitterbot"</span>, <span class="v">"UptimeRobot"</span>, <span class="v">"GPTBot"</span>],
+  <span class="k">"uaStrings"</span>: [<span class="v">"MyInternalTool/2.0"</span>]
+}</pre>
+      </div>
+    </div>
+
+    <!-- DOMAIN MIGRATION -->
+    <div class="doc-section" id="domain-migration">
+      <div class="section-badge">configuration</div>
+      <h2>domain migration</h2>
+      <p>if your site moves to a new domain, you can update it in place without losing your request history, site settings, or bot allowlist.</p>
+
+      <h3>how to change your domain</h3>
+      <p>1. in <strong>site settings → site info</strong>, edit the domain field and click <strong>save</strong>.</p>
+      <p>2. a terminal confirmation modal appears. type the command exactly:</p>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">terminal</span></div>
+        <pre>$ sudo apt install brickwall-sites new-domain <span class="v">your-new-domain.com</span></pre>
+      </div>
+      <p>3. on confirm, the domain is updated and the site key is <strong>automatically rotated</strong>. the dashboard redirects you to the installation panel with the new key and fresh script tag ready to copy.</p>
+
+      <div class="callout warn">
+        <span class="callout-icon">⚠</span>
+        <div>rotating the key on domain change is intentional — the old embed script pointed to the old domain. <strong>all existing visitor tokens are immediately invalidated</strong>. update your embed script right after migrating.</div>
+      </div>
+
+      <h3>api</h3>
+      <p>domain migration is also available via the API — see <a href="#api-sites"><code>POST /api/sites/:id/domain</code></a>.</p>
+    </div>
+
+    <!-- CHALLENGE PAGE CUSTOMIZATION -->
+    <div class="doc-section" id="challenge-customization">
+      <div class="section-badge">configuration</div>
+      <h2>challenge page customization</h2>
+      <p>each site can have its own challenge page appearance. settings live in <strong>site settings → challenge page</strong> and are applied per-visitor when the challenge loads.</p>
+
+      <h3>color overrides</h3>
+      <p>8 css variables can be overridden per site. empty values inherit the challenge page defaults.</p>
+      <table>
+        <thead><tr><th>variable</th><th>description</th></tr></thead>
+        <tbody>
+          <tr><td>bg</td><td>page background color</td></tr>
+          <tr><td>accent</td><td>spinner, progress bar, and highlights</td></tr>
+          <tr><td>surface</td><td>log panel background</td></tr>
+          <tr><td>text</td><td>headline text color</td></tr>
+          <tr><td>text2</td><td>secondary label color</td></tr>
+          <tr><td>muted</td><td>subline and log entry text</td></tr>
+          <tr><td>border</td><td>panel borders</td></tr>
+          <tr><td>border2</td><td>ring and input borders</td></tr>
+        </tbody>
+      </table>
+
+      <h3>text overrides</h3>
+      <p>headline (max 120 chars), subline (max 300 chars), and logo text (max 60 chars) can each be replaced with custom copy. leave blank to use the defaults.</p>
+
+      <h3>custom css</h3>
+      <p>inject up to 8KB of arbitrary css into the challenge page. applied after all other styles, so it can override anything. useful for custom fonts, layout changes, or branding beyond what the color pickers cover.</p>
+
+      <h3>visibility toggles</h3>
+      <p><strong>hide steps log</strong> — hides the live proof-of-work step log panel. useful for minimal, branded challenge pages.<br>
+      <strong>hide badge</strong> — hides the "protected by brickwall" badge at the bottom.</p>
+
+      <h3>settings shape</h3>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">json — settings.challengeUi</span><button class="codeblock-copy" onclick="copyCode(this)">copy</button></div>
+        <pre>{
+  <span class="k">"colors"</span>: {
+    <span class="k">"bg"</span>: <span class="v">"#0d0d0d"</span>,
+    <span class="k">"accent"</span>: <span class="v">"#ff5500"</span>
+  },
+  <span class="k">"headline"</span>: <span class="v">"just a sec..."</span>,
+  <span class="k">"subline"</span>: <span class="v">"checking your browser"</span>,
+  <span class="k">"logoText"</span>: <span class="v">"mysite"</span>,
+  <span class="k">"css"</span>: <span class="v">"body { font-family: Georgia, serif; }"</span>,
+  <span class="k">"hideStepsLog"</span>: <span class="v">true</span>,
+  <span class="k">"hideBadge"</span>: <span class="v">false</span>
+}</pre>
+      </div>
+    </div>
+
+    <!-- DASHBOARD CUSTOMIZATION -->
+    <div class="doc-section" id="dashboard-customization">
+      <div class="section-badge">configuration</div>
+      <h2>dashboard customization</h2>
+      <p>the dashboard appearance is stored locally in your browser (localStorage key <code>bw_customize</code>) and applied before the auth check — no flash of default styles.</p>
+
+      <h3>theme presets</h3>
+      <p>six presets are available: <strong>default</strong>, <strong>slate</strong>, <strong>chalk</strong>, <strong>forest</strong>, <strong>noir</strong>, and <strong>synthwave</strong>. selecting a preset sets all 13 color variables at once. presets are detected automatically — if your current colors match a preset exactly, it highlights in the grid.</p>
+
+      <h3>color variables</h3>
+      <p>13 css variables can be overridden individually via color pickers with hex input fields. changes apply live.</p>
+
+      <h3>fonts</h3>
+      <p>6 display font families are available for the dashboard's headings and logos.</p>
+
+      <h3>density</h3>
+      <p>three layout density modes: <strong>compact</strong>, <strong>default</strong>, and <strong>spacious</strong>. adjusts padding and spacing across the dashboard.</p>
+
+      <div class="callout info">
+        <span class="callout-icon">ℹ</span>
+        <div>dashboard customization is per-browser, not per-account. clearing localStorage will reset to defaults.</div>
       </div>
     </div>
 
@@ -328,19 +465,30 @@ td:first-child{color:var(--text);font-family:var(--mono);font-size:11px}
     <span class="k">"allowCrawlers"</span>: <span class="v">true</span>,
     <span class="k">"blockTor"</span>: <span class="v">false</span>,
     <span class="k">"blockVpn"</span>: <span class="v">false</span>,
-    <span class="k">"challengeTtl"</span>: <span class="v">24</span>
+    <span class="k">"challengeTtl"</span>: <span class="v">24</span>,
+    <span class="k">"allowedBots"</span>: { <span class="k">"names"</span>: [<span class="v">"Twitterbot"</span>], <span class="k">"uaStrings"</span>: [] }
   }
 }</pre>
+      </div>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/sites/:id/domain</span></h3>
+      <p>change the domain for a site. <strong>automatically rotates the site key</strong> — all existing visitor tokens are invalidated. returns the new domain and key.</p>
+      <table><thead><tr><th>field</th><th>description</th></tr></thead><tbody>
+        <tr><td>domain<span class="param-required">required</span></td><td>new domain. protocol and path are stripped automatically.</td></tr>
+      </tbody></table>
+      <div class="codeblock">
+        <div class="codeblock-header"><span class="codeblock-lang">json — response</span></div>
+        <pre>{ <span class="k">"domain"</span>: <span class="v">"newdomain.com"</span>, <span class="k">"key"</span>: <span class="v">"bw_live_..."</span> }</pre>
       </div>
 
       <h3><span class="method-badge method-delete">DELETE</span><span class="endpoint-path">/api/sites/:id</span></h3>
       <p>permanently deletes the site, its api key, and all request history.</p>
 
       <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/sites/:id/rotate</span></h3>
-      <p>generates a new api key for the site. <strong>all existing visitor tokens are immediately invalidated</strong> — visitors will be re-challenged on their next visit. returns <code>{"key": "bw_live_..."}</code>.</p>
+      <p>generates a new api key for the site. <strong>all existing visitor tokens are immediately invalidated</strong>. returns <code>{"key": "bw_live_..."}</code>.</p>
 
       <h3><span class="method-badge method-get">GET</span><span class="endpoint-path">/api/sites/:id/requests</span></h3>
-      <p>returns the last 500 verification attempts for the site, newest first.</p>
+      <p>returns the last 500 verification attempts for the site, newest first. each request includes <code>id</code>, <code>country</code>, <code>detected</code>, <code>status</code>, <code>ts</code>, and <code>ua</code>.</p>
 
       <h3><span class="method-badge method-get">GET</span><span class="endpoint-path">/api/sites/:id/stats</span></h3>
       <p>returns <code>{"total", "passed", "blocked", "flagged"}</code> counts for all recorded requests.</p>
@@ -353,11 +501,12 @@ td:first-child{color:var(--text);font-family:var(--mono);font-size:11px}
       <p>these endpoints are called by the challenge page and the embed script. you don't need to call them directly unless you're building something custom.</p>
 
       <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/challenge/init</span></h3>
-      <p>initialize a challenge for a site key. returns a challenge ID and proof-of-work difficulty, or skips straight to a token for known crawlers.</p>
+      <p>initialize a challenge. performs bot allowlist check, crawler detection, tor/vpn blocking, and headless detection before issuing a challenge. returns a challenge ID and difficulty, or skips straight to a token for allowlisted/crawler traffic.</p>
       <table><thead><tr><th>field</th><th>description</th></tr></thead><tbody>
         <tr><td>siteKey<span class="param-required">required</span></td><td>the <code>bw_live_...</code> key from the embed script</td></tr>
         <tr><td>returnUrl<span class="param-optional">optional</span></td><td>url to redirect to after challenge passes</td></tr>
       </tbody></table>
+      <p>the response also includes a <code>challengeUi</code> object with the site's challenge page customization settings.</p>
 
       <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/challenge/verify</span></h3>
       <p>submit a proof-of-work solution. returns a signed JWT on success.</p>
@@ -373,6 +522,37 @@ td:first-child{color:var(--text);font-family:var(--mono);font-size:11px}
         <tr><td>token<span class="param-required">required</span></td><td>the JWT from localStorage / the bw_token url param</td></tr>
         <tr><td>siteKey<span class="param-required">required</span></td><td>your site key</td></tr>
       </tbody></table>
+    </div>
+
+    <!-- API BLOG -->
+    <div class="doc-section" id="api-blog">
+      <div class="section-badge">api reference</div>
+      <h2>blog api</h2>
+      <p>public read endpoints require no authentication. write endpoints require the <code>x-admin-key</code> header with the server's <code>ADMIN_KEY</code> environment variable.</p>
+
+      <h3><span class="method-badge method-get">GET</span><span class="endpoint-path">/api/blog</span></h3>
+      <p>returns all posts sorted by publish date descending. each item includes <code>id</code>, <code>title</code>, <code>slug</code>, <code>excerpt</code>, and <code>publishedAt</code> (unix ms). does not include full content — use the single-post endpoint for that.</p>
+
+      <h3><span class="method-badge method-get">GET</span><span class="endpoint-path">/api/blog/:slug</span></h3>
+      <p>returns a single post by its slug. includes <code>content</code> (raw markdown) in addition to all list fields. 404 if not found.</p>
+
+      <h3><span class="method-badge method-post">POST</span><span class="endpoint-path">/api/admin/blog</span></h3>
+      <p>create a new blog post. requires <code>x-admin-key</code> header. the slug is auto-generated from the title. the excerpt is auto-generated from the first ~220 chars of content (markdown stripped).</p>
+      <table><thead><tr><th>field</th><th>description</th></tr></thead><tbody>
+        <tr><td>title<span class="param-required">required</span></td><td>post title. used to generate the slug.</td></tr>
+        <tr><td>content<span class="param-required">required</span></td><td>post body in markdown. stored as-is and rendered client-side.</td></tr>
+      </tbody></table>
+      <p>returns <code>{"id", "slug", "publishedAt"}</code> on success. 409 if a post with the same generated slug already exists.</p>
+
+      <h3><span class="method-badge method-delete">DELETE</span><span class="endpoint-path">/api/admin/blog/:id</span></h3>
+      <p>permanently delete a blog post by id. requires <code>x-admin-key</code> header.</p>
+
+      <h3><span class="method-badge method-get">GET</span><span class="endpoint-path">/rss.xml</span></h3>
+      <p>RSS 2.0 feed of all blog posts. includes full post content in <code>&lt;content:encoded&gt;</code> — RSS readers that support it will display the full post inline. updated on every request.</p>
+      <div class="callout tip">
+        <span class="callout-icon">✓</span>
+        <div>link to <code>/rss.xml</code> from your blog page and add a <code>&lt;link rel="alternate"&gt;</code> tag in your head so feed readers can auto-discover it.</div>
+      </div>
     </div>
 
     <!-- GUIDE: NEOCITIES -->
@@ -468,6 +648,54 @@ fetch(<span class="s">'/api/protected-route'</span>, {
       </div>
     </div>
 
+    <!-- REQUEST DETAIL -->
+    <div class="doc-section" id="request-detail">
+      <div class="section-badge">reference</div>
+      <h2>request detail</h2>
+      <p>clicking any row in the overview or all requests table opens a detail drawer on the right side of the dashboard.</p>
+      <p>the drawer shows: status, country, relative time and full timestamp, a short ref ID (first segment of the internal UUID), detected type with a colored badge, and the parsed client breakdown.</p>
+
+      <h3>client parsing</h3>
+      <p>the raw user agent string is parsed into human-readable fields client-side — no server call needed:</p>
+      <table>
+        <thead><tr><th>field</th><th>description</th></tr></thead>
+        <tbody>
+          <tr><td>browser</td><td>browser name and major version, e.g. <code>Chrome 120</code>, <code>Firefox 121</code>, <code>Headless Chrome</code></td></tr>
+          <tr><td>os</td><td>operating system and version, e.g. <code>macOS 14.2</code>, <code>Android 13</code>, <code>Windows 10/11</code></td></tr>
+          <tr><td>device type</td><td>one of <code>desktop</code>, <code>mobile</code>, <code>tablet</code>, or <code>bot</code></td></tr>
+        </tbody>
+      </table>
+      <p>the raw UA string is shown at the bottom of the drawer in a monospace block. IP addresses and other sensitive fields are never shown.</p>
+      <p>close with <code>×</code>, <kbd>Escape</kbd>, clicking the backdrop, or navigating to another panel.</p>
+    </div>
+
+    <!-- DETECTION -->
+    <div class="doc-section" id="detection">
+      <div class="section-badge">reference</div>
+      <h2>detection</h2>
+      <p>brickwall runs several detection checks at challenge init time. the detected type is stored and shown in the request log and detail drawer.</p>
+
+      <h3>detection priority</h3>
+      <p>checks run in this order, stopping at the first match:</p>
+      <table>
+        <thead><tr><th>priority</th><th>type</th><th>action</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>bot allowlist match</td><td>auto-pass, logged as <code>allowed</code></td></tr>
+          <tr><td>2</td><td>known crawler (if allowCrawlers on)</td><td>auto-pass, logged as <code>crawler</code></td></tr>
+          <tr><td>3</td><td>tor exit node (if blockTor on)</td><td>blocked before challenge, logged as <code>tor</code></td></tr>
+          <tr><td>4</td><td>datacenter/vpn ip (if blockVpn on)</td><td>blocked before challenge, logged as <code>datacenter</code></td></tr>
+          <tr><td>5</td><td>headless browser UA</td><td>challenge served with higher difficulty (6 zeros vs 4), flagged as <code>headless</code> on verify</td></tr>
+          <tr><td>—</td><td>none matched</td><td>normal challenge, <code>N/A</code> in log</td></tr>
+        </tbody>
+      </table>
+
+      <h3>country lookup</h3>
+      <p>country is resolved from the visitor's IP using <a href="https://github.com/bluesmoon/node-geoip" target="_blank">geoip-lite</a> — a bundled MaxMind GeoLite2 database. lookups are fully local, no external API calls. if <code>geoip-lite</code> isn't installed, country falls back to <code>Unknown</code>.</p>
+
+      <h3>headless signals</h3>
+      <p>the following UA substrings trigger headless detection: <code>HeadlessChrome</code>, <code>PhantomJS</code>, <code>Playwright</code>, <code>Puppeteer</code>, <code>selenium</code>, <code>webdriver</code>, <code>python-requests</code>, <code>curl/</code>, <code>wget/</code>, <code>node-fetch</code>, <code>axios/</code>, <code>scrapy</code>, and ~15 more.</p>
+    </div>
+
     <!-- EDGE CASES -->
     <div class="doc-section" id="edge-cases">
       <div class="section-badge">reference</div>
@@ -475,17 +703,18 @@ fetch(<span class="s">'/api/protected-route'</span>, {
       <table>
         <thead><tr><th>scenario</th><th>behavior</th></tr></thead>
         <tbody>
+          <tr><td>bot allowlist match</td><td>skips challenge entirely. auto-passed and logged as "allowed". highest priority check.</td></tr>
           <tr><td>googlebot / bingbot</td><td>auto-bypassed if "allow crawlers" is on. logged as crawler/passed. token issued immediately.</td></tr>
           <tr><td>tor exit nodes</td><td>blocked before challenge if "block tor" is on. blocked visitors see an access denied screen.</td></tr>
-          <tr><td>vpn / datacenter ips</td><td>flagged in the request log. can be configured to block outright.</td></tr>
-          <tr><td>headless chrome / puppeteer</td><td>blocked by <code>navigator.webdriver === true</code> check on the challenge page.</td></tr>
-          <tr><td>phantomjs / nightmare</td><td>blocked by artifact detection on the challenge page.</td></tr>
+          <tr><td>vpn / datacenter ips</td><td>blocked at init if "block vpn" is on. org field checked against known datacenter asns.</td></tr>
+          <tr><td>headless chrome / puppeteer</td><td>ua detection triggers at init. served harder challenge (6 zeros). flagged on verify.</td></tr>
           <tr><td>javascript disabled</td><td>noscript fallback message shown. content is not accessible without js.</td></tr>
           <tr><td>pow solved in &lt;200ms</td><td>rejected as automated. a human browser cannot solve it that fast.</td></tr>
           <tr><td>challenge expires (2min)</td><td>user is redirected back to the challenge page cleanly on retry.</td></tr>
           <tr><td>token expired</td><td>cleared from localStorage, visitor re-challenged transparently.</td></tr>
           <tr><td>rate limited (15 req/min)</td><td>ip is rate limited for 60 seconds. user sees a countdown message.</td></tr>
           <tr><td>site set to inactive</td><td>all visitors pass through without a challenge.</td></tr>
+          <tr><td>domain migrated</td><td>site key is rotated automatically. old tokens are invalidated. update your embed script.</td></tr>
         </tbody>
       </table>
     </div>
@@ -496,7 +725,7 @@ fetch(<span class="s">'/api/protected-route'</span>, {
       <h2>troubleshooting</h2>
 
       <h3>"unknown site key"</h3>
-      <p>the key in your embed script doesn't match any site in the database. this usually happens after a server restart when data was previously stored in memory (pre-database). go to your dashboard → <strong>installation</strong>, copy the current key, and update the <code>data-site</code> attribute in your html.</p>
+      <p>the key in your embed script doesn't match any site in the database. this usually happens after a server restart when data was previously stored in memory, or after a domain migration that rotated the key. go to your dashboard → <strong>installation</strong>, copy the current key, and update the <code>data-site</code> attribute in your html.</p>
 
       <h3>"automated browser detected"</h3>
       <p>the challenge page's headless browser detection triggered. this should only happen for actual automation tools. if you're seeing this on a real browser, open a github issue — it may be a false positive we haven't seen before.</p>
@@ -507,8 +736,8 @@ fetch(<span class="s">'/api/protected-route'</span>, {
       <h3>requests not showing in dashboard</h3>
       <p>requests are only logged during <code>/api/challenge/init</code> and <code>/api/challenge/verify</code>. if the redirect from your site to the challenge page never happens, no requests are logged. check the browser console for errors from <code>protect.min.js</code>.</p>
 
-      <h3>can't scroll in dashboard</h3>
-      <p>clear your browser cache and hard-reload (<code>ctrl+shift+r</code> / <code>cmd+shift+r</code>). if you deployed before the scroll fix, you may be serving an old cached version.</p>
+      <h3>country shows as "unknown"</h3>
+      <p>geoip-lite is not installed. run <code>npm install geoip-lite</code> in your server directory and restart. the package bundles the MaxMind GeoLite2 database (~40MB) locally — no api key needed.</p>
 
       <h3>login says "invalid credentials"</h3>
       <p>if you registered before the postgres migration, your account was stored in memory and lost on restart. register a new account — this time it'll persist in the database.</p>
@@ -532,7 +761,6 @@ function copyCode(btn) {
   })
 }
 
-// highlight active section on scroll
 const sections = document.querySelectorAll('.doc-section')
 const links = document.querySelectorAll('.sidebar a')
 window.addEventListener('scroll', () => {
