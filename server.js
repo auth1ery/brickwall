@@ -6,6 +6,8 @@ const { v4: uuidv4 } = require('uuid')
 const path = require('path')
 const crypto = require('crypto')
 const { Pool } = require('pg')
+let geoip = null
+try { geoip = require('geoip-lite') } catch { console.warn('geoip-lite not installed — country lookup disabled. run: npm install geoip-lite') }
 
 const app = express()
 const PORT = process.env.PORT || 3000
@@ -22,9 +24,80 @@ const pool = new Pool({
 const KNOWN_CRAWLERS = [
   'googlebot','bingbot','slurp','duckduckbot','baiduspider',
   'yandexbot','sogou','exabot','facebot','ia_archiver',
-  'msnbot','ahrefsbot','semrushbot','dotbot','petalbot'
+  'msnbot','ahrefsbot','semrushbot','dotbot','petalbot',
+  'rogerbot','mj12bot','blexbot','majestic','neevabot',
+  'applebot','twitterbot','linkedinbot','facebookexternalhit',
+  'discordbot','slackbot','telegrambot','whatsapp',
+  'pinterestbot','redditbot','ia_archiver','archive.org_bot'
 ]
+
+const HEADLESS_SIGNALS = [
+  'headlesschrome','headless chrome','phantomjs','nightmare','puppeteer',
+  'playwright','selenium','webdriver','slimerjs','htmlunit','watir',
+  'mechanize','python-requests','python-urllib','go-http-client',
+  'java/','libwww','lwp-trivial','curl/','wget/','okhttp',
+  'axios/','node-fetch','got/','superagent','aiohttp','httpx',
+  'scrapy','nutch','larbin','jakarta','zgrab'
+]
+
+const DATACENTER_ORGS = [
+  'amazon','aws','google cloud','googlecloud','microsoft azure','azure',
+  'digitalocean','linode','vultr','hetzner','ovh','cloudflare',
+  'fastly','akamai','leaseweb','psychz','tzulo','choopa','vultr',
+  'serverius','m247','combahton','datacamp','quadranet','frantech',
+  'sharktech','b2 net','coresite','zayo','cogent','hurricane electric',
+  'serverpoint','multacom','limenet','serveraxis','servercentral',
+  'layerhost','netcup','contabo','ionos','strato','plusserver'
+]
+
 const TOR_EXIT_PREFIXES = ['185.220.','199.87.154.','162.247.72.','171.25.193.']
+
+function lookupCountry(ip) {
+  if (!geoip || !ip) return 'Unknown'
+  try {
+    const cleaned = ip.replace(/^::ffff:/, '')
+    const geo = geoip.lookup(cleaned)
+    if (!geo || !geo.country) return 'Unknown'
+    const names = {
+      AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AR:'Argentina',AU:'Australia',
+      AT:'Austria',BE:'Belgium',BR:'Brazil',CA:'Canada',CL:'Chile',
+      CN:'China',CO:'Colombia',HR:'Croatia',CZ:'Czech Republic',DK:'Denmark',
+      EG:'Egypt',FI:'Finland',FR:'France',DE:'Germany',GH:'Ghana',
+      GR:'Greece',HK:'Hong Kong',HU:'Hungary',IN:'India',ID:'Indonesia',
+      IR:'Iran',IQ:'Iraq',IE:'Ireland',IL:'Israel',IT:'Italy',
+      JP:'Japan',JO:'Jordan',KZ:'Kazakhstan',KE:'Kenya',KR:'South Korea',
+      KW:'Kuwait',LB:'Lebanon',MY:'Malaysia',MX:'Mexico',MA:'Morocco',
+      NL:'Netherlands',NZ:'New Zealand',NG:'Nigeria',NO:'Norway',PK:'Pakistan',
+      PE:'Peru',PH:'Philippines',PL:'Poland',PT:'Portugal',QA:'Qatar',
+      RO:'Romania',RU:'Russia',SA:'Saudi Arabia',RS:'Serbia',SG:'Singapore',
+      ZA:'South Africa',ES:'Spain',SE:'Sweden',CH:'Switzerland',TW:'Taiwan',
+      TH:'Thailand',TN:'Tunisia',TR:'Turkey',UA:'Ukraine',AE:'United Arab Emirates',
+      GB:'United Kingdom',US:'United States',UY:'Uruguay',VN:'Vietnam',
+      VE:'Venezuela',YE:'Yemen',ZW:'Zimbabwe'
+    }
+    return names[geo.country] || geo.country
+  } catch { return 'Unknown' }
+}
+
+function detectUaType(ua) {
+  if (!ua) return 'no-ua'
+  const lower = ua.toLowerCase()
+  for (const sig of HEADLESS_SIGNALS) {
+    if (lower.includes(sig)) return 'headless'
+  }
+  return null
+}
+
+function detectDatacenter(ip) {
+  if (!geoip || !ip) return false
+  try {
+    const cleaned = ip.replace(/^::ffff:/, '')
+    const geo = geoip.lookup(cleaned)
+    if (!geo || !geo.org) return false
+    const org = geo.org.toLowerCase()
+    return DATACENTER_ORGS.some(d => org.includes(d))
+  } catch { return false }
+}
 
 const challenges = new Map()
 const rateBuckets = new Map()
@@ -128,7 +201,8 @@ function requireAdmin(req, res, next) {
 
 function isCrawler(ua) {
   if (!ua) return false
-  return KNOWN_CRAWLERS.some(c => ua.toLowerCase().includes(c))
+  const lower = ua.toLowerCase()
+  return KNOWN_CRAWLERS.some(c => lower.includes(c))
 }
 
 function looksLikeTor(ip) {
@@ -342,14 +416,23 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
 
     const challengeUi = sanitizeChallengeUi(site.settings.challengeUi || {})
 
+    const country = lookupCountry(ip)
     const crawlerDetected = isCrawler(ua)
     const torDetected = looksLikeTor(ip)
+    const headlessDetected = detectUaType(ua) === 'headless'
+    const datacenterDetected = !torDetected && site.settings.blockVpn && detectDatacenter(ip)
+
+    let detectedType = 'N/A'
+    if (torDetected) detectedType = 'tor'
+    else if (crawlerDetected) detectedType = 'crawler'
+    else if (headlessDetected) detectedType = 'headless'
+    else if (datacenterDetected) detectedType = 'datacenter'
 
     if (crawlerDetected && site.settings.allowCrawlers) {
       const token = jwt.sign({ siteId: site.id, type: 'pass', crawler: true }, SECRET, { expiresIn: TOKEN_TTL })
       await pool.query(
         'INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [uuidv4(), site.id, 'Unknown', 'crawler', 'passed', Date.now(), ua]
+        [uuidv4(), site.id, country, 'crawler', 'passed', Date.now(), ua]
       )
       return res.json({ token, skip: true, challengeUi })
     }
@@ -357,9 +440,17 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
     if (torDetected && site.settings.blockTor) {
       await pool.query(
         'INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [uuidv4(), site.id, 'Unknown', 'tor', 'blocked', Date.now(), ua]
+        [uuidv4(), site.id, country, 'tor', 'blocked', Date.now(), ua]
       )
       return res.status(403).json({ error: 'blocked', reason: 'tor' })
+    }
+
+    if (datacenterDetected) {
+      await pool.query(
+        'INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [uuidv4(), site.id, country, 'datacenter', 'blocked', Date.now(), ua]
+      )
+      return res.status(403).json({ error: 'blocked', reason: 'datacenter' })
     }
 
     const bucket = rateBuckets.get(ip) || { count: 0, reset: Date.now() + 60000 }
@@ -371,11 +462,12 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
     }
 
     const challengeId = uuidv4()
-    const difficulty = torDetected ? 6 : 4
+    const difficulty = (torDetected || headlessDetected) ? 6 : 4
     challenges.set(challengeId, {
       siteId: site.id, siteKey, returnUrl, difficulty,
-      ip, ua, expires: Date.now() + 120000,
-      torDetected, crawlerDetected
+      ip, ua, country, detectedType,
+      expires: Date.now() + 120000,
+      torDetected, crawlerDetected, headlessDetected
     })
     setTimeout(() => challenges.delete(challengeId), 120000)
 
@@ -403,12 +495,12 @@ app.post('/api/challenge/verify', challengeLimiter, async (req, res) => {
     const tooFast = elapsed < 200
     const suspicious = tooFast || !valid
 
-    const detected = ch.torDetected ? 'tor' : ch.crawlerDetected ? 'crawler' : 'N/A'
-    const status = suspicious ? 'blocked' : 'passed'
+    const detected = ch.detectedType || 'N/A'
+    const status = suspicious ? (ch.headlessDetected ? 'blocked' : 'flagged') : 'passed'
 
     await pool.query(
       'INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-      [uuidv4(), ch.siteId, 'Unknown', detected, status, Date.now(), ch.ua]
+      [uuidv4(), ch.siteId, ch.country || 'Unknown', detected, status, Date.now(), ch.ua]
     )
 
     if (suspicious) return res.status(403).json({ error: 'challenge failed' })
