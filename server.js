@@ -439,6 +439,145 @@ app.get('/api/sites/:id/stats', requireAuth, async (req, res) => {
   }
 })
 
+app.get('/api/sites/:id/analytics', requireAuth, async (req, res) => {
+  try {
+    const siteCheck = await pool.query(
+      'SELECT id FROM sites WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    )
+    if (siteCheck.rows.length === 0) return res.status(404).json({ error: 'not found' })
+
+    const now = Date.now()
+    const days = parseInt(req.query.days) || 14
+    const rangeMs = days * 86400000
+    const sinceMs = now - rangeMs
+    const priorSinceMs = now - rangeMs * 2
+
+    // Daily breakdown
+    const dailyResult = await pool.query(`
+      SELECT
+        TO_CHAR(TO_TIMESTAMP(ts/1000) AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS day,
+        status,
+        COUNT(*) AS count
+      FROM requests
+      WHERE site_id = $1 AND ts > $2
+      GROUP BY day, status
+      ORDER BY day ASC
+    `, [req.params.id, sinceMs])
+
+    // Hourly last 24h
+    const hourlyResult = await pool.query(`
+      SELECT
+        TO_CHAR(TO_TIMESTAMP(ts/1000) AT TIME ZONE 'UTC', 'YYYY-MM-DD HH24') AS hour,
+        status,
+        COUNT(*) AS count
+      FROM requests
+      WHERE site_id = $1 AND ts > $2
+      GROUP BY hour, status
+      ORDER BY hour ASC
+    `, [req.params.id, now - 86400000])
+
+    // By detection type
+    const detectedResult = await pool.query(`
+      SELECT detected, COUNT(*) AS count
+      FROM requests WHERE site_id = $1
+      GROUP BY detected ORDER BY count DESC
+    `, [req.params.id])
+
+    // By country top 12
+    const countryResult = await pool.query(`
+      SELECT country, COUNT(*) AS count,
+        COUNT(*) FILTER (WHERE status = 'passed') AS passed,
+        COUNT(*) FILTER (WHERE status = 'blocked') AS blocked,
+        COUNT(*) FILTER (WHERE status = 'flagged') AS flagged
+      FROM requests WHERE site_id = $1
+      GROUP BY country ORDER BY count DESC LIMIT 12
+    `, [req.params.id])
+
+    // Current period vs prior period
+    const currentResult = await pool.query(`
+      SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE status = 'passed') AS passed,
+        COUNT(*) FILTER (WHERE status = 'blocked') AS blocked,
+        COUNT(*) FILTER (WHERE status = 'flagged') AS flagged
+      FROM requests WHERE site_id = $1 AND ts > $2
+    `, [req.params.id, sinceMs])
+
+    const priorResult = await pool.query(`
+      SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE status = 'passed') AS passed,
+        COUNT(*) FILTER (WHERE status = 'blocked') AS blocked,
+        COUNT(*) FILTER (WHERE status = 'flagged') AS flagged
+      FROM requests WHERE site_id = $1 AND ts > $2 AND ts <= $3
+    `, [req.params.id, priorSinceMs, sinceMs])
+
+    // All-time totals
+    const totalsResult = await pool.query(`
+      SELECT
+        COUNT(*) AS total,
+        COUNT(*) FILTER (WHERE status = 'passed') AS passed,
+        COUNT(*) FILTER (WHERE status = 'blocked') AS blocked,
+        COUNT(*) FILTER (WHERE status = 'flagged') AS flagged
+      FROM requests WHERE site_id = $1
+    `, [req.params.id])
+
+    // Peak day (all time)
+    const peakResult = await pool.query(`
+      SELECT
+        TO_CHAR(TO_TIMESTAMP(ts/1000) AT TIME ZONE 'UTC', 'YYYY-MM-DD') AS day,
+        COUNT(*) AS count
+      FROM requests WHERE site_id = $1
+      GROUP BY day ORDER BY count DESC LIMIT 1
+    `, [req.params.id])
+
+    // Unique countries count
+    const countriesResult = await pool.query(`
+      SELECT COUNT(DISTINCT country) AS count FROM requests WHERE site_id = $1
+    `, [req.params.id])
+
+    const n = r => Number(r)
+
+    res.json({
+      totals: {
+        total: n(totalsResult.rows[0].total),
+        passed: n(totalsResult.rows[0].passed),
+        blocked: n(totalsResult.rows[0].blocked),
+        flagged: n(totalsResult.rows[0].flagged),
+      },
+      current: {
+        total: n(currentResult.rows[0].total),
+        passed: n(currentResult.rows[0].passed),
+        blocked: n(currentResult.rows[0].blocked),
+        flagged: n(currentResult.rows[0].flagged),
+      },
+      prior: {
+        total: n(priorResult.rows[0].total),
+        passed: n(priorResult.rows[0].passed),
+        blocked: n(priorResult.rows[0].blocked),
+        flagged: n(priorResult.rows[0].flagged),
+      },
+      daily: dailyResult.rows.map(r => ({ day: r.day, status: r.status, count: n(r.count) })),
+      hourly: hourlyResult.rows.map(r => ({ hour: r.hour, status: r.status, count: n(r.count) })),
+      byDetected: detectedResult.rows.map(r => ({ detected: r.detected, count: n(r.count) })),
+      byCountry: countryResult.rows.map(r => ({
+        country: r.country,
+        count: n(r.count),
+        passed: n(r.passed),
+        blocked: n(r.blocked),
+        flagged: n(r.flagged),
+      })),
+      peakDay: peakResult.rows[0] || null,
+      uniqueCountries: n(countriesResult.rows[0].count),
+      days,
+    })
+  } catch (e) {
+    console.error('analytics error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
 app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
   try {
     const { siteKey, returnUrl } = req.body
