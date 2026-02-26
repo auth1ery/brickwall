@@ -93,7 +93,7 @@ function dbReqToObj(row) {
   }
 }
 
-app.use(express.json())
+app.use(express.json({ limit: '64kb' }))
 app.use(cookieParser())
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*')
@@ -133,6 +133,27 @@ function isCrawler(ua) {
 
 function looksLikeTor(ip) {
   return TOR_EXIT_PREFIXES.some(p => (ip || '').startsWith(p))
+}
+
+function sanitizeChallengeUi(ui) {
+  if (!ui || typeof ui !== 'object') return {}
+  const out = {}
+  if (ui.colors && typeof ui.colors === 'object') {
+    const allowed = ['bg','accent','text','surface','muted','border','border2','text2']
+    out.colors = {}
+    for (const k of allowed) {
+      if (typeof ui.colors[k] === 'string' && /^#[0-9a-fA-F]{3,6}$/.test(ui.colors[k].trim())) {
+        out.colors[k] = ui.colors[k].trim()
+      }
+    }
+  }
+  if (typeof ui.css === 'string') out.css = ui.css.slice(0, 8192)
+  if (typeof ui.headline === 'string') out.headline = ui.headline.slice(0, 120)
+  if (typeof ui.subline === 'string') out.subline = ui.subline.slice(0, 300)
+  if (typeof ui.logoText === 'string') out.logoText = ui.logoText.slice(0, 60)
+  if (typeof ui.hideBadge === 'boolean') out.hideBadge = ui.hideBadge
+  if (typeof ui.hideStepsLog === 'boolean') out.hideStepsLog = ui.hideStepsLog
+  return out
 }
 
 app.post('/api/auth/register', authLimiter, async (req, res) => {
@@ -212,7 +233,7 @@ app.post('/api/sites', requireAuth, async (req, res) => {
     const id = uuidv4()
     const key = 'bw_live_' + crypto.randomBytes(16).toString('hex')
     const cleanDomain = domain.replace(/^https?:\/\//, '').split('/')[0]
-    const settings = { allowCrawlers: true, blockTor: false, blockVpn: false, challengeTtl: 24 }
+    const settings = { allowCrawlers: true, blockTor: false, blockVpn: false, challengeTtl: 24, challengeUi: {} }
     await pool.query(
       'INSERT INTO sites (id, user_id, name, domain, key, active, settings) VALUES ($1, $2, $3, $4, $5, $6, $7)',
       [id, req.user.id, name, cleanDomain, key, true, JSON.stringify(settings)]
@@ -230,7 +251,12 @@ app.put('/api/sites/:id', requireAuth, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'not found' })
     const site = dbSiteToObj(result.rows[0])
     if (req.body.name !== undefined) site.name = req.body.name
-    if (req.body.settings !== undefined) site.settings = req.body.settings
+    if (req.body.settings !== undefined) {
+      if (req.body.settings.challengeUi !== undefined) {
+        req.body.settings.challengeUi = sanitizeChallengeUi(req.body.settings.challengeUi)
+      }
+      site.settings = req.body.settings
+    }
     if (req.body.active !== undefined) site.active = req.body.active
     await pool.query(
       'UPDATE sites SET name = $1, settings = $2, active = $3 WHERE id = $4',
@@ -314,6 +340,8 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
     const site = dbSiteToObj(siteResult.rows[0])
     if (!site.active) return res.status(403).json({ error: 'site inactive' })
 
+    const challengeUi = sanitizeChallengeUi(site.settings.challengeUi || {})
+
     const crawlerDetected = isCrawler(ua)
     const torDetected = looksLikeTor(ip)
 
@@ -323,7 +351,7 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
         'INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)',
         [uuidv4(), site.id, 'Unknown', 'crawler', 'passed', Date.now(), ua]
       )
-      return res.json({ token, skip: true })
+      return res.json({ token, skip: true, challengeUi })
     }
 
     if (torDetected && site.settings.blockTor) {
@@ -351,7 +379,7 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
     })
     setTimeout(() => challenges.delete(challengeId), 120000)
 
-    res.json({ challengeId, difficulty })
+    res.json({ challengeId, difficulty, challengeUi })
   } catch (e) {
     console.error('challenge init error', e.message)
     res.status(500).json({ error: 'server error' })
