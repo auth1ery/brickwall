@@ -324,7 +324,17 @@ app.put('/api/sites/:id', requireAuth, async (req, res) => {
     const result = await pool.query('SELECT * FROM sites WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id])
     if (result.rows.length === 0) return res.status(404).json({ error: 'not found' })
     const site = dbSiteToObj(result.rows[0])
+    let rotatedKey = false
     if (req.body.name !== undefined) site.name = req.body.name
+    if (req.body.domain !== undefined) {
+      const newDomain = req.body.domain.replace(/^https?:\/\//, '').split('/')[0].trim()
+      if (!newDomain) return res.status(400).json({ error: 'invalid domain' })
+      if (newDomain !== site.domain) {
+        site.domain = newDomain
+        site.key = 'bw_live_' + crypto.randomBytes(16).toString('hex')
+        rotatedKey = true
+      }
+    }
     if (req.body.settings !== undefined) {
       if (req.body.settings.challengeUi !== undefined) {
         req.body.settings.challengeUi = sanitizeChallengeUi(req.body.settings.challengeUi)
@@ -333,10 +343,10 @@ app.put('/api/sites/:id', requireAuth, async (req, res) => {
     }
     if (req.body.active !== undefined) site.active = req.body.active
     await pool.query(
-      'UPDATE sites SET name = $1, settings = $2, active = $3 WHERE id = $4',
-      [site.name, JSON.stringify(site.settings), site.active, site.id]
+      'UPDATE sites SET name = $1, settings = $2, active = $3, domain = $4, key = $5 WHERE id = $6',
+      [site.name, JSON.stringify(site.settings), site.active, site.domain, site.key, site.id]
     )
-    res.json(site)
+    res.json({ ...site, rotatedKey })
   } catch (e) {
     console.error('update site error', e.message)
     res.status(500).json({ error: 'server error' })
@@ -355,8 +365,24 @@ app.delete('/api/sites/:id', requireAuth, async (req, res) => {
   }
 })
 
-app.post('/api/sites/:id/rotate', requireAuth, async (req, res) => {
+app.post('/api/sites/:id/domain', requireAuth, async (req, res) => {
   try {
+    const result = await pool.query('SELECT * FROM sites WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id])
+    if (result.rows.length === 0) return res.status(404).json({ error: 'not found' })
+    const { domain } = req.body
+    if (!domain || typeof domain !== 'string') return res.status(400).json({ error: 'missing domain' })
+    const cleanDomain = domain.replace(/^https?:\/\//, '').split('/')[0].trim()
+    if (!cleanDomain) return res.status(400).json({ error: 'invalid domain' })
+    const newKey = 'bw_live_' + crypto.randomBytes(16).toString('hex')
+    await pool.query('UPDATE sites SET domain = $1, key = $2 WHERE id = $3', [cleanDomain, newKey, req.params.id])
+    res.json({ domain: cleanDomain, key: newKey })
+  } catch (e) {
+    console.error('domain change error', e.message)
+    res.status(500).json({ error: 'server error' })
+  }
+})
+
+app.post('/api/sites/:id/rotate', requireAuth, async (req, res) => {  try {
     const result = await pool.query('SELECT * FROM sites WHERE id = $1 AND user_id = $2', [req.params.id, req.user.id])
     if (result.rows.length === 0) return res.status(404).json({ error: 'not found' })
     const newKey = 'bw_live_' + crypto.randomBytes(16).toString('hex')
