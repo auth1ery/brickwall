@@ -138,6 +138,18 @@ async function initDb() {
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_requests_site_id ON requests(site_id)`)
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_sites_user_id ON sites(user_id)`)
   await pool.query(`CREATE INDEX IF NOT EXISTS idx_sites_key ON sites(key)`)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS blog_posts (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      slug TEXT UNIQUE NOT NULL,
+      content TEXT NOT NULL,
+      excerpt TEXT NOT NULL DEFAULT '',
+      published_at BIGINT NOT NULL,
+      created_at BIGINT NOT NULL DEFAULT EXTRACT(EPOCH FROM NOW()) * 1000
+    )
+  `)
+  await pool.query(`CREATE INDEX IF NOT EXISTS idx_blog_slug ON blog_posts(slug)`)
   console.log('db ready')
 }
 
@@ -641,6 +653,101 @@ app.delete('/api/admin/users/:id', requireAdmin, async (req, res) => {
   } catch (e) {
     res.status(500).json({ error: e.message })
   }
+})
+
+// ── blog (public) ──────────────────────────────────────────────────────────────
+
+app.get('/api/blog', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, title, slug, excerpt, published_at FROM blog_posts ORDER BY published_at DESC'
+    )
+    res.json(result.rows.map(r => ({
+      id: r.id, title: r.title, slug: r.slug,
+      excerpt: r.excerpt, publishedAt: Number(r.published_at)
+    })))
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+app.get('/api/blog/:slug', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM blog_posts WHERE slug = $1', [req.params.slug])
+    if (!result.rows.length) return res.status(404).json({ error: 'not found' })
+    const r = result.rows[0]
+    res.json({ id: r.id, title: r.title, slug: r.slug, content: r.content, excerpt: r.excerpt, publishedAt: Number(r.published_at) })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// ── blog (admin) ────────────────────────────────────────────────────────────────
+
+app.post('/api/admin/blog', requireAdmin, async (req, res) => {
+  try {
+    const { title, content } = req.body
+    if (!title || !content) return res.status(400).json({ error: 'title and content required' })
+    const slug = title.toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').slice(0, 80)
+    const excerpt = content.replace(/[#*`\[\]()>_~]/g, '').replace(/\n+/g, ' ').trim().slice(0, 220)
+    const now = Date.now()
+    const id = uuidv4()
+    await pool.query(
+      'INSERT INTO blog_posts (id, title, slug, content, excerpt, published_at) VALUES ($1,$2,$3,$4,$5,$6)',
+      [id, title.trim(), slug, content.trim(), excerpt, now]
+    )
+    res.json({ id, slug, publishedAt: now })
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'a post with a similar title already exists' })
+    res.status(500).json({ error: e.message })
+  }
+})
+
+app.delete('/api/admin/blog/:id', requireAdmin, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM blog_posts WHERE id = $1', [req.params.id])
+    res.json({ ok: true })
+  } catch (e) { res.status(500).json({ error: e.message }) }
+})
+
+// ── rss feed ────────────────────────────────────────────────────────────────────
+
+const BASE_URL = process.env.BASE_URL || 'https://brickwall.onrender.com'
+
+app.get('/rss.xml', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT * FROM blog_posts ORDER BY published_at DESC LIMIT 50'
+    )
+    const esc = s => String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')
+    const fmtRfc = ts => new Date(Number(ts)).toUTCString()
+
+    const items = result.rows.map(r => `
+    <item>
+      <title>${esc(r.title)}</title>
+      <link>${BASE_URL}/blog.html?post=${esc(r.slug)}</link>
+      <guid isPermaLink="true">${BASE_URL}/blog.html?post=${esc(r.slug)}</guid>
+      <pubDate>${fmtRfc(r.published_at)}</pubDate>
+      <description>${esc(r.excerpt)}</description>
+      <content:encoded><![CDATA[${r.content}]]></content:encoded>
+    </item>`).join('')
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>brickwall blog</title>
+    <link>${BASE_URL}/blog.html</link>
+    <description>updates, guides, and notes from the brickwall team</description>
+    <language>en-us</language>
+    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>
+    <atom:link href="${BASE_URL}/rss.xml" rel="self" type="application/rss+xml"/>
+    ${items}
+  </channel>
+</rss>`
+
+    res.setHeader('Content-Type', 'application/rss+xml; charset=utf-8')
+    res.send(xml)
+  } catch (e) { res.status(500).send('<!-- error: ' + e.message + ' -->') }
 })
 
 app.use((req, res) => {
