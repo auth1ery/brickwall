@@ -33,6 +33,11 @@ here are all the features documented for brickwall:
 - sites management api (create, update, delete, rotate keys)
 - challenge api (init, verify, server-side check endpoint)
 - express middleware support for backend/server-side verification
+- dashboard customization
+- challenge page customization
+- request detail drawer
+- bot allowlist
+- domain migration
 
 ### contributing
 
