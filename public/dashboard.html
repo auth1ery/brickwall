@@ -1211,8 +1211,6 @@ function deviceIcon(d) {
   return { mobile:'📱', tablet:'📟', bot:'🤖', desktop:'🖥' }[d] || '🖥'
 }
 
-let activeReqList = []
-
 function openReqDetail(idx, rowEl) {
   const r = activeReqList[idx]
   if (!r) return
