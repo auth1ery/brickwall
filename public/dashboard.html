@@ -415,7 +415,68 @@ body.density-spacious .stat-card{padding:20px 22px}
 body.density-spacious .sc-value{font-size:30px}
 body.density-spacious td{padding:12px 14px}
 
-@media(max-width:900px){.stat-cards{grid-template-columns:repeat(2,1fr)}}
+/* ── analytics panel ─────────────────────────────────────── */
+.analytics-time-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.period-tabs{display:flex;border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.period-tab{padding:6px 14px;font-size:10px;font-family:var(--mono);color:var(--muted);background:var(--bg);border:none;cursor:pointer;transition:all .15s}
+.period-tab:not(:last-child){border-right:1px solid var(--border)}
+.period-tab.active-period{background:var(--surface2);color:var(--text)}
+
+.analytics-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.analytics-block{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.analytics-block-head{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.analytics-block-title{font-family:var(--display);font-size:12px;font-weight:600;letter-spacing:-.1px}
+.analytics-block-sub{font-size:10px;color:var(--muted)}
+.analytics-block-body{padding:14px}
+
+.an-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.an-stat{background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:14px 16px;position:relative;overflow:hidden}
+.an-stat::before{content:'';position:absolute;inset:0;opacity:.04;border-radius:4px;pointer-events:none}
+.an-stat.green::before{background:var(--green)}
+.an-stat.red::before{background:var(--red)}
+.an-stat.yellow::before{background:var(--yellow)}
+.an-stat-label{font-size:10px;color:var(--muted);letter-spacing:.04em;margin-bottom:6px}
+.an-stat-val{font-family:var(--display);font-size:26px;font-weight:700;letter-spacing:-1px;line-height:1}
+.an-stat-sub{font-size:10px;color:var(--muted);margin-top:4px}
+.an-stat-delta{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-family:var(--mono);padding:2px 6px;border-radius:2px;margin-top:5px}
+.an-stat-delta.up{background:rgba(74,138,92,.15);color:var(--green)}
+.an-stat-delta.down{background:rgba(196,74,58,.15);color:var(--red)}
+.an-stat-delta.flat{background:var(--surface2);color:var(--muted)}
+
+.chart-legend{display:flex;gap:12px;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--muted)}
+.legend-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+
+.hbar-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.hbar-row:last-child{margin-bottom:0}
+.hbar-label{font-size:10px;color:var(--text2);width:120px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar-track{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.hbar-count{font-size:10px;color:var(--muted);font-family:var(--mono);width:40px;text-align:right;flex-shrink:0}
+.hbar-pct{font-size:9px;color:var(--muted);font-family:var(--mono);width:28px;text-align:right;flex-shrink:0}
+
+.insight-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.insight-row:last-child{border-bottom:none}
+.insight-key{font-size:11px;color:var(--muted)}
+.insight-val{font-size:11px;color:var(--text2);font-family:var(--mono);text-align:right;max-width:220px;word-break:break-word}
+.insight-val.green{color:var(--green)}
+.insight-val.red{color:var(--red)}
+.insight-val.yellow{color:var(--yellow)}
+
+.donut-wrap{display:flex;align-items:center;gap:16px}
+.donut-legend{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0}
+.donut-legend-item{display:flex;align-items:center;gap:7px}
+.donut-legend-dot{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.donut-legend-label{font-size:11px;color:var(--text2);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donut-legend-pct{font-size:11px;color:var(--muted);font-family:var(--mono);flex-shrink:0}
+
+.an-empty{text-align:center;padding:28px 20px;color:var(--muted);font-size:11px;line-height:1.8}
+
+@media(max-width:900px){
+  .stat-cards{grid-template-columns:repeat(2,1fr)}
+  .analytics-grid-2{grid-template-columns:1fr}
+  .an-stat-grid{grid-template-columns:repeat(2,1fr)}
+}
 @media(max-width:680px){
   .sidebar{position:fixed;left:-240px;top:0;bottom:0;width:240px;z-index:200;transition:left .25s ease}
   .sidebar.open{left:0;box-shadow:4px 0 24px rgba(0,0,0,.5)}
@@ -439,6 +500,7 @@ body.density-spacious td{padding:12px 14px}
 @media(max-width:440px){
   .stat-cards{grid-template-columns:1fr 1fr}
   .sc-value{font-size:22px}
+  .an-stat-val{font-size:20px}
   .topbar{padding:10px 14px}
   .content{padding:12px}
 }
@@ -470,6 +532,7 @@ body.density-spacious td{padding:12px 14px}
   <div class="sidebar-section">overview</div>
   <div class="nav-item active" onclick="nav('overview')" id="nav-overview"><span class="icon">▦</span> overview</div>
   <div class="nav-item" onclick="nav('requests')" id="nav-requests"><span class="icon">◈</span> all requests</div>
+  <div class="nav-item" onclick="nav('analytics')" id="nav-analytics"><span class="icon">◉</span> analytics</div>
   <div class="sidebar-section">setup</div>
   <div class="nav-item" onclick="nav('install')" id="nav-install"><span class="icon">⌥</span> installation</div>
   <div class="nav-item" onclick="nav('settings')" id="nav-settings"><span class="icon">⚙</span> site settings</div>
@@ -501,6 +564,7 @@ body.density-spacious td{padding:12px 14px}
   </div>
   <div class="content">
 
+    <!-- OVERVIEW PANEL -->
     <div class="panel active" id="panel-overview">
       <div class="stat-cards" id="statCards">
         <div class="stat-card"><div class="sc-label">total requests</div><div class="sc-value">—</div></div>
@@ -518,6 +582,7 @@ body.density-spacious td{padding:12px 14px}
       </div>
     </div>
 
+    <!-- REQUESTS PANEL -->
     <div class="panel" id="panel-requests">
       <div class="req-table-wrap">
         <div class="req-table-head">
@@ -532,18 +597,111 @@ body.density-spacious td{padding:12px 14px}
       </div>
     </div>
 
+    <!-- ANALYTICS PANEL -->
+    <div class="panel" id="panel-analytics">
+      <div class="analytics-time-row">
+        <div>
+          <div style="font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:-.3px">analytics</div>
+          <div style="color:var(--muted);font-size:11px;margin-top:2px" id="analyticsSubtitle">select a site to view analytics</div>
+        </div>
+        <div class="period-tabs" id="periodTabs">
+          <button class="period-tab" onclick="setAnalyticsPeriod(7)">7d</button>
+          <button class="period-tab active-period" onclick="setAnalyticsPeriod(14)">14d</button>
+          <button class="period-tab" onclick="setAnalyticsPeriod(30)">30d</button>
+        </div>
+      </div>
+
+      <div class="an-stat-grid" id="anStatGrid">
+        <div class="an-stat"><div class="an-stat-label">total requests</div><div class="an-stat-val">—</div></div>
+        <div class="an-stat green"><div class="an-stat-label">humans passed</div><div class="an-stat-val">—</div></div>
+        <div class="an-stat red"><div class="an-stat-label">bots blocked</div><div class="an-stat-val">—</div></div>
+        <div class="an-stat yellow"><div class="an-stat-label">bots flagged</div><div class="an-stat-val">—</div></div>
+      </div>
+
+      <div class="analytics-block" style="margin-bottom:10px">
+        <div class="analytics-block-head">
+          <div class="analytics-block-title">traffic over time</div>
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>passed</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>flagged</div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>blocked</div>
+          </div>
+        </div>
+        <div class="analytics-block-body" style="padding-bottom:10px">
+          <div id="trafficChart" style="min-height:130px"></div>
+        </div>
+      </div>
+
+      <div class="analytics-grid-2" style="margin-bottom:10px">
+        <div class="analytics-block">
+          <div class="analytics-block-head">
+            <div class="analytics-block-title">24h activity</div>
+            <div class="analytics-block-sub">hourly breakdown</div>
+          </div>
+          <div class="analytics-block-body" style="padding-bottom:8px">
+            <div id="hourlyChart" style="min-height:80px"></div>
+          </div>
+        </div>
+        <div class="analytics-block">
+          <div class="analytics-block-head">
+            <div class="analytics-block-title">verdict breakdown</div>
+            <div class="analytics-block-sub">all time</div>
+          </div>
+          <div class="analytics-block-body">
+            <div class="donut-wrap" id="verdictDonut">
+              <div class="an-empty" style="padding:16px 0;width:100%">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="analytics-grid-2" style="margin-bottom:10px">
+        <div class="analytics-block">
+          <div class="analytics-block-head">
+            <div class="analytics-block-title">bot detection methods</div>
+            <div class="analytics-block-sub">what triggered each result</div>
+          </div>
+          <div class="analytics-block-body" id="detectionBars">
+            <div class="an-empty">—</div>
+          </div>
+        </div>
+        <div class="analytics-block">
+          <div class="analytics-block-head">
+            <div class="analytics-block-title">top countries</div>
+            <div class="analytics-block-sub">requests · pass rate %</div>
+          </div>
+          <div class="analytics-block-body" id="countryBars">
+            <div class="an-empty">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="analytics-block">
+        <div class="analytics-block-head">
+          <div class="analytics-block-title">key metrics</div>
+          <div class="analytics-block-sub">all-time performance summary</div>
+        </div>
+        <div class="analytics-block-body">
+          <div id="insightList"><div class="an-empty">—</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- INSTALL PANEL -->
     <div class="panel" id="panel-install">
       <div class="install-wrap" id="installWrap">
         <div class="empty-state">select or add a site to see installation instructions.</div>
       </div>
     </div>
 
+    <!-- SETTINGS PANEL -->
     <div class="panel" id="panel-settings">
       <div class="settings-form" id="settingsWrap">
         <div class="empty-state">select a site to configure its settings.</div>
       </div>
     </div>
 
+    <!-- SITES PANEL -->
     <div class="panel" id="panel-sites">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap">
         <div>
@@ -555,6 +713,7 @@ body.density-spacious td{padding:12px 14px}
       <div class="sites-grid" id="sitesGrid"></div>
     </div>
 
+    <!-- ACCOUNT PANEL -->
     <div class="panel" id="panel-account">
       <div class="settings-form">
         <div class="settings-group">
@@ -627,6 +786,7 @@ body.density-spacious td{padding:12px 14px}
 </main>
 </div>
 
+<!-- REQUEST DETAIL DRAWER -->
 <div class="req-detail-overlay" id="reqDetailOverlay" onclick="closeReqDetail()"></div>
 <div class="req-detail-drawer" id="reqDetailDrawer">
   <div class="req-detail-head">
@@ -636,6 +796,7 @@ body.density-spacious td{padding:12px 14px}
   <div class="req-detail-body" id="reqDetailBody"></div>
 </div>
 
+<!-- ADD SITE MODAL -->
 <div class="modal-bg" id="addSiteModal" onclick="closeAddSiteModal(event)">
   <div class="modal">
     <button class="modal-close" onclick="document.getElementById('addSiteModal').classList.remove('open')">×</button>
@@ -647,6 +808,7 @@ body.density-spacious td{padding:12px 14px}
   </div>
 </div>
 
+<!-- TERMINAL CONFIRM MODAL -->
 <div class="terminal-modal-bg" id="terminalModal" onclick="if(event.target===this)closeTerminalModal()">
   <div class="terminal-modal">
     <div class="terminal-header">
@@ -683,6 +845,363 @@ let activeReqList = []
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReqDetail() })
 
+// ── analytics state ────────────────────────────────────────────────
+let analyticsPeriod = 14
+let analyticsData = null
+
+function setAnalyticsPeriod(days) {
+  analyticsPeriod = days
+  document.querySelectorAll('.period-tab').forEach(b => {
+    b.classList.toggle('active-period', b.textContent.trim() === days + 'd')
+  })
+  loadAnalytics()
+}
+
+async function loadAnalytics() {
+  if (!currentSiteId) return
+  const r = await fetch('/api/sites/' + currentSiteId + '/analytics?days=' + analyticsPeriod)
+  if (!r.ok) return
+  analyticsData = await r.json()
+  renderAnalytics(analyticsData)
+}
+
+function renderAnalytics(d) {
+  const site = sites.find(s => s.id === currentSiteId)
+  document.getElementById('analyticsSubtitle').textContent =
+    (site ? site.domain + ' · ' : '') + 'last ' + d.days + ' days'
+
+  const cur = d.current
+  const prior = d.prior
+  const botsBlocked = cur.blocked
+  const botsFlagged = cur.flagged
+
+  function deltaTag(curr, prev, lowerIsBetter) {
+    if (!prev) return ''
+    const pct = Math.round((curr - prev) / prev * 100)
+    const better = lowerIsBetter ? pct < 0 : pct > 0
+    const cls = pct === 0 ? 'flat' : (better ? 'up' : 'down')
+    const arrow = pct > 0 ? '↑' : pct < 0 ? '↓' : '→'
+    return `<div class="an-stat-delta ${cls}">${arrow} ${Math.abs(pct)}% vs prior</div>`
+  }
+
+  const passRate = cur.total ? Math.round(cur.passed / cur.total * 100) : 0
+  const blockedPct = cur.total ? Math.round(botsBlocked / cur.total * 100) : 0
+  const flaggedPct = cur.total ? Math.round(botsFlagged / cur.total * 100) : 0
+
+  document.getElementById('anStatGrid').innerHTML = `
+    <div class="an-stat">
+      <div class="an-stat-label">total requests</div>
+      <div class="an-stat-val">${fmtN(cur.total)}</div>
+      <div class="an-stat-sub">${fmtN(d.totals.total)} all time</div>
+      ${deltaTag(cur.total, prior.total, false)}
+    </div>
+    <div class="an-stat green">
+      <div class="an-stat-label">humans passed</div>
+      <div class="an-stat-val" style="color:var(--green)">${fmtN(cur.passed)}</div>
+      <div class="an-stat-sub">${passRate}% pass rate</div>
+      ${deltaTag(cur.passed, prior.passed, false)}
+    </div>
+    <div class="an-stat red">
+      <div class="an-stat-label">bots blocked</div>
+      <div class="an-stat-val" style="color:var(--red)">${fmtN(botsBlocked)}</div>
+      <div class="an-stat-sub">${blockedPct}% of traffic</div>
+      ${deltaTag(botsBlocked, prior.blocked, true)}
+    </div>
+    <div class="an-stat yellow">
+      <div class="an-stat-label">bots flagged</div>
+      <div class="an-stat-val" style="color:var(--yellow)">${fmtN(botsFlagged)}</div>
+      <div class="an-stat-sub">${flaggedPct}% of traffic</div>
+      ${deltaTag(botsFlagged, prior.flagged, true)}
+    </div>
+  `
+
+  renderTrafficChart(d.daily, d.days)
+  renderHourlyChart(d.hourly)
+  renderVerdictDonut(d.totals)
+  renderDetectionBars(d.byDetected)
+  renderCountryBars(d.byCountry)
+  renderInsights(d, cur, prior)
+}
+
+function renderTrafficChart(dailyRows, days) {
+  const el = document.getElementById('trafficChart')
+  if (!el) return
+
+  const map = {}
+  dailyRows.forEach(r => {
+    if (!map[r.day]) map[r.day] = { passed: 0, blocked: 0, flagged: 0 }
+    map[r.day][r.status] = (map[r.day][r.status] || 0) + r.count
+  })
+
+  const dayList = []
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 86400000)
+    const key = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate())
+    dayList.push({ day: key, ...(map[key] || { passed: 0, blocked: 0, flagged: 0 }) })
+  }
+
+  if (!dayList.length) { el.innerHTML = '<div class="an-empty">no data yet</div>'; return }
+
+  const max = Math.max(...dayList.map(d => d.passed + d.blocked + d.flagged), 1)
+  const W = 600, H = 140
+  const padL = 34, padR = 8, padT = 10, padB = 24
+  const chartW = W - padL - padR
+  const chartH = H - padT - padB
+  const barW = Math.max(3, chartW / dayList.length * 0.7)
+  const step = chartW / dayList.length
+
+  let grid = ''
+  const ticks = 4
+  for (let i = 0; i <= ticks; i++) {
+    const y = padT + chartH * (1 - i / ticks)
+    const val = Math.round(max * i / ticks)
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${(padL + chartW).toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.06)" stroke-width="1"/>`
+    grid += `<text x="${(padL - 4).toFixed(1)}" y="${(y + 3).toFixed(1)}" text-anchor="end" font-size="8" fill="rgba(255,255,255,.22)">${fmtN(val)}</text>`
+  }
+
+  let bars = '', labels = ''
+  dayList.forEach((d, i) => {
+    const cx = padL + step * i + step / 2
+    const x = cx - barW / 2
+    let y = padT + chartH
+
+    const passH = (d.passed / max) * chartH
+    const flagH = (d.flagged / max) * chartH
+    const blockH = (d.blocked / max) * chartH
+
+    if (passH > 0.5) { y -= passH; bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${passH.toFixed(1)}" fill="var(--green)" opacity=".78" rx="1"/>` }
+    if (flagH > 0.5) { y -= flagH; bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${flagH.toFixed(1)}" fill="var(--yellow)" opacity=".78" rx="1"/>` }
+    if (blockH > 0.5) { y -= blockH; bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${blockH.toFixed(1)}" fill="var(--red)" opacity=".78" rx="1"/>` }
+
+    const every = Math.max(1, Math.ceil(dayList.length / 10))
+    if (i % every === 0 || i === dayList.length - 1) {
+      labels += `<text x="${cx.toFixed(1)}" y="${(padT + chartH + 14).toFixed(1)}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.28)">${d.day.slice(5)}</text>`
+    }
+  })
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;display:block">${grid}${bars}${labels}</svg>`
+}
+
+function renderHourlyChart(hourlyRows) {
+  const el = document.getElementById('hourlyChart')
+  if (!el) return
+
+  const map = {}
+  hourlyRows.forEach(r => {
+    if (!map[r.hour]) map[r.hour] = { passed: 0, blocked: 0, flagged: 0 }
+    map[r.hour][r.status] = (map[r.hour][r.status] || 0) + r.count
+  })
+
+  const hourList = []
+  for (let i = 23; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 3600000)
+    const key = d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours())
+    hourList.push({ hour: key, label: p(d.getHours()), ...(map[key] || { passed: 0, blocked: 0, flagged: 0 }) })
+  }
+
+  const max = Math.max(...hourList.map(d => d.passed + d.blocked + d.flagged), 1)
+  const W = 400, H = 90
+  const padL = 4, padR = 4, padT = 6, padB = 18
+  const chartW = W - padL - padR
+  const chartH = H - padT - padB
+  const barW = Math.max(2, chartW / 24 * 0.78)
+  const step = chartW / 24
+
+  let bars = '', labels = ''
+  hourList.forEach((d, i) => {
+    const cx = padL + step * i + step / 2
+    const x = cx - barW / 2
+    let y = padT + chartH
+
+    const passH = (d.passed / max) * chartH
+    const flagH = (d.flagged / max) * chartH
+    const blockH = (d.blocked / max) * chartH
+
+    if (passH > 0.5) { y -= passH; bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${passH.toFixed(1)}" fill="var(--green)" opacity=".78"/>` }
+    if (flagH > 0.5) { y -= flagH; bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${flagH.toFixed(1)}" fill="var(--yellow)" opacity=".78"/>` }
+    if (blockH > 0.5) { y -= blockH; bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${blockH.toFixed(1)}" fill="var(--red)" opacity=".78"/>` }
+
+    if (i % 6 === 0) {
+      labels += `<text x="${cx.toFixed(1)}" y="${(padT + chartH + 13).toFixed(1)}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.25)">${d.label}h</text>`
+    }
+  })
+
+  const totalToday = hourList.reduce((s, h) => s + h.passed + h.blocked + h.flagged, 0)
+  if (!totalToday) { el.innerHTML = '<div class="an-empty" style="padding:20px 0">no traffic in the last 24 hours</div>'; return }
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;display:block">${bars}${labels}</svg>`
+}
+
+function renderVerdictDonut(totals) {
+  const el = document.getElementById('verdictDonut')
+  if (!el) return
+  const total = totals.total || 0
+  if (!total) { el.innerHTML = '<div class="an-empty" style="padding:16px 0;width:100%">no data yet</div>'; return }
+
+  const segments = [
+    { label: 'passed', count: totals.passed, color: 'var(--green)' },
+    { label: 'flagged', count: totals.flagged, color: 'var(--yellow)' },
+    { label: 'blocked', count: totals.blocked, color: 'var(--red)' },
+  ].filter(s => s.count > 0)
+
+  const size = 88, cx = 44, cy = 44, r = 36, inner = 22
+  let svgPaths = ''
+  let startAngle = -Math.PI / 2
+  const gap = 0.03
+
+  segments.forEach(seg => {
+    const frac = seg.count / total
+    const angle = Math.max(frac * 2 * Math.PI - gap, 0)
+    const x1 = cx + r * Math.cos(startAngle + gap / 2)
+    const y1 = cy + r * Math.sin(startAngle + gap / 2)
+    const x2 = cx + r * Math.cos(startAngle + angle + gap / 2)
+    const y2 = cy + r * Math.sin(startAngle + angle + gap / 2)
+    const xi1 = cx + inner * Math.cos(startAngle + gap / 2)
+    const yi1 = cy + inner * Math.sin(startAngle + gap / 2)
+    const xi2 = cx + inner * Math.cos(startAngle + angle + gap / 2)
+    const yi2 = cy + inner * Math.sin(startAngle + angle + gap / 2)
+    const large = angle > Math.PI ? 1 : 0
+    svgPaths += `<path d="M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} L${xi2.toFixed(2)},${yi2.toFixed(2)} A${inner},${inner} 0 ${large},0 ${xi1.toFixed(2)},${yi1.toFixed(2)} Z" fill="${seg.color}" opacity=".85"/>`
+    startAngle += frac * 2 * Math.PI
+  })
+
+  const passRate = Math.round(totals.passed / total * 100)
+  svgPaths += `<text x="${cx}" y="${cy - 3}" text-anchor="middle" font-size="12" fill="rgba(255,255,255,.85)" font-weight="700">${passRate}%</text>`
+  svgPaths += `<text x="${cx}" y="${cy + 9}" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.32)">humans</text>`
+
+  const legendHtml = segments.map(s => `
+    <div class="donut-legend-item">
+      <div class="donut-legend-dot" style="background:${s.color}"></div>
+      <div class="donut-legend-label">${s.label}</div>
+      <div class="donut-legend-pct">${Math.round(s.count / total * 100)}%</div>
+    </div>
+  `).join('')
+
+  el.innerHTML = `
+    <svg viewBox="0 0 ${size} ${size}" style="width:${size}px;height:${size}px;flex-shrink:0">${svgPaths}</svg>
+    <div class="donut-legend">${legendHtml}</div>
+  `
+}
+
+function renderDetectionBars(rows) {
+  const el = document.getElementById('detectionBars')
+  if (!el) return
+  if (!rows || !rows.length) { el.innerHTML = '<div class="an-empty">no data yet</div>'; return }
+
+  const total = rows.reduce((s, r) => s + r.count, 0)
+  const colorMap = {
+    'N/A': 'var(--accent)',
+    'headless': 'var(--red)',
+    'crawler': 'var(--muted)',
+    'tor': '#9b59b6',
+    'datacenter': 'var(--yellow)',
+    'vpn': 'var(--yellow)',
+    'allowed': 'var(--green)',
+  }
+  const labelMap = {
+    'N/A': 'human / no signal',
+    'headless': 'headless browser',
+    'crawler': 'search crawler',
+    'tor': 'tor exit node',
+    'datacenter': 'datacenter / vpn',
+    'allowed': 'allowlisted bot',
+    'blocked': 'hard blocked',
+  }
+
+  el.innerHTML = rows.slice(0, 8).map(r => {
+    const pct = total ? Math.round(r.count / total * 100) : 0
+    const label = labelMap[r.detected] || r.detected
+    const color = colorMap[r.detected] || 'var(--border2)'
+    return `<div class="hbar-row">
+      <div class="hbar-label" title="${esc(label)}">${esc(label)}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="hbar-count">${fmtN(r.count)}</div>
+      <div class="hbar-pct">${pct}%</div>
+    </div>`
+  }).join('')
+}
+
+function renderCountryBars(rows) {
+  const el = document.getElementById('countryBars')
+  if (!el) return
+  if (!rows || !rows.length) { el.innerHTML = '<div class="an-empty">no data yet</div>'; return }
+
+  const max = Math.max(...rows.map(r => r.count), 1)
+
+  el.innerHTML = rows.slice(0, 8).map(r => {
+    const pct = Math.round(r.count / max * 100)
+    const passRate = r.count ? Math.round(r.passed / r.count * 100) : 0
+    return `<div class="hbar-row">
+      <div class="hbar-label" title="${esc(r.country)}">${esc(r.country)}</div>
+      <div class="hbar-track"><div class="hbar-fill" style="width:${pct}%;background:var(--accent)"></div></div>
+      <div class="hbar-count">${fmtN(r.count)}</div>
+      <div class="hbar-pct" style="color:var(--green)">${passRate}%</div>
+    </div>`
+  }).join('')
+}
+
+function renderInsights(d, cur, prior) {
+  const el = document.getElementById('insightList')
+  if (!el) return
+
+  const total = d.totals.total
+  const passRate = total ? (d.totals.passed / total * 100).toFixed(1) : '—'
+  const blockRate = total ? ((d.totals.blocked + d.totals.flagged) / total * 100).toFixed(1) : '—'
+  const avgDay = d.days && cur.total ? Math.round(cur.total / d.days) : 0
+  const avgBotDay = d.days ? Math.round((cur.blocked + cur.flagged) / d.days) : 0
+  const avgHumanDay = d.days && cur.passed ? Math.round(cur.passed / d.days) : 0
+
+  const topCountry = d.byCountry && d.byCountry[0] ? d.byCountry[0].country : '—'
+  const topDetect = d.byDetected && d.byDetected.find(x => x.detected !== 'N/A' && x.detected !== 'allowed' && x.detected !== 'crawler')
+  const topDetectLabel = topDetect
+    ? ({ headless:'headless browser', tor:'tor exit node', datacenter:'datacenter ip', vpn:'vpn detected' }[topDetect.detected] || topDetect.detected)
+    : 'none detected'
+
+  let peakStr = '—'
+  if (d.peakDay) peakStr = d.peakDay.day + ' (' + fmtN(Number(d.peakDay.count)) + ' req)'
+
+  const trend = cur.total && prior.total
+    ? Math.round((cur.total - prior.total) / prior.total * 100)
+    : null
+  const trendStr = trend === null ? 'insufficient data'
+    : trend > 0 ? `↑ ${trend}% vs prior ${d.days}d`
+    : trend < 0 ? `↓ ${Math.abs(trend)}% vs prior ${d.days}d`
+    : `→ stable`
+  const trendCls = trend === null ? '' : trend > 0 ? 'green' : trend < 0 ? 'red' : ''
+
+  const botRatio = cur.total ? ((cur.blocked + cur.flagged) / cur.total * 100).toFixed(1) : '0'
+
+  function row(key, val, cls) {
+    return `<div class="insight-row"><div class="insight-key">${key}</div><div class="insight-val ${cls||''}">${val}</div></div>`
+  }
+
+  el.innerHTML = [
+    row('all-time human pass rate', passRate + '%', 'green'),
+    row('all-time bot interception rate', blockRate + '%', 'red'),
+    row('avg requests / day (this period)', fmtN(avgDay)),
+    row('avg humans / day', fmtN(avgHumanDay), 'green'),
+    row('avg bots stopped / day', fmtN(avgBotDay), 'red'),
+    row('bot share of traffic', botRatio + '%', botRatio > 20 ? 'red' : 'yellow'),
+    row('traffic trend', esc(trendStr), trendCls),
+    row('peak traffic day (all time)', esc(peakStr)),
+    row('unique countries seen', fmtN(d.uniqueCountries)),
+    row('top traffic source', esc(topCountry)),
+    row('most common bot signal', esc(topDetectLabel), topDetect ? 'red' : ''),
+    row('all-time total requests', fmtN(d.totals.total)),
+  ].join('')
+}
+
+function fmtN(n) {
+  if (n === undefined || n === null || n === '') return '—'
+  const num = Number(n)
+  if (isNaN(num)) return String(n)
+  if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M'
+  if (num >= 10000) return (num / 1000).toFixed(1) + 'k'
+  if (num >= 1000) return (num / 1000).toFixed(2).replace(/\.?0+$/, '') + 'k'
+  return String(num)
+}
+
+// ── customize ──────────────────────────────────────────────────────
 const CUSTOMIZE_KEY = 'bw_customize'
 
 const COLOR_VARS = [
@@ -702,160 +1221,36 @@ const COLOR_VARS = [
 ]
 
 const PRESETS = [
-  {
-    id: 'default',
-    name: 'default',
-    colors: {
-      '--bg': '#0d0d0d',
-      '--surface': '#131313',
-      '--surface2': '#181818',
-      '--accent': '#d95f2b',
-      '--accent2': '#c8a97e',
-      '--text': '#e8e4de',
-      '--text2': '#a89f95',
-      '--muted': '#5a5450',
-      '--border': '#222',
-      '--border2': '#333',
-      '--green': '#4a8a5c',
-      '--red': '#c44a3a',
-      '--yellow': '#b58a3a',
-    },
-    font: 'default'
-  },
-  {
-    id: 'slate',
-    name: 'slate',
-    colors: {
-      '--bg': '#0f1117',
-      '--surface': '#161b27',
-      '--surface2': '#1c2235',
-      '--accent': '#6366f1',
-      '--accent2': '#818cf8',
-      '--text': '#e2e8f0',
-      '--text2': '#94a3b8',
-      '--muted': '#475569',
-      '--border': '#1e2a3a',
-      '--border2': '#2d3c50',
-      '--green': '#22c55e',
-      '--red': '#ef4444',
-      '--yellow': '#eab308',
-    },
-    font: 'default'
-  },
-  {
-    id: 'chalk',
-    name: 'chalk',
-    colors: {
-      '--bg': '#f5f2ee',
-      '--surface': '#ebe7e1',
-      '--surface2': '#ddd9d2',
-      '--accent': '#c0392b',
-      '--accent2': '#8b4513',
-      '--text': '#1a1614',
-      '--text2': '#4a3f38',
-      '--muted': '#8a7f78',
-      '--border': '#ccc8c0',
-      '--border2': '#b0aba3',
-      '--green': '#2d6a4f',
-      '--red': '#c0392b',
-      '--yellow': '#b7791f',
-    },
-    font: 'mono'
-  },
-  {
-    id: 'forest',
-    name: 'forest',
-    colors: {
-      '--bg': '#0e1a14',
-      '--surface': '#132018',
-      '--surface2': '#1a2b20',
-      '--accent': '#4ade80',
-      '--accent2': '#86efac',
-      '--text': '#dcfce7',
-      '--text2': '#86efac',
-      '--muted': '#3d6b4f',
-      '--border': '#1f3329',
-      '--border2': '#2d4a38',
-      '--green': '#4ade80',
-      '--red': '#f87171',
-      '--yellow': '#fbbf24',
-    },
-    font: 'default'
-  },
-  {
-    id: 'noir',
-    name: 'noir',
-    colors: {
-      '--bg': '#050505',
-      '--surface': '#0a0a0a',
-      '--surface2': '#111',
-      '--accent': '#ffffff',
-      '--accent2': '#cccccc',
-      '--text': '#ffffff',
-      '--text2': '#aaaaaa',
-      '--muted': '#444444',
-      '--border': '#1a1a1a',
-      '--border2': '#282828',
-      '--green': '#888888',
-      '--red': '#cccccc',
-      '--yellow': '#999999',
-    },
-    font: 'mono'
-  },
-  {
-    id: 'synthwave',
-    name: 'synthwave',
-    colors: {
-      '--bg': '#0d0221',
-      '--surface': '#130432',
-      '--surface2': '#1a0845',
-      '--accent': '#ff2d78',
-      '--accent2': '#00f5ff',
-      '--text': '#f0e6ff',
-      '--text2': '#c084fc',
-      '--muted': '#6b3fa0',
-      '--border': '#2a0d5e',
-      '--border2': '#3d1a80',
-      '--green': '#39ff14',
-      '--red': '#ff2d78',
-      '--yellow': '#ffdd00',
-    },
-    font: 'default'
-  },
+  { id:'default', name:'default', colors:{'--bg':'#0d0d0d','--surface':'#131313','--surface2':'#181818','--accent':'#d95f2b','--accent2':'#c8a97e','--text':'#e8e4de','--text2':'#a89f95','--muted':'#5a5450','--border':'#222','--border2':'#333','--green':'#4a8a5c','--red':'#c44a3a','--yellow':'#b58a3a'}, font:'default' },
+  { id:'slate', name:'slate', colors:{'--bg':'#0f1117','--surface':'#161b27','--surface2':'#1c2235','--accent':'#6366f1','--accent2':'#818cf8','--text':'#e2e8f0','--text2':'#94a3b8','--muted':'#475569','--border':'#1e2a3a','--border2':'#2d3c50','--green':'#22c55e','--red':'#ef4444','--yellow':'#eab308'}, font:'default' },
+  { id:'chalk', name:'chalk', colors:{'--bg':'#f5f2ee','--surface':'#ebe7e1','--surface2':'#ddd9d2','--accent':'#c0392b','--accent2':'#8b4513','--text':'#1a1614','--text2':'#4a3f38','--muted':'#8a7f78','--border':'#ccc8c0','--border2':'#b0aba3','--green':'#2d6a4f','--red':'#c0392b','--yellow':'#b7791f'}, font:'mono' },
+  { id:'forest', name:'forest', colors:{'--bg':'#0e1a14','--surface':'#132018','--surface2':'#1a2b20','--accent':'#4ade80','--accent2':'#86efac','--text':'#dcfce7','--text2':'#86efac','--muted':'#3d6b4f','--border':'#1f3329','--border2':'#2d4a38','--green':'#4ade80','--red':'#f87171','--yellow':'#fbbf24'}, font:'default' },
+  { id:'noir', name:'noir', colors:{'--bg':'#050505','--surface':'#0a0a0a','--surface2':'#111','--accent':'#ffffff','--accent2':'#cccccc','--text':'#ffffff','--text2':'#aaaaaa','--muted':'#444444','--border':'#1a1a1a','--border2':'#282828','--green':'#888888','--red':'#cccccc','--yellow':'#999999'}, font:'mono' },
+  { id:'synthwave', name:'synthwave', colors:{'--bg':'#0d0221','--surface':'#130432','--surface2':'#1a0845','--accent':'#ff2d78','--accent2':'#00f5ff','--text':'#f0e6ff','--text2':'#c084fc','--muted':'#6b3fa0','--border':'#2a0d5e','--border2':'#3d1a80','--green':'#39ff14','--red':'#ff2d78','--yellow':'#ffdd00'}, font:'default' },
 ]
 
 const FONTS = [
-  { id: 'default', name: 'default', family: 'inherit', sample: 'Brickwall' },
-  { id: 'mono', name: 'monospace', family: 'var(--mono)', sample: 'Brickwall' },
-  { id: 'serif', name: 'serif', family: 'Georgia, "Times New Roman", serif', sample: 'Brickwall' },
-  { id: 'system', name: 'system ui', family: 'system-ui, -apple-system, sans-serif', sample: 'Brickwall' },
-  { id: 'rounded', name: 'rounded', family: '"Trebuchet MS", Optima, Candara, sans-serif', sample: 'Brickwall' },
-  { id: 'slab', name: 'slab', family: '"Rockwell", "Courier New", monospace', sample: 'Brickwall' },
+  { id:'default', name:'default', family:'inherit', sample:'Brickwall' },
+  { id:'mono', name:'monospace', family:'var(--mono)', sample:'Brickwall' },
+  { id:'serif', name:'serif', family:'Georgia, "Times New Roman", serif', sample:'Brickwall' },
+  { id:'system', name:'system ui', family:'system-ui, -apple-system, sans-serif', sample:'Brickwall' },
+  { id:'rounded', name:'rounded', family:'"Trebuchet MS", Optima, Candara, sans-serif', sample:'Brickwall' },
+  { id:'slab', name:'slab', family:'"Rockwell", "Courier New", monospace', sample:'Brickwall' },
 ]
 
 let customizeState = {}
 
 function loadCustomize() {
-  try {
-    const raw = localStorage.getItem(CUSTOMIZE_KEY)
-    if (raw) customizeState = JSON.parse(raw)
-  } catch { customizeState = {} }
+  try { const raw = localStorage.getItem(CUSTOMIZE_KEY); if (raw) customizeState = JSON.parse(raw) } catch { customizeState = {} }
   applyCustomize()
 }
 
-function saveCustomize() {
-  localStorage.setItem(CUSTOMIZE_KEY, JSON.stringify(customizeState))
-}
+function saveCustomize() { localStorage.setItem(CUSTOMIZE_KEY, JSON.stringify(customizeState)) }
 
 function applyCustomize() {
   const root = document.documentElement
-  if (customizeState.colors) {
-    Object.entries(customizeState.colors).forEach(([k, v]) => root.style.setProperty(k, v))
-  }
-  if (customizeState.font) {
-    const f = FONTS.find(x => x.id === customizeState.font)
-    if (f) root.style.setProperty('--display', f.family)
-  }
+  if (customizeState.colors) Object.entries(customizeState.colors).forEach(([k,v]) => root.style.setProperty(k, v))
+  if (customizeState.font) { const f = FONTS.find(x => x.id === customizeState.font); if (f) root.style.setProperty('--display', f.family) }
   if (customizeState.density) {
     document.body.classList.remove('density-compact', 'density-spacious')
     if (customizeState.density !== 'default') document.body.classList.add('density-' + customizeState.density)
@@ -868,7 +1263,7 @@ function resetCustomize() {
   const root = document.documentElement
   COLOR_VARS.forEach(v => root.style.removeProperty(v.key))
   root.style.removeProperty('--display')
-  document.body.classList.remove('density-compact', 'density-spacious')
+  document.body.classList.remove('density-compact','density-spacious')
   renderCustomizePanel()
 }
 
@@ -879,9 +1274,7 @@ function getComputedColor(varName) {
 
 function rgbToHex(val) {
   if (!val) return '#000000'
-  if (val.startsWith('#')) return val.length === 4
-    ? '#' + val[1]+val[1]+val[2]+val[2]+val[3]+val[3]
-    : val
+  if (val.startsWith('#')) return val.length === 4 ? '#'+val[1]+val[1]+val[2]+val[2]+val[3]+val[3] : val
   const m = val.match(/\d+/g)
   if (!m || m.length < 3) return '#000000'
   return '#' + m.slice(0,3).map(n => parseInt(n).toString(16).padStart(2,'0')).join('')
@@ -896,12 +1289,9 @@ function setColor(varName, hexVal) {
 }
 
 function syncColorRow(varName, hexVal) {
-  const swatch = document.querySelector('[data-swatch="'+varName+'"]')
-  if (swatch) swatch.style.background = hexVal
-  const hexInput = document.querySelector('[data-hexinput="'+varName+'"]')
-  if (hexInput && document.activeElement !== hexInput) hexInput.value = hexVal
-  const colorInput = document.querySelector('[data-colorinput="'+varName+'"]')
-  if (colorInput) colorInput.value = hexVal
+  const sw = document.querySelector('[data-swatch="'+varName+'"]'); if (sw) sw.style.background = hexVal
+  const hi = document.querySelector('[data-hexinput="'+varName+'"]'); if (hi && document.activeElement !== hi) hi.value = hexVal
+  const ci = document.querySelector('[data-colorinput="'+varName+'"]'); if (ci) ci.value = hexVal
   updateActivePreset()
 }
 
@@ -909,41 +1299,29 @@ function setFont(fontId) {
   customizeState.font = fontId
   const f = FONTS.find(x => x.id === fontId)
   if (f) document.documentElement.style.setProperty('--display', f.family)
-  saveCustomize()
-  renderFontGrid()
+  saveCustomize(); renderFontGrid()
 }
 
 function setDensity(d) {
   customizeState.density = d
-  document.body.classList.remove('density-compact', 'density-spacious')
+  document.body.classList.remove('density-compact','density-spacious')
   if (d !== 'default') document.body.classList.add('density-' + d)
   saveCustomize()
-  document.querySelectorAll('.density-btn').forEach(b => b.classList.remove('active-density'))
-  document.querySelectorAll('.density-btn').forEach(b => {
-    if (b.textContent.trim() === d) b.classList.add('active-density')
-  })
+  document.querySelectorAll('.density-btn').forEach(b => b.classList.toggle('active-density', b.textContent.trim() === d))
 }
 
 function applyPreset(presetId) {
-  const p = PRESETS.find(x => x.id === presetId)
-  if (!p) return
+  const p = PRESETS.find(x => x.id === presetId); if (!p) return
   customizeState.colors = Object.assign({}, p.colors)
   customizeState.font = p.font
   if (!customizeState.density) customizeState.density = 'default'
-  applyCustomize()
-  saveCustomize()
-  renderCustomizePanel()
+  applyCustomize(); saveCustomize(); renderCustomizePanel()
 }
 
 function updateActivePreset() {
   document.querySelectorAll('.preset-btn').forEach(btn => {
-    const pid = btn.dataset.preset
-    const p = PRESETS.find(x => x.id === pid)
-    if (!p) return
-    const isActive = COLOR_VARS.every(cv => {
-      const cur = customizeState.colors?.[cv.key]
-      return !cur || cur.toLowerCase() === p.colors[cv.key].toLowerCase()
-    })
+    const p = PRESETS.find(x => x.id === btn.dataset.preset); if (!p) return
+    const isActive = COLOR_VARS.every(cv => !customizeState.colors?.[cv.key] || customizeState.colors[cv.key].toLowerCase() === p.colors[cv.key].toLowerCase())
     btn.classList.toggle('active-preset', isActive)
   })
 }
@@ -951,15 +1329,9 @@ function updateActivePreset() {
 function renderPresetGrid() {
   const grid = document.getElementById('presetGrid')
   grid.innerHTML = PRESETS.map(p => {
-    const swatchKeys = ['--bg','--surface','--accent','--accent2','--text']
-    const dots = swatchKeys.map(k => `<div class="preset-dot" style="background:${p.colors[k]}"></div>`).join('')
-    const isActive = customizeState.colors
-      ? COLOR_VARS.every(cv => !customizeState.colors[cv.key] || customizeState.colors[cv.key].toLowerCase() === p.colors[cv.key].toLowerCase())
-      : p.id === 'default'
-    return `<button class="preset-btn ${isActive?'active-preset':''}" data-preset="${p.id}" onclick="applyPreset('${p.id}')">
-      <div class="preset-swatches">${dots}</div>
-      <div class="preset-name">${p.name}</div>
-    </button>`
+    const dots = ['--bg','--surface','--accent','--accent2','--text'].map(k => `<div class="preset-dot" style="background:${p.colors[k]}"></div>`).join('')
+    const isActive = customizeState.colors ? COLOR_VARS.every(cv => !customizeState.colors[cv.key] || customizeState.colors[cv.key].toLowerCase() === p.colors[cv.key].toLowerCase()) : p.id === 'default'
+    return `<button class="preset-btn ${isActive?'active-preset':''}" data-preset="${p.id}" onclick="applyPreset('${p.id}')"><div class="preset-swatches">${dots}</div><div class="preset-name">${p.name}</div></button>`
   }).join('')
 }
 
@@ -968,20 +1340,13 @@ function renderColorRows() {
   wrap.innerHTML = COLOR_VARS.map(cv => {
     const hex = getComputedColor(cv.key)
     return `<div class="customize-row">
-      <div>
-        <div class="customize-label">${cv.label}</div>
-        <div class="customize-desc">${cv.desc}</div>
-      </div>
+      <div><div class="customize-label">${cv.label}</div><div class="customize-desc">${cv.desc}</div></div>
       <div class="color-input-wrap">
         <div class="color-swatch" title="click to pick color">
           <div class="color-swatch-preview" data-swatch="${cv.key}" style="background:${hex}"></div>
-          <input type="color" value="${hex}" data-colorinput="${cv.key}"
-            oninput="setColor('${cv.key}',this.value);syncColorRow('${cv.key}',this.value)"
-            onchange="setColor('${cv.key}',this.value)">
+          <input type="color" value="${hex}" data-colorinput="${cv.key}" oninput="setColor('${cv.key}',this.value);syncColorRow('${cv.key}',this.value)" onchange="setColor('${cv.key}',this.value)">
         </div>
-        <input class="color-hex" type="text" value="${hex}" maxlength="7" data-hexinput="${cv.key}"
-          oninput="onHexInput('${cv.key}',this)"
-          onblur="onHexBlur('${cv.key}',this)">
+        <input class="color-hex" type="text" value="${hex}" maxlength="7" data-hexinput="${cv.key}" oninput="onHexInput('${cv.key}',this)" onblur="onHexBlur('${cv.key}',this)">
       </div>
     </div>`
   }).join('')
@@ -991,43 +1356,28 @@ function onHexInput(varName, input) {
   const v = input.value.trim()
   if (/^#[0-9a-fA-F]{6}$/.test(v)) {
     setColor(varName, v)
-    const ci = document.querySelector('[data-colorinput="'+varName+'"]')
-    if (ci) ci.value = v
-    const sw = document.querySelector('[data-swatch="'+varName+'"]')
-    if (sw) sw.style.background = v
+    const ci = document.querySelector('[data-colorinput="'+varName+'"]'); if (ci) ci.value = v
+    const sw = document.querySelector('[data-swatch="'+varName+'"]'); if (sw) sw.style.background = v
   }
 }
 
 function onHexBlur(varName, input) {
-  const v = input.value.trim()
-  if (!/^#[0-9a-fA-F]{6}$/.test(v)) input.value = getComputedColor(varName)
+  if (!/^#[0-9a-fA-F]{6}$/.test(input.value.trim())) input.value = getComputedColor(varName)
 }
 
 function renderFontGrid() {
-  const grid = document.getElementById('fontGrid')
-  const active = customizeState.font || 'default'
-  grid.innerHTML = FONTS.map(f => `
-    <div class="font-opt ${f.id===active?'active-font':''}" onclick="setFont('${f.id}')">
-      <div class="font-opt-name">${f.name}</div>
-      <div class="font-opt-sample" style="font-family:${f.family}">${f.sample}</div>
-    </div>
-  `).join('')
+  const grid = document.getElementById('fontGrid'); const active = customizeState.font || 'default'
+  grid.innerHTML = FONTS.map(f => `<div class="font-opt ${f.id===active?'active-font':''}" onclick="setFont('${f.id}')"><div class="font-opt-name">${f.name}</div><div class="font-opt-sample" style="font-family:${f.family}">${f.sample}</div></div>`).join('')
 }
 
 function renderDensityBtns() {
   const active = customizeState.density || 'default'
-  document.querySelectorAll('.density-btn').forEach(b => {
-    b.classList.toggle('active-density', b.textContent.trim() === active)
-  })
+  document.querySelectorAll('.density-btn').forEach(b => b.classList.toggle('active-density', b.textContent.trim() === active))
 }
 
-function renderCustomizePanel() {
-  renderPresetGrid()
-  renderColorRows()
-  renderFontGrid()
-  renderDensityBtns()
-}
+function renderCustomizePanel() { renderPresetGrid(); renderColorRows(); renderFontGrid(); renderDensityBtns() }
 
+// ── init ───────────────────────────────────────────────────────────
 async function init() {
   loadCustomize()
   try {
@@ -1043,32 +1393,16 @@ async function init() {
   } catch { window.location.href = '/' }
 }
 
-function openSidebar() {
-  document.getElementById('sidebar').classList.add('open')
-  document.getElementById('sidebarOverlay').classList.add('open')
-}
-function closeSidebar() {
-  document.getElementById('sidebar').classList.remove('open')
-  document.getElementById('sidebarOverlay').classList.remove('open')
-}
+function openSidebar() { document.getElementById('sidebar').classList.add('open'); document.getElementById('sidebarOverlay').classList.add('open') }
+function closeSidebar() { document.getElementById('sidebar').classList.remove('open'); document.getElementById('sidebarOverlay').classList.remove('open') }
 
 async function loadSites() {
-  const r = await fetch('/api/sites')
-  if (!r.ok) return
+  const r = await fetch('/api/sites'); if (!r.ok) return
   sites = await r.json()
   const sel = document.getElementById('siteSelect')
   sel.innerHTML = ''
-  if (sites.length === 0) {
-    sel.innerHTML = '<option value="">no sites yet</option>'
-    showNoSites()
-    return
-  }
-  sites.forEach(s => {
-    const o = document.createElement('option')
-    o.value = s.id
-    o.textContent = s.name + ' (' + s.domain + ')'
-    sel.appendChild(o)
-  })
+  if (sites.length === 0) { sel.innerHTML = '<option value="">no sites yet</option>'; showNoSites(); return }
+  sites.forEach(s => { const o = document.createElement('option'); o.value = s.id; o.textContent = s.name + ' (' + s.domain + ')'; sel.appendChild(o) })
   if (!currentSiteId || !sites.find(s => s.id === currentSiteId)) currentSiteId = sites[0].id
   sel.value = currentSiteId
   await refreshData()
@@ -1095,19 +1429,13 @@ function showNoSites() {
   }
 }
 
-async function onSiteChange() {
-  currentSiteId = document.getElementById('siteSelect').value
-  allRequests = []
-  await refreshData()
-}
+async function onSiteChange() { currentSiteId = document.getElementById('siteSelect').value; allRequests = []; await refreshData() }
 
 async function refreshData() {
   if (!currentSiteId) return
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
+  const site = sites.find(s => s.id === currentSiteId); if (!site) return
   document.getElementById('pageSub').textContent = site.domain
-  const ef = document.getElementById('emptyFirst')
-  if (ef) ef.remove()
+  const ef = document.getElementById('emptyFirst'); if (ef) ef.remove()
   document.getElementById('overviewTableWrap').style.display = ''
   await Promise.all([loadStats(), loadRequests(), renderInstall(site), renderSettings(site)])
   renderSitesGrid()
@@ -1115,8 +1443,7 @@ async function refreshData() {
 }
 
 async function loadStats() {
-  const r = await fetch('/api/sites/' + currentSiteId + '/stats')
-  if (!r.ok) return
+  const r = await fetch('/api/sites/' + currentSiteId + '/stats'); if (!r.ok) return
   const d = await r.json()
   document.getElementById('statCards').innerHTML = `
     <div class="stat-card"><div class="sc-label">total requests</div><div class="sc-value">${d.total}</div><div class="sc-sub">all time</div></div>
@@ -1127,32 +1454,17 @@ async function loadStats() {
 }
 
 async function loadRequests() {
-  const r = await fetch('/api/sites/' + currentSiteId + '/requests')
-  if (!r.ok) return
-  allRequests = await r.json()
-  filteredRequests = [...allRequests]
-  renderRecentTable()
-  renderAllTable()
+  const r = await fetch('/api/sites/' + currentSiteId + '/requests'); if (!r.ok) return
+  allRequests = await r.json(); filteredRequests = [...allRequests]
+  renderRecentTable(); renderAllTable()
 }
 
-function renderRecentTable() {
-  const recent = allRequests.slice(0, 10)
-  activeReqList = recent
-  document.getElementById('recentReqsTable').innerHTML = buildTable(recent)
-  document.getElementById('recentReqCards').innerHTML = buildCards(recent)
-}
-
-function renderAllTable() {
-  activeReqList = filteredRequests
-  document.getElementById('allReqsTable').innerHTML = buildTable(filteredRequests)
-  document.getElementById('allReqCards').innerHTML = buildCards(filteredRequests)
-}
+function renderRecentTable() { activeReqList = allRequests.slice(0, 10); document.getElementById('recentReqsTable').innerHTML = buildTable(activeReqList); document.getElementById('recentReqCards').innerHTML = buildCards(activeReqList) }
+function renderAllTable() { activeReqList = filteredRequests; document.getElementById('allReqsTable').innerHTML = buildTable(filteredRequests); document.getElementById('allReqCards').innerHTML = buildCards(filteredRequests) }
 
 function filterReqs(val) {
   const v = val.toLowerCase()
-  filteredRequests = allRequests.filter(r =>
-    r.country.toLowerCase().includes(v) || r.status.includes(v) || r.detected.includes(v)
-  )
+  filteredRequests = allRequests.filter(r => r.country.toLowerCase().includes(v) || r.status.includes(v) || r.detected.includes(v))
   renderAllTable()
 }
 
@@ -1180,97 +1492,67 @@ function buildCards(reqs) {
 }
 
 function stag(s) {
-  const m={passed:'tag-green',blocked:'tag-red',flagged:'tag-yellow'}
+  const m = { passed:'tag-green', blocked:'tag-red', flagged:'tag-yellow' }
   return `<span class="tag ${m[s]||'tag-muted'}">${s}</span>`
 }
 
-function fmt(ts) {
-  const d=new Date(ts)
-  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())
-}
-function p(n){return String(n).padStart(2,'0')}
+function fmt(ts) { const d=new Date(ts); return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes()) }
+function p(n) { return String(n).padStart(2,'0') }
 
 function fmtFull(ts) {
   const d = new Date(ts)
-  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-  return days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate()+' '+d.getFullYear()+
-    ' at '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())
+  const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  return days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate()+' '+d.getFullYear()+' at '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())
 }
 
 function parseUA(ua) {
-  if (!ua) return { browser: 'Unknown', os: 'Unknown', device: 'Unknown', raw: '' }
-  const s = ua
-  let browser = 'Unknown', os = 'Unknown', device = 'desktop'
-
-  if (/HeadlessChrome/i.test(s)) browser = 'Headless Chrome'
-  else if (/Edg\//i.test(s)) browser = 'Edge '+(/Edg\/([0-9]+)/.exec(s)||['','?'])[1]
-  else if (/OPR\/|Opera/i.test(s)) browser = 'Opera'
-  else if (/Firefox\/([0-9]+)/i.test(s)) browser = 'Firefox '+(s.match(/Firefox\/([0-9]+)/i)||['','?'])[1]
-  else if (/Chrome\/([0-9]+)/i.test(s) && !/Chromium/i.test(s)) browser = 'Chrome '+(s.match(/Chrome\/([0-9]+)/i)||['','?'])[1]
-  else if (/Chromium\/([0-9]+)/i.test(s)) browser = 'Chromium '+(s.match(/Chromium\/([0-9]+)/i)||['','?'])[1]
-  else if (/Safari\/([0-9]+)/i.test(s) && !/Chrome/i.test(s)) browser = 'Safari'
-  else if (/MSIE|Trident/i.test(s)) browser = 'Internet Explorer'
-  else if (/curl\//i.test(s)) browser = 'curl'
-  else if (/python/i.test(s)) browser = 'Python script'
-  else if (/wget/i.test(s)) browser = 'wget'
-  else if (/node-fetch|axios|got\//i.test(s)) browser = 'Node.js script'
-  else if (/bot|crawler|spider/i.test(s)) browser = 'Bot/Crawler'
-
-  if (/Windows NT 10/i.test(s)) os = 'Windows 10/11'
-  else if (/Windows NT 6\.3/i.test(s)) os = 'Windows 8.1'
-  else if (/Windows NT 6\.1/i.test(s)) os = 'Windows 7'
-  else if (/Windows/i.test(s)) os = 'Windows'
-  else if (/Mac OS X ([0-9_]+)/i.test(s)) {
-    const v = (s.match(/Mac OS X ([0-9_]+)/i)||['',''])[1].replace(/_/g,'.')
-    os = 'macOS '+v
-  }
-  else if (/Android ([0-9.]+)/i.test(s)) {
-    os = 'Android '+(s.match(/Android ([0-9.]+)/i)||['','?'])[1]
-    device = 'mobile'
-  }
-  else if (/iPhone OS ([0-9_]+)/i.test(s)) {
-    os = 'iOS '+(s.match(/iPhone OS ([0-9_]+)/i)||['','?'])[1].replace(/_/g,'.')
-    device = 'mobile'
-  }
-  else if (/iPad/i.test(s)) { os = 'iPadOS'; device = 'tablet' }
-  else if (/Linux/i.test(s)) os = 'Linux'
-  else if (/CrOS/i.test(s)) os = 'ChromeOS'
-
-  if (/Mobile/i.test(s) && device === 'desktop') device = 'mobile'
-  if (/Tablet/i.test(s)) device = 'tablet'
-  if (/bot|crawler|spider|headless/i.test(s)) device = 'bot'
-
-  return { browser, os, device, raw: ua }
+  if (!ua) return { browser:'Unknown', os:'Unknown', device:'Unknown', raw:'' }
+  const s = ua; let browser='Unknown', os='Unknown', device='desktop'
+  if (/HeadlessChrome/i.test(s)) browser='Headless Chrome'
+  else if (/Edg\//i.test(s)) browser='Edge '+(/Edg\/([0-9]+)/.exec(s)||['','?'])[1]
+  else if (/OPR\/|Opera/i.test(s)) browser='Opera'
+  else if (/Firefox\/([0-9]+)/i.test(s)) browser='Firefox '+(s.match(/Firefox\/([0-9]+)/i)||['','?'])[1]
+  else if (/Chrome\/([0-9]+)/i.test(s) && !/Chromium/i.test(s)) browser='Chrome '+(s.match(/Chrome\/([0-9]+)/i)||['','?'])[1]
+  else if (/Chromium\/([0-9]+)/i.test(s)) browser='Chromium '+(s.match(/Chromium\/([0-9]+)/i)||['','?'])[1]
+  else if (/Safari\/([0-9]+)/i.test(s) && !/Chrome/i.test(s)) browser='Safari'
+  else if (/MSIE|Trident/i.test(s)) browser='Internet Explorer'
+  else if (/curl\//i.test(s)) browser='curl'
+  else if (/python/i.test(s)) browser='Python script'
+  else if (/wget/i.test(s)) browser='wget'
+  else if (/node-fetch|axios|got\//i.test(s)) browser='Node.js script'
+  else if (/bot|crawler|spider/i.test(s)) browser='Bot/Crawler'
+  if (/Windows NT 10/i.test(s)) os='Windows 10/11'
+  else if (/Windows NT 6\.3/i.test(s)) os='Windows 8.1'
+  else if (/Windows NT 6\.1/i.test(s)) os='Windows 7'
+  else if (/Windows/i.test(s)) os='Windows'
+  else if (/Mac OS X ([0-9_]+)/i.test(s)) os='macOS '+(s.match(/Mac OS X ([0-9_]+)/i)||['',''])[1].replace(/_/g,'.')
+  else if (/Android ([0-9.]+)/i.test(s)) { os='Android '+(s.match(/Android ([0-9.]+)/i)||['','?'])[1]; device='mobile' }
+  else if (/iPhone OS ([0-9_]+)/i.test(s)) { os='iOS '+(s.match(/iPhone OS ([0-9_]+)/i)||['','?'])[1].replace(/_/g,'.'); device='mobile' }
+  else if (/iPad/i.test(s)) { os='iPadOS'; device='tablet' }
+  else if (/Linux/i.test(s)) os='Linux'
+  else if (/CrOS/i.test(s)) os='ChromeOS'
+  if (/Mobile/i.test(s) && device==='desktop') device='mobile'
+  if (/Tablet/i.test(s)) device='tablet'
+  if (/bot|crawler|spider|headless/i.test(s)) device='bot'
+  return { browser, os, device, raw:ua }
 }
 
-function deviceIcon(d) {
-  return { mobile:'📱', tablet:'📟', bot:'🤖', desktop:'🖥' }[d] || '🖥'
-}
+function deviceIcon(d) { return { mobile:'📱', tablet:'📟', bot:'🤖', desktop:'🖥' }[d] || '🖥' }
 
 function openReqDetail(idx, rowEl) {
-  const r = activeReqList[idx]
-  if (!r) return
-
+  const r = activeReqList[idx]; if (!r) return
   document.querySelectorAll('.req-clickable.selected').forEach(el => el.classList.remove('selected'))
   if (rowEl) rowEl.classList.add('selected')
-
   const ua = parseUA(r.ua || '')
-  const statusColors = { passed: 'var(--green)', blocked: 'var(--red)', flagged: 'var(--yellow)' }
+  const statusColors = { passed:'var(--green)', blocked:'var(--red)', flagged:'var(--yellow)' }
   const statusColor = statusColors[r.status] || 'var(--muted)'
-
   const detectedBadges = []
   if (r.detected && r.detected !== 'N/A') {
-    const badgeColors = {
-      tor: 'var(--red)', headless: 'var(--red)', blocked: 'var(--red)',
-      datacenter: 'var(--yellow)', crawler: 'var(--muted)', vpn: 'var(--yellow)'
-    }
+    const badgeColors = { tor:'var(--red)', headless:'var(--red)', blocked:'var(--red)', datacenter:'var(--yellow)', crawler:'var(--muted)', vpn:'var(--yellow)' }
     detectedBadges.push(`<span class="req-detail-badge"><span class="dot" style="background:${badgeColors[r.detected]||'var(--muted)'}"></span>${esc(r.detected)}</span>`)
   }
-  if (ua.device !== 'desktop') {
-    detectedBadges.push(`<span class="req-detail-badge">${deviceIcon(ua.device)} ${ua.device}</span>`)
-  }
-
+  if (ua.device !== 'desktop') detectedBadges.push(`<span class="req-detail-badge">${deviceIcon(ua.device)} ${ua.device}</span>`)
   const since = (() => {
     const diff = Date.now() - r.ts
     if (diff < 60000) return Math.floor(diff/1000)+'s ago'
@@ -1278,9 +1560,7 @@ function openReqDetail(idx, rowEl) {
     if (diff < 86400000) return Math.floor(diff/3600000)+'h ago'
     return Math.floor(diff/86400000)+'d ago'
   })()
-
   const refId = r.id ? r.id.split('-')[0] : '—'
-
   document.getElementById('reqDetailBody').innerHTML = `
     <div class="req-detail-status">
       <div class="req-detail-status-inner">
@@ -1289,55 +1569,23 @@ function openReqDetail(idx, rowEl) {
         <div class="req-detail-status-ts">${since} · ${fmtFull(r.ts)}</div>
       </div>
     </div>
-
     ${detectedBadges.length ? `<div style="margin-bottom:16px">${detectedBadges.join('')}</div>` : ''}
-
     <div class="req-detail-section">
       <div class="req-detail-section-label">request</div>
-      <div class="req-detail-row">
-        <span class="req-detail-key">status</span>
-        <span class="req-detail-val" style="color:${statusColor};font-weight:600">${r.status}</span>
-      </div>
-      <div class="req-detail-row">
-        <span class="req-detail-key">detected as</span>
-        <span class="req-detail-val">${r.detected === 'N/A' ? '—' : esc(r.detected)}</span>
-      </div>
-      <div class="req-detail-row">
-        <span class="req-detail-key">country</span>
-        <span class="req-detail-val">${esc(r.country)}</span>
-      </div>
-      <div class="req-detail-row">
-        <span class="req-detail-key">timestamp</span>
-        <span class="req-detail-val mono">${fmt(r.ts)}</span>
-      </div>
-      <div class="req-detail-row">
-        <span class="req-detail-key">ref id</span>
-        <span class="req-detail-val mono">${refId}…</span>
-      </div>
+      <div class="req-detail-row"><span class="req-detail-key">status</span><span class="req-detail-val" style="color:${statusColor};font-weight:600">${r.status}</span></div>
+      <div class="req-detail-row"><span class="req-detail-key">detected as</span><span class="req-detail-val">${r.detected==='N/A'?'—':esc(r.detected)}</span></div>
+      <div class="req-detail-row"><span class="req-detail-key">country</span><span class="req-detail-val">${esc(r.country)}</span></div>
+      <div class="req-detail-row"><span class="req-detail-key">timestamp</span><span class="req-detail-val mono">${fmt(r.ts)}</span></div>
+      <div class="req-detail-row"><span class="req-detail-key">ref id</span><span class="req-detail-val mono">${refId}…</span></div>
     </div>
-
     <div class="req-detail-section">
       <div class="req-detail-section-label">client</div>
-      <div class="req-detail-row">
-        <span class="req-detail-key">browser</span>
-        <span class="req-detail-val">${esc(ua.browser)}</span>
-      </div>
-      <div class="req-detail-row">
-        <span class="req-detail-key">os</span>
-        <span class="req-detail-val">${esc(ua.os)}</span>
-      </div>
-      <div class="req-detail-row">
-        <span class="req-detail-key">device type</span>
-        <span class="req-detail-val">${deviceIcon(ua.device)} ${ua.device}</span>
-      </div>
+      <div class="req-detail-row"><span class="req-detail-key">browser</span><span class="req-detail-val">${esc(ua.browser)}</span></div>
+      <div class="req-detail-row"><span class="req-detail-key">os</span><span class="req-detail-val">${esc(ua.os)}</span></div>
+      <div class="req-detail-row"><span class="req-detail-key">device type</span><span class="req-detail-val">${deviceIcon(ua.device)} ${ua.device}</span></div>
     </div>
-
-    ${ua.raw ? `<div class="req-detail-section">
-      <div class="req-detail-section-label">user agent</div>
-      <div class="req-detail-ua-block">${esc(ua.raw)}</div>
-    </div>` : ''}
+    ${ua.raw ? `<div class="req-detail-section"><div class="req-detail-section-label">user agent</div><div class="req-detail-ua-block">${esc(ua.raw)}</div></div>` : ''}
   `
-
   document.getElementById('reqDetailDrawer').classList.add('open')
   document.getElementById('reqDetailOverlay').classList.add('open')
 }
@@ -1378,7 +1626,7 @@ function renderInstall(site) {
         <div class="install-step-num">2</div>
         <div style="flex:1;min-width:0">
           <div class="install-step-title">add the script tag to your site</div>
-          <div class="install-step-desc">paste this into the <code style="color:var(--accent2)">&lt;head&gt;</code> of every page you want protected. works on any html — static sites, jamstack, single-page apps.</div>
+          <div class="install-step-desc">paste this into the <code style="color:var(--accent2)">&lt;head&gt;</code> of every page you want protected.</div>
           <div class="code-block" id="cb-snippet"><button class="code-copy" onclick="cpSnippet(this,'${site.key}')">copy</button>&lt;script src="https://brickwall.onrender.com/js/protect.min.js"
   data-site="${key}"&gt;&lt;/script&gt;</div>
         </div>
@@ -1481,22 +1729,16 @@ function renderSettings(site) {
             <input class="botlist-input" type="text" id="botNameInput" placeholder="e.g. Twitterbot" autocomplete="off" onkeydown="if(event.key==='Enter')addAllowedBot('name')">
             <button class="btn btn-ghost btn-sm" onclick="addAllowedBot('name')">add</button>
           </div>
-          <div style="margin-top:8px">
-            <div class="known-bots-grid" id="knownBotBtns"></div>
-          </div>
-          <div style="margin-top:10px">
-            <div class="botlist-chips" id="allowedNameChips"></div>
-          </div>
+          <div style="margin-top:8px"><div class="known-bots-grid" id="knownBotBtns"></div></div>
+          <div style="margin-top:10px"><div class="botlist-chips" id="allowedNameChips"></div></div>
         </div>
         <div class="botlist-tab-panel" id="botPanelUa">
-          <div class="botlist-hint">enter any substring to match against the raw user agent string. useful for internal tools or custom bots.</div>
+          <div class="botlist-hint">enter any substring to match against the raw user agent string.</div>
           <div class="botlist-input-row">
             <input class="botlist-input" type="text" id="botUaInput" placeholder="e.g. MyCustomBot/1.0" autocomplete="off" onkeydown="if(event.key==='Enter')addAllowedBot('ua')">
             <button class="btn btn-ghost btn-sm" onclick="addAllowedBot('ua')">add</button>
           </div>
-          <div style="margin-top:10px">
-            <div class="botlist-chips" id="allowedUaChips"></div>
-          </div>
+          <div style="margin-top:10px"><div class="botlist-chips" id="allowedUaChips"></div></div>
         </div>
       </div>
     </div>
@@ -1539,42 +1781,31 @@ function renderSettings(site) {
 }
 
 const CHALLENGE_COLOR_VARS = [
-  { key: 'bg', label: 'background', desc: 'page background color' },
-  { key: 'accent', label: 'accent', desc: 'spinner, progress bar, highlights' },
-  { key: 'surface', label: 'surface', desc: 'log panel background' },
-  { key: 'text', label: 'text', desc: 'headline text color' },
-  { key: 'text2', label: 'text secondary', desc: 'secondary labels' },
-  { key: 'muted', label: 'muted', desc: 'subline and log text' },
-  { key: 'border', label: 'border', desc: 'panel borders' },
-  { key: 'border2', label: 'border 2', desc: 'ring and input borders' },
+  { key:'bg', label:'background', desc:'page background color' },
+  { key:'accent', label:'accent', desc:'spinner, progress bar, highlights' },
+  { key:'surface', label:'surface', desc:'log panel background' },
+  { key:'text', label:'text', desc:'headline text color' },
+  { key:'text2', label:'text secondary', desc:'secondary labels' },
+  { key:'muted', label:'muted', desc:'subline and log text' },
+  { key:'border', label:'border', desc:'panel borders' },
+  { key:'border2', label:'border 2', desc:'ring and input borders' },
 ]
 
-function getChallengeUi(site) {
-  return site.settings.challengeUi || {}
-}
+function getChallengeUi(site) { return site.settings.challengeUi || {} }
 
 function renderChallengeSettings(site) {
   const ui = getChallengeUi(site)
   const colors = ui.colors || {}
   const colorRows = CHALLENGE_COLOR_VARS.map(cv => {
     const val = colors[cv.key] || ''
-    const swatchColor = val || '#888888'
     return `<div class="challenge-color-row">
-      <div>
-        <div class="customize-label">${cv.label}</div>
-        <div class="customize-desc">${cv.desc}</div>
-      </div>
+      <div><div class="customize-label">${cv.label}</div><div class="customize-desc">${cv.desc}</div></div>
       <div class="color-input-wrap">
         <div class="color-swatch" title="click to pick">
           <div class="color-swatch-preview" id="chal-swatch-${cv.key}" style="background:${val||'var(--border2)'}${val?'':';opacity:.4'}"></div>
-          <input type="color" value="${val||'#000000'}" id="chal-color-${cv.key}"
-            oninput="onChalColorInput('${cv.key}',this.value)"
-            onchange="onChalColorInput('${cv.key}',this.value)">
+          <input type="color" value="${val||'#000000'}" id="chal-color-${cv.key}" oninput="onChalColorInput('${cv.key}',this.value)" onchange="onChalColorInput('${cv.key}',this.value)">
         </div>
-        <input class="color-hex" type="text" value="${val}" maxlength="7" id="chal-hex-${cv.key}"
-          placeholder="inherit"
-          oninput="onChalHexInput('${cv.key}',this)"
-          onblur="onChalHexBlur('${cv.key}',this)">
+        <input class="color-hex" type="text" value="${val}" maxlength="7" id="chal-hex-${cv.key}" placeholder="inherit" oninput="onChalHexInput('${cv.key}',this)" onblur="onChalHexBlur('${cv.key}',this)">
       </div>
     </div>`
   }).join('')
@@ -1586,38 +1817,21 @@ function renderChallengeSettings(site) {
         <button class="customize-reset-btn" onclick="resetChallengeUi()">reset</button>
       </div>
       <div class="settings-group-body">
-        <div class="settings-row">
-          <div><div class="settings-label">headline text</div><div class="settings-desc">overrides "verifying your browser"</div></div>
-          <input class="challenge-text-input" type="text" id="chal-headline" value="${esc(ui.headline||'')}" placeholder="verifying your browser" maxlength="120">
-        </div>
-        <div class="settings-row">
-          <div><div class="settings-label">subline text</div><div class="settings-desc">overrides the small description below the headline</div></div>
-          <input class="challenge-text-input" type="text" id="chal-subline" value="${esc(ui.subline||'')}" placeholder="this only takes a moment..." maxlength="300">
-        </div>
-        <div class="settings-row">
-          <div><div class="settings-label">logo text</div><div class="settings-desc">replaces "brickwall" in the top logo — plain text only</div></div>
-          <input class="challenge-text-input" type="text" id="chal-logoText" value="${esc(ui.logoText||'')}" placeholder="brickwall" maxlength="60">
-        </div>
-        <div class="settings-row">
-          <div><div class="settings-label">hide progress log</div><div class="settings-desc">hides the &gt; checking environment / running pow... panel</div></div>
-          <label class="toggle"><input type="checkbox" id="chal-hideStepsLog" ${ui.hideStepsLog?'checked':''} onchange="saveChallengeToggle('hideStepsLog',this.checked)"><span class="toggle-slider"></span></label>
-        </div>
-        <div class="settings-row" style="border-bottom:none;padding-bottom:0">
-          <div><div class="settings-label">hide "protected by brickwall" badge</div><div class="settings-desc">removes the footer attribution link</div></div>
-          <label class="toggle"><input type="checkbox" id="chal-hideBadge" ${ui.hideBadge?'checked':''} onchange="saveChallengeToggle('hideBadge',this.checked)"><span class="toggle-slider"></span></label>
-        </div>
+        <div class="settings-row"><div><div class="settings-label">headline text</div><div class="settings-desc">overrides "verifying your browser"</div></div><input class="challenge-text-input" type="text" id="chal-headline" value="${esc(ui.headline||'')}" placeholder="verifying your browser" maxlength="120"></div>
+        <div class="settings-row"><div><div class="settings-label">subline text</div><div class="settings-desc">overrides the small description below the headline</div></div><input class="challenge-text-input" type="text" id="chal-subline" value="${esc(ui.subline||'')}" placeholder="this only takes a moment..." maxlength="300"></div>
+        <div class="settings-row"><div><div class="settings-label">logo text</div><div class="settings-desc">replaces "brickwall" in the top logo — plain text only</div></div><input class="challenge-text-input" type="text" id="chal-logoText" value="${esc(ui.logoText||'')}" placeholder="brickwall" maxlength="60"></div>
+        <div class="settings-row"><div><div class="settings-label">hide progress log</div><div class="settings-desc">hides the &gt; checking environment / running pow... panel</div></div><label class="toggle"><input type="checkbox" id="chal-hideStepsLog" ${ui.hideStepsLog?'checked':''} onchange="saveChallengeToggle('hideStepsLog',this.checked)"><span class="toggle-slider"></span></label></div>
+        <div class="settings-row" style="border-bottom:none;padding-bottom:0"><div><div class="settings-label">hide "protected by brickwall" badge</div><div class="settings-desc">removes the footer attribution link</div></div><label class="toggle"><input type="checkbox" id="chal-hideBadge" ${ui.hideBadge?'checked':''} onchange="saveChallengeToggle('hideBadge',this.checked)"><span class="toggle-slider"></span></label></div>
       </div>
     </div>
     <div class="settings-group">
       <div class="settings-group-head">challenge page colors</div>
-      <div class="settings-group-body" style="padding:0 16px">
-        ${colorRows}
-      </div>
+      <div class="settings-group-body" style="padding:0 16px">${colorRows}</div>
     </div>
     <div class="settings-group">
       <div class="settings-group-head">custom css</div>
       <div class="settings-group-body">
-        <div style="color:var(--muted);font-size:11px;margin-bottom:10px;line-height:1.6">injected into the challenge page after all other styles. full css supported — target <code style="color:var(--accent2)">.box</code>, <code style="color:var(--accent2)">.headline</code>, <code style="color:var(--accent2)">.status-ring</code>, <code style="color:var(--accent2)">.steps-log</code>, <code style="color:var(--accent2)">.brickwall-badge</code>, etc.</div>
+        <div style="color:var(--muted);font-size:11px;margin-bottom:10px;line-height:1.6">injected into the challenge page after all other styles.</div>
         <textarea class="css-textarea" id="chal-css" placeholder="/* e.g. .brickwall-badge { display: none; } */">${esc(ui.css||'')}</textarea>
       </div>
     </div>
@@ -1629,30 +1843,20 @@ function renderChallengeSettings(site) {
 }
 
 function onChalColorInput(key, val) {
-  const swatch = document.getElementById('chal-swatch-'+key)
-  if (swatch) { swatch.style.background = val; swatch.style.opacity = '1' }
-  const hex = document.getElementById('chal-hex-'+key)
-  if (hex && document.activeElement !== hex) hex.value = val
+  const sw = document.getElementById('chal-swatch-'+key); if (sw) { sw.style.background=val; sw.style.opacity='1' }
+  const hi = document.getElementById('chal-hex-'+key); if (hi && document.activeElement!==hi) hi.value=val
 }
-
 function onChalHexInput(key, input) {
   const v = input.value.trim()
   if (/^#[0-9a-fA-F]{6}$/.test(v)) {
-    const ci = document.getElementById('chal-color-'+key)
-    if (ci) ci.value = v
-    const sw = document.getElementById('chal-swatch-'+key)
-    if (sw) { sw.style.background = v; sw.style.opacity = '1' }
+    const ci = document.getElementById('chal-color-'+key); if (ci) ci.value=v
+    const sw = document.getElementById('chal-swatch-'+key); if (sw) { sw.style.background=v; sw.style.opacity='1' }
   }
 }
-
-function onChalHexBlur(key, input) {
-  const v = input.value.trim()
-  if (v && !/^#[0-9a-fA-F]{6}$/.test(v)) input.value = ''
-}
+function onChalHexBlur(key, input) { if (input.value.trim() && !/^#[0-9a-fA-F]{6}$/.test(input.value.trim())) input.value='' }
 
 async function saveChallengeToggle(field, val) {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
+  const site = sites.find(s => s.id === currentSiteId); if (!site) return
   if (!site.settings.challengeUi) site.settings.challengeUi = {}
   site.settings.challengeUi[field] = val
   await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
@@ -1660,19 +1864,15 @@ async function saveChallengeToggle(field, val) {
 }
 
 async function saveChallengeUi() {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
+  const site = sites.find(s => s.id === currentSiteId); if (!site) return
   const colors = {}
-  CHALLENGE_COLOR_VARS.forEach(cv => {
-    const hex = document.getElementById('chal-hex-'+cv.key)?.value.trim()
-    if (hex && /^#[0-9a-fA-F]{6}$/.test(hex)) colors[cv.key] = hex
-  })
-  const headline = document.getElementById('chal-headline')?.value.trim() || ''
-  const subline = document.getElementById('chal-subline')?.value.trim() || ''
-  const logoText = document.getElementById('chal-logoText')?.value.trim() || ''
-  const css = document.getElementById('chal-css')?.value || ''
-  const hideStepsLog = document.getElementById('chal-hideStepsLog')?.checked || false
-  const hideBadge = document.getElementById('chal-hideBadge')?.checked || false
+  CHALLENGE_COLOR_VARS.forEach(cv => { const hex = document.getElementById('chal-hex-'+cv.key)?.value.trim(); if (hex && /^#[0-9a-fA-F]{6}$/.test(hex)) colors[cv.key] = hex })
+  const headline = document.getElementById('chal-headline')?.value.trim()||''
+  const subline = document.getElementById('chal-subline')?.value.trim()||''
+  const logoText = document.getElementById('chal-logoText')?.value.trim()||''
+  const css = document.getElementById('chal-css')?.value||''
+  const hideStepsLog = document.getElementById('chal-hideStepsLog')?.checked||false
+  const hideBadge = document.getElementById('chal-hideBadge')?.checked||false
   const challengeUi = {}
   if (Object.keys(colors).length) challengeUi.colors = colors
   if (headline) challengeUi.headline = headline
@@ -1686,13 +1886,12 @@ async function saveChallengeUi() {
   if (r.ok) {
     sites = sites.map(s => s.id===currentSiteId?site:s)
     const btn = document.querySelector('.challenge-save-btn')
-    if (btn) { btn.textContent = 'saved ✓'; setTimeout(()=>btn.textContent='save challenge settings',2000) }
+    if (btn) { btn.textContent='saved ✓'; setTimeout(()=>btn.textContent='save challenge settings',2000) }
   }
 }
 
 async function resetChallengeUi() {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
+  const site = sites.find(s => s.id === currentSiteId); if (!site) return
   site.settings.challengeUi = {}
   await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
   sites = sites.map(s => s.id===currentSiteId?site:s)
@@ -1700,76 +1899,57 @@ async function resetChallengeUi() {
 }
 
 function previewChallengeUi() {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
+  const site = sites.find(s => s.id === currentSiteId); if (!site) return
   window.open('/challenge.html?k='+encodeURIComponent(site.key)+'&r='+encodeURIComponent(location.href), '_blank')
 }
 
 const KNOWN_BOT_NAMES = [
-  'Twitterbot','Discordbot','Slackbot','LinkedInBot','WhatsApp',
-  'Telegrambot','Pinterestbot','redditbot','Applebot','Facebot',
-  'ia_archiver','AhrefsBot','SemrushBot','MJ12bot','DotBot',
-  'UptimeRobot','Dataprovider','Screaming Frog','SiteAuditBot','GPTBot',
-  'ClaudeBot','PerplexityBot','YouBot','ChatGPT-User','Bytespider'
+  'Twitterbot','Discordbot','Slackbot','LinkedInBot','WhatsApp','Telegrambot','Pinterestbot',
+  'redditbot','Applebot','Facebot','ia_archiver','AhrefsBot','SemrushBot','MJ12bot','DotBot',
+  'UptimeRobot','Dataprovider','Screaming Frog','SiteAuditBot','GPTBot','ClaudeBot',
+  'PerplexityBot','YouBot','ChatGPT-User','Bytespider'
 ]
 
 let botTabActive = 'name'
 
 function switchBotTab(tab) {
   botTabActive = tab
-  document.getElementById('botTabName').classList.toggle('active-tab', tab === 'name')
-  document.getElementById('botTabUa').classList.toggle('active-tab', tab === 'ua')
-  document.getElementById('botPanelName').classList.toggle('active-tab-panel', tab === 'name')
-  document.getElementById('botPanelUa').classList.toggle('active-tab-panel', tab === 'ua')
+  document.getElementById('botTabName').classList.toggle('active-tab', tab==='name')
+  document.getElementById('botTabUa').classList.toggle('active-tab', tab==='ua')
+  document.getElementById('botPanelName').classList.toggle('active-tab-panel', tab==='name')
+  document.getElementById('botPanelUa').classList.toggle('active-tab-panel', tab==='ua')
 }
 
 function renderBotAllowlist(site) {
-  const allowed = site.settings.allowedBots || { names: [], uaStrings: [] }
-  const names = allowed.names || []
-  const uaStrings = allowed.uaStrings || []
-
+  const allowed = site.settings.allowedBots || { names:[], uaStrings:[] }
+  const names = allowed.names||[], uaStrings = allowed.uaStrings||[]
   const nameChips = document.getElementById('allowedNameChips')
   const uaChips = document.getElementById('allowedUaChips')
   const knownGrid = document.getElementById('knownBotBtns')
   if (!nameChips || !uaChips || !knownGrid) return
-
-  knownGrid.innerHTML = KNOWN_BOT_NAMES
-    .filter(b => !names.some(n => n.toLowerCase() === b.toLowerCase()))
-    .map(b => `<button class="known-bot-btn" onclick="addKnownBot('${esc(b)}')">${esc(b)}</button>`)
-    .join('')
-
-  nameChips.innerHTML = names.length
-    ? names.map((n,i) => `<span class="botlist-chip">${esc(n)}<button class="botlist-chip-remove" onclick="removeAllowedBot('name',${i})" title="remove">×</button></span>`).join('')
-    : '<span class="botlist-empty">no names added yet</span>'
-
-  uaChips.innerHTML = uaStrings.length
-    ? uaStrings.map((u,i) => `<span class="botlist-chip">${esc(u)}<button class="botlist-chip-remove" onclick="removeAllowedBot('ua',${i})" title="remove">×</button></span>`).join('')
-    : '<span class="botlist-empty">no ua strings added yet</span>'
+  knownGrid.innerHTML = KNOWN_BOT_NAMES.filter(b => !names.some(n => n.toLowerCase()===b.toLowerCase())).map(b => `<button class="known-bot-btn" onclick="addKnownBot('${esc(b)}')">${esc(b)}</button>`).join('')
+  nameChips.innerHTML = names.length ? names.map((n,i) => `<span class="botlist-chip">${esc(n)}<button class="botlist-chip-remove" onclick="removeAllowedBot('name',${i})">×</button></span>`).join('') : '<span class="botlist-empty">no names added yet</span>'
+  uaChips.innerHTML = uaStrings.length ? uaStrings.map((u,i) => `<span class="botlist-chip">${esc(u)}<button class="botlist-chip-remove" onclick="removeAllowedBot('ua',${i})">×</button></span>`).join('') : '<span class="botlist-empty">no ua strings added yet</span>'
 }
 
 async function addAllowedBot(type) {
-  const inputId = type === 'name' ? 'botNameInput' : 'botUaInput'
-  const input = document.getElementById(inputId)
-  if (!input) return
-  const val = input.value.trim()
-  if (!val) return
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
-  if (!site.settings.allowedBots) site.settings.allowedBots = { names: [], uaStrings: [] }
-  const list = type === 'name' ? site.settings.allowedBots.names : site.settings.allowedBots.uaStrings
-  if (list.some(x => x.toLowerCase() === val.toLowerCase())) { input.value = ''; return }
-  list.push(val)
-  input.value = ''
+  const inputId = type==='name'?'botNameInput':'botUaInput'
+  const input = document.getElementById(inputId); if (!input) return
+  const val = input.value.trim(); if (!val) return
+  const site = sites.find(s => s.id===currentSiteId); if (!site) return
+  if (!site.settings.allowedBots) site.settings.allowedBots = { names:[], uaStrings:[] }
+  const list = type==='name' ? site.settings.allowedBots.names : site.settings.allowedBots.uaStrings
+  if (list.some(x => x.toLowerCase()===val.toLowerCase())) { input.value=''; return }
+  list.push(val); input.value=''
   await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
   sites = sites.map(s => s.id===currentSiteId?site:s)
   renderBotAllowlist(site)
 }
 
 async function addKnownBot(name) {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
-  if (!site.settings.allowedBots) site.settings.allowedBots = { names: [], uaStrings: [] }
-  if (site.settings.allowedBots.names.some(x => x.toLowerCase() === name.toLowerCase())) return
+  const site = sites.find(s => s.id===currentSiteId); if (!site) return
+  if (!site.settings.allowedBots) site.settings.allowedBots = { names:[], uaStrings:[] }
+  if (site.settings.allowedBots.names.some(x => x.toLowerCase()===name.toLowerCase())) return
   site.settings.allowedBots.names.push(name)
   await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
   sites = sites.map(s => s.id===currentSiteId?site:s)
@@ -1777,10 +1957,9 @@ async function addKnownBot(name) {
 }
 
 async function removeAllowedBot(type, idx) {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site || !site.settings.allowedBots) return
-  const list = type === 'name' ? site.settings.allowedBots.names : site.settings.allowedBots.uaStrings
-  list.splice(idx, 1)
+  const site = sites.find(s => s.id===currentSiteId); if (!site||!site.settings.allowedBots) return
+  const list = type==='name' ? site.settings.allowedBots.names : site.settings.allowedBots.uaStrings
+  list.splice(idx,1)
   await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
   sites = sites.map(s => s.id===currentSiteId?site:s)
   renderBotAllowlist(site)
@@ -1791,10 +1970,7 @@ function renderSitesGrid() {
   grid.innerHTML = sites.map(s => `
     <div class="site-card ${s.id===currentSiteId?'selected':''}" onclick="selectSite('${esc(s.id)}')">
       <div class="site-card-top">
-        <div>
-          <div class="site-card-name">${esc(s.name)}</div>
-          <div class="site-card-domain">${esc(s.domain)}</div>
-        </div>
+        <div><div class="site-card-name">${esc(s.name)}</div><div class="site-card-domain">${esc(s.domain)}</div></div>
         <span class="tag ${s.active?'tag-green':'tag-muted'}">${s.active?'active':'paused'}</span>
       </div>
       <div class="site-card-key">${esc(s.key)}</div>
@@ -1810,106 +1986,62 @@ async function selectSite(id) {
 }
 
 async function saveSetting(key, val) {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
+  const site = sites.find(s => s.id===currentSiteId); if (!site) return
   site.settings[key] = val
   await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
   sites = sites.map(s => s.id===currentSiteId?site:s)
 }
 
 async function saveName() {
-  const name = document.getElementById('settingName').value.trim()
-  if (!name) return
+  const name = document.getElementById('settingName').value.trim(); if (!name) return
   await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})})
   await loadSites()
 }
 
 async function saveDomain() {
-  const input = document.getElementById('settingDomain')
-  if (!input) return
-  const raw = input.value.trim()
-  if (!raw) return
-  const domain = raw.replace(/^https?:\/\//,'').split('/')[0]
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
-  if (domain === site.domain) return
-  const btn = input.nextElementSibling
-  if (btn) { btn.disabled = true; btn.textContent = 'saving...' }
-  const r = await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain})})
-  if (!r.ok) {
-    if (btn) { btn.disabled = false; btn.textContent = 'save' }
-    return
-  }
-  const updated = await r.json()
-  sites = sites.map(s => s.id === currentSiteId ? { ...s, domain: updated.domain, key: updated.key } : s)
-  const sel = document.getElementById('siteSelect')
-  if (sel) {
-    Array.from(sel.options).forEach(o => {
-      if (o.value === currentSiteId) o.textContent = updated.name + ' (' + updated.domain + ')'
-    })
-  }
-  document.getElementById('pageSub').textContent = updated.domain
-  await refreshData()
-  nav('install')
+  const site = sites.find(s => s.id===currentSiteId); if (!site) return
+  const raw = document.getElementById('settingDomain')?.value.trim()||''
+  const newDomain = raw.replace(/^https?:\/\//,'').split('/')[0]
+  if (!newDomain || newDomain===site.domain) return
+  const modal = document.getElementById('terminalModal')
+  const cmd = `sudo apt install brickwall-sites new-domain ${newDomain}`
+  document.getElementById('terminalPrompt').textContent = '$ '+cmd
+  document.getElementById('terminalInput').value = ''
+  document.getElementById('terminalError').style.display = 'none'
+  modal.dataset.mode = 'domain'; modal.dataset.expected = cmd; modal.dataset.newDomain = newDomain
+  modal.classList.add('open')
+  setTimeout(() => document.getElementById('terminalInput').focus(), 100)
 }
 
 async function saveTtl() {
-  const ttl = parseInt(document.getElementById('setTtl').value)
-  if (!ttl || ttl < 1) return
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
+  const ttl = parseInt(document.getElementById('setTtl').value); if (!ttl||ttl<1) return
+  const site = sites.find(s => s.id===currentSiteId); if (!site) return
   site.settings.challengeTtl = ttl
   await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({settings:site.settings})})
 }
 
 async function saveActive(val) {
   await fetch('/api/sites/'+currentSiteId,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({active:val})})
-  const site = sites.find(s => s.id === currentSiteId)
-  if (site) site.active = val
+  const site = sites.find(s => s.id===currentSiteId); if (site) site.active=val
 }
 
-function copyKey() {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (site) navigator.clipboard.writeText(site.key)
-}
+function copyKey() { const site = sites.find(s => s.id===currentSiteId); if (site) navigator.clipboard.writeText(site.key) }
 
 async function rotateKey() {
   if (!confirm('rotate api key? all existing visitor tokens will be invalidated immediately.')) return
-  const r = await fetch('/api/sites/'+currentSiteId+'/rotate',{method:'POST'})
-  if (!r.ok) return
+  const r = await fetch('/api/sites/'+currentSiteId+'/rotate',{method:'POST'}); if (!r.ok) return
   const d = await r.json()
-  const site = sites.find(s => s.id === currentSiteId)
-  if (site) { site.key = d.key; renderInstall(site) }
-}
-
-function saveDomain() {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
-  const raw = document.getElementById('settingDomain')?.value.trim() || ''
-  const newDomain = raw.replace(/^https?:\/\//,'').split('/')[0]
-  if (!newDomain || newDomain === site.domain) return
-  const modal = document.getElementById('terminalModal')
-  const cmd = `sudo apt install brickwall-sites new-domain ${newDomain}`
-  document.getElementById('terminalPrompt').textContent = '$ ' + cmd
-  document.getElementById('terminalInput').value = ''
-  document.getElementById('terminalError').style.display = 'none'
-  modal.dataset.mode = 'domain'
-  modal.dataset.expected = cmd
-  modal.dataset.newDomain = newDomain
-  modal.classList.add('open')
-  setTimeout(() => document.getElementById('terminalInput').focus(), 100)
+  const site = sites.find(s => s.id===currentSiteId); if (site) { site.key=d.key; renderInstall(site) }
 }
 
 function openDeleteSite() {
-  const site = sites.find(s => s.id === currentSiteId)
-  if (!site) return
+  const site = sites.find(s => s.id===currentSiteId); if (!site) return
   const modal = document.getElementById('terminalModal')
   const cmd = `sudo delete brickwall-sites ${site.domain}`
-  document.getElementById('terminalPrompt').textContent = '$ ' + cmd
+  document.getElementById('terminalPrompt').textContent = '$ '+cmd
   document.getElementById('terminalInput').value = ''
   document.getElementById('terminalError').style.display = 'none'
-  modal.dataset.mode = 'site'
-  modal.dataset.expected = cmd
+  modal.dataset.mode = 'site'; modal.dataset.expected = cmd
   modal.classList.add('open')
   setTimeout(() => document.getElementById('terminalInput').focus(), 100)
 }
@@ -1917,18 +2049,15 @@ function openDeleteSite() {
 function openDeleteAccount() {
   const modal = document.getElementById('terminalModal')
   const cmd = `sudo delete brickwall-accounts ${currentUser.email}`
-  document.getElementById('terminalPrompt').textContent = '$ ' + cmd
+  document.getElementById('terminalPrompt').textContent = '$ '+cmd
   document.getElementById('terminalInput').value = ''
   document.getElementById('terminalError').style.display = 'none'
-  modal.dataset.mode = 'account'
-  modal.dataset.expected = cmd
+  modal.dataset.mode = 'account'; modal.dataset.expected = cmd
   modal.classList.add('open')
   setTimeout(() => document.getElementById('terminalInput').focus(), 100)
 }
 
-function closeTerminalModal() {
-  document.getElementById('terminalModal').classList.remove('open')
-}
+function closeTerminalModal() { document.getElementById('terminalModal').classList.remove('open') }
 
 async function confirmTerminalDelete() {
   const modal = document.getElementById('terminalModal')
@@ -1936,42 +2065,30 @@ async function confirmTerminalDelete() {
   const expected = modal.dataset.expected
   const err = document.getElementById('terminalError')
   if (input !== expected) {
-    err.textContent = 'command does not match. copy it exactly.'
-    err.style.display = 'block'
-    document.getElementById('terminalInput').style.animation = 'shake .3s ease'
-    setTimeout(() => document.getElementById('terminalInput').style.animation = '', 300)
+    err.textContent='command does not match. copy it exactly.'; err.style.display='block'
+    document.getElementById('terminalInput').style.animation='shake .3s ease'
+    setTimeout(() => document.getElementById('terminalInput').style.animation='',300)
     return
   }
   const btn = document.getElementById('terminalConfirmBtn')
-  btn.disabled = true; btn.textContent = 'applying...'
-  if (modal.dataset.mode === 'domain') {
+  btn.disabled=true; btn.textContent='applying...'
+  if (modal.dataset.mode==='domain') {
     const newDomain = modal.dataset.newDomain
     const r = await fetch('/api/sites/'+currentSiteId+'/domain',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({domain:newDomain})})
-    if (!r.ok) {
-      const d = await r.json()
-      err.textContent = d.error || 'failed to update domain'
-      err.style.display = 'block'
-      btn.disabled = false; btn.textContent = 'confirm delete'
-      return
-    }
+    if (!r.ok) { const d=await r.json(); err.textContent=d.error||'failed to update domain'; err.style.display='block'; btn.disabled=false; btn.textContent='confirm delete'; return }
     const d = await r.json()
-    const site = sites.find(s => s.id === currentSiteId)
-    if (site) { site.domain = d.domain; site.key = d.key }
-    sites = sites.map(s => s.id===currentSiteId ? (site||s) : s)
-    modal.classList.remove('open')
-    await loadSites()
-    nav('install')
-  } else if (modal.dataset.mode === 'site') {
+    const site = sites.find(s => s.id===currentSiteId)
+    if (site) { site.domain=d.domain; site.key=d.key }
+    sites = sites.map(s => s.id===currentSiteId?(site||s):s)
+    modal.classList.remove('open'); await loadSites(); nav('install')
+  } else if (modal.dataset.mode==='site') {
     await fetch('/api/sites/'+currentSiteId,{method:'DELETE'})
-    modal.classList.remove('open')
-    currentSiteId = null
-    await loadSites()
-    nav('sites')
+    modal.classList.remove('open'); currentSiteId=null; await loadSites(); nav('sites')
   } else {
     await fetch('/api/auth/account',{method:'DELETE'})
-    window.location.href = '/'
+    window.location.href='/'
   }
-  btn.disabled = false; btn.textContent = 'confirm delete'
+  btn.disabled=false; btn.textContent='confirm delete'
 }
 
 function openAddSite() { document.getElementById('addSiteModal').classList.add('open') }
@@ -1980,49 +2097,42 @@ function closeAddSiteModal(e) { if (e.target===document.getElementById('addSiteM
 async function doAddSite() {
   const name = document.getElementById('newSiteName').value.trim()
   const domain = document.getElementById('newSiteDomain').value.trim()
-  const err = document.getElementById('addSiteError')
-  err.style.display = 'none'
+  const err = document.getElementById('addSiteError'); err.style.display='none'
   if (!name||!domain) { err.textContent='fill in both fields'; err.style.display='block'; return }
-  const btn = document.getElementById('addSiteBtn')
-  btn.disabled=true; btn.textContent='adding...'
+  const btn = document.getElementById('addSiteBtn'); btn.disabled=true; btn.textContent='adding...'
   const r = await fetch('/api/sites',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,domain})})
   if (!r.ok) {
-    const d = await r.json()
-    err.textContent = d.error||'failed to add site'
-    err.style.display = 'block'
-    btn.disabled=false; btn.textContent='add site →'
-    return
+    const d=await r.json(); err.textContent=d.error||'failed to add site'; err.style.display='block'; btn.disabled=false; btn.textContent='add site →'; return
   }
   const site = await r.json()
   document.getElementById('addSiteModal').classList.remove('open')
-  document.getElementById('newSiteName').value=''
-  document.getElementById('newSiteDomain').value=''
+  document.getElementById('newSiteName').value=''; document.getElementById('newSiteDomain').value=''
   btn.disabled=false; btn.textContent='add site →'
-  currentSiteId = site.id
-  await loadSites()
-  nav('install')
+  currentSiteId=site.id; await loadSites(); nav('install')
 }
 
 const panelTitles = {
-  overview:['overview',''],
-  requests:['all requests','every verification attempt'],
-  install:['installation','embed brickwall on your site'],
-  settings:['site settings','configure protection options'],
-  sites:['manage sites','add, switch, or remove sites'],
-  account:['account','your profile and danger zone'],
+  overview:  ['overview', ''],
+  requests:  ['all requests', 'every verification attempt'],
+  analytics: ['analytics', 'traffic, bots, and insights'],
+  install:   ['installation', 'embed brickwall on your site'],
+  settings:  ['site settings', 'configure protection options'],
+  sites:     ['manage sites', 'add, switch, or remove sites'],
+  account:   ['account', 'your profile and danger zone'],
 }
 
 function nav(page) {
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'))
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'))
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
   document.getElementById('panel-'+page).classList.add('active')
   document.getElementById('nav-'+page)?.classList.add('active')
-  const [title,sub] = panelTitles[page]||[page,'']
+  const [title, sub] = panelTitles[page] || [page, '']
   document.getElementById('pageTitle').textContent = title
-  const site = sites.find(s=>s.id===currentSiteId)
-  document.getElementById('pageSub').textContent = sub||(site?site.domain:'')
+  const site = sites.find(s => s.id===currentSiteId)
+  document.getElementById('pageSub').textContent = sub || (site ? site.domain : '')
   if (page==='requests') renderAllTable()
   if (page==='sites') renderSitesGrid()
+  if (page==='analytics') loadAnalytics()
   closeReqDetail()
   if (page==='account') {
     document.getElementById('acctName').textContent = currentUser?.name || '—'
@@ -2032,14 +2142,9 @@ function nav(page) {
   closeSidebar()
 }
 
-async function doLogout() {
-  await fetch('/api/auth/logout',{method:'POST'})
-  window.location.href = '/'
-}
+async function doLogout() { await fetch('/api/auth/logout',{method:'POST'}); window.location.href='/' }
 
-function esc(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-}
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
 
 init()
 </script>
