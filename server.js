@@ -422,6 +422,22 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
     const headlessDetected = detectUaType(ua) === 'headless'
     const datacenterDetected = !torDetected && site.settings.blockVpn && detectDatacenter(ip)
 
+    const allowedBots = site.settings.allowedBots || {}
+    const allowedNames = allowedBots.names || []
+    const allowedUaStrings = allowedBots.uaStrings || []
+    const uaLower = ua.toLowerCase()
+    const isAllowedBot = allowedNames.some(n => uaLower.includes(n.toLowerCase())) ||
+      allowedUaStrings.some(s => uaLower.includes(s.toLowerCase()))
+
+    if (isAllowedBot) {
+      const token = jwt.sign({ siteId: site.id, type: 'pass', allowed: true }, SECRET, { expiresIn: TOKEN_TTL })
+      await pool.query(
+        'INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [uuidv4(), site.id, country, 'allowed', 'passed', Date.now(), ua]
+      )
+      return res.json({ token, skip: true, challengeUi })
+    }
+
     let detectedType = 'N/A'
     if (torDetected) detectedType = 'tor'
     else if (crawlerDetected) detectedType = 'crawler'
