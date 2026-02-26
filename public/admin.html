@@ -15,8 +15,6 @@ body{min-height:100vh;display:flex;flex-direction:column}
 .topbar-logo span{color:var(--accent)}
 .topbar-badge{font-size:10px;background:rgba(217,95,43,.15);color:var(--accent);border:1px solid rgba(217,95,43,.3);padding:2px 8px;border-radius:2px;font-family:var(--mono);letter-spacing:.04em}
 .topbar-right{display:flex;align-items:center;gap:12px}
-.key-form{display:flex;gap:8px;align-items:center}
-.key-form input{width:220px;font-size:11px}
 
 .main{flex:1;padding:24px;max-width:1100px;width:100%;margin:0 auto}
 
@@ -41,6 +39,54 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .mono{font-family:var(--mono);font-size:10px;color:var(--muted)}
 .site-key{font-family:var(--mono);font-size:10px;color:var(--accent2);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+/* blog section */
+.blog-compose{padding:16px}
+.compose-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.compose-left{display:flex;flex-direction:column;gap:12px}
+.compose-right{display:flex;flex-direction:column;gap:8px}
+.compose-label{font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:5px}
+.compose-title input{font-size:13px;font-family:var(--display);font-weight:600}
+.compose-content textarea{
+  width:100%;resize:vertical;min-height:260px;
+  font-family:var(--mono);font-size:11px;line-height:1.7;
+  background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  color:var(--text);padding:10px 12px;
+  transition:border-color .15s;
+}
+.compose-content textarea:focus{border-color:var(--accent2);outline:none}
+.compose-preview{
+  background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  padding:14px;min-height:260px;overflow-y:auto;
+  font-size:12px;color:var(--text2);line-height:1.8;
+}
+.compose-preview h1,.compose-preview h2,.compose-preview h3{font-family:var(--display);color:var(--text);margin:16px 0 8px}
+.compose-preview h1{font-size:18px;font-weight:700}
+.compose-preview h2{font-size:15px;font-weight:600}
+.compose-preview h3{font-size:13px;font-weight:600}
+.compose-preview p{margin:0 0 12px}
+.compose-preview code{font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border);padding:1px 5px;border-radius:2px;color:var(--accent2)}
+.compose-preview pre{background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:10px;overflow-x:auto;margin:12px 0}
+.compose-preview pre code{background:none;border:none;padding:0;font-size:10px}
+.compose-preview strong{color:var(--text);font-weight:600}
+.compose-preview em{font-style:italic}
+.compose-preview a{color:var(--accent2)}
+.compose-preview hr{border:none;border-top:1px solid var(--border);margin:16px 0}
+.compose-preview blockquote{border-left:2px solid var(--accent);padding-left:12px;color:var(--muted);margin:12px 0;font-style:italic}
+.compose-preview ul,.compose-preview ol{padding-left:18px;margin:0 0 12px}
+.compose-preview li{margin-bottom:4px}
+.compose-actions{display:flex;align-items:center;gap:8px;margin-top:4px}
+.compose-status{font-size:10px;font-family:var(--mono);margin-left:4px}
+.compose-status.ok{color:var(--green)}
+.compose-status.err{color:var(--red)}
+.compose-hint{font-size:10px;color:var(--muted);line-height:1.6;padding:10px 12px;background:var(--surface2);border-radius:3px;border:1px solid var(--border)}
+.compose-hint code{font-size:9px;color:var(--accent2);background:var(--bg);padding:1px 4px;border-radius:2px}
+
+.post-row-title{font-size:12px;color:var(--text);font-weight:500;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.post-row-excerpt{font-size:10px;color:var(--muted);max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:2px}
+.post-row-slug{font-family:var(--mono);font-size:10px;color:var(--accent2)}
+.preview-link{font-size:10px;color:var(--muted);text-decoration:none;border:1px solid var(--border);border-radius:2px;padding:2px 8px;font-family:var(--mono);transition:all .15s}
+.preview-link:hover{color:var(--text);border-color:var(--border2)}
+
 .gate{
   position:fixed;inset:0;background:var(--bg);z-index:100;
   display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px;
@@ -54,6 +100,10 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .empty{text-align:center;padding:32px;color:var(--muted);font-size:12px}
 .loading{text-align:center;padding:32px;color:var(--muted);font-size:12px}
 
+@media(max-width:800px){
+  .compose-grid{grid-template-columns:1fr}
+  .compose-right{display:none}
+}
 @media(max-width:700px){
   .stat-cards{grid-template-columns:repeat(2,1fr)}
   .main{padding:14px}
@@ -85,6 +135,7 @@ tr:hover td{background:rgba(255,255,255,.02)}
   <div class="topbar-right">
     <span style="font-size:11px;color:var(--muted)" id="lastRefresh"></span>
     <button class="btn btn-ghost btn-sm" onclick="loadAll()">↻ refresh</button>
+    <a href="/blog.html" target="_blank" class="btn btn-ghost btn-sm">blog ↗</a>
     <a href="/dashboard.html" class="btn btn-ghost btn-sm">← dashboard</a>
   </div>
 </div>
@@ -95,6 +146,66 @@ tr:hover td{background:rgba(255,255,255,.02)}
     <div class="stat-card"><div class="sc-label">total sites</div><div class="sc-value">—</div></div>
     <div class="stat-card"><div class="sc-label">total requests</div><div class="sc-value">—</div></div>
     <div class="stat-card"><div class="sc-label">requests today</div><div class="sc-value">—</div></div>
+  </div>
+
+  <!-- blog -->
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">new blog post</div>
+      <a href="/rss.xml" target="_blank" class="preview-link">rss.xml ↗</a>
+    </div>
+    <div class="blog-compose">
+      <div class="compose-grid">
+        <div class="compose-left">
+          <div class="compose-title">
+            <div class="compose-label">title</div>
+            <input type="text" id="postTitle" placeholder="post title" autocomplete="off" oninput="updatePreview()">
+          </div>
+          <div class="compose-content">
+            <div class="compose-label">content <span style="color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0">— markdown supported</span></div>
+            <textarea id="postContent" placeholder="write your post here...
+
+# heading
+## subheading
+
+**bold**, *italic*, `code`
+
+```js
+const x = 1
+```
+
+[link text](https://url.com)
+
+---
+
+> blockquote" oninput="updatePreview()"></textarea>
+          </div>
+          <div class="compose-hint">
+            <strong style="color:var(--text2)">markdown cheat sheet:</strong>
+            <code># h1</code> <code>## h2</code> <code>**bold**</code> <code>*italic*</code>
+            <code>`code`</code> <code>```block```</code> <code>[text](url)</code>
+            <code>---</code> (hr) <code>&gt; quote</code> <code>- item</code>
+          </div>
+          <div class="compose-actions">
+            <button class="btn btn-primary btn-sm" onclick="publishPost()" id="publishBtn">publish post →</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearCompose()">clear</button>
+            <span class="compose-status" id="composeStatus"></span>
+          </div>
+        </div>
+        <div class="compose-right">
+          <div class="compose-label">live preview</div>
+          <div class="compose-preview" id="composePreview"><span style="color:var(--muted);font-size:11px">start typing to see a preview...</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <div class="section-title">published posts</div>
+      <div class="section-count" id="postCount">—</div>
+    </div>
+    <div id="postsTable"><div class="loading">loading...</div></div>
   </div>
 
   <div class="section">
@@ -125,8 +236,11 @@ function unlock() {
   loadAll()
 }
 
-async function api(path) {
-  const r = await fetch(path, { headers: { 'x-admin-key': adminKey } })
+async function api(path, opts = {}) {
+  const r = await fetch(path, {
+    ...opts,
+    headers: { 'x-admin-key': adminKey, 'Content-Type': 'application/json', ...(opts.headers || {}) }
+  })
   if (r.status === 401) {
     document.getElementById('gate').classList.remove('hidden')
     document.getElementById('gateError').style.display = 'block'
@@ -140,14 +254,16 @@ async function loadAll() {
   if (!adminKey) { document.getElementById('gate').classList.remove('hidden'); return }
   document.getElementById('gate').classList.add('hidden')
   try {
-    const [stats, users, sites] = await Promise.all([
+    const [stats, users, sites, posts] = await Promise.all([
       api('/api/admin/stats'),
       api('/api/admin/users'),
-      api('/api/admin/sites')
+      api('/api/admin/sites'),
+      fetch('/api/blog').then(r => r.json())
     ])
     renderStats(stats)
     renderUsers(users)
     renderSites(sites)
+    renderPosts(posts)
     document.getElementById('lastRefresh').textContent = 'updated ' + new Date().toLocaleTimeString()
   } catch (e) {
     if (e.message !== 'unauthorized') console.error(e)
@@ -160,6 +276,31 @@ function renderStats(d) {
     <div class="stat-card"><div class="sc-label">total sites</div><div class="sc-value">${d.sites}</div></div>
     <div class="stat-card"><div class="sc-label">total requests</div><div class="sc-value">${d.requests}</div></div>
     <div class="stat-card"><div class="sc-label">requests today</div><div class="sc-value" style="color:var(--accent)">${d.requestsToday}</div></div>
+  `
+}
+
+function renderPosts(posts) {
+  document.getElementById('postCount').textContent = posts.length + ' posts'
+  if (!Array.isArray(posts) || !posts.length) {
+    document.getElementById('postsTable').innerHTML = '<div class="empty">no posts yet</div>'
+    return
+  }
+  document.getElementById('postsTable').innerHTML = `
+    <table>
+      <thead><tr><th>title</th><th>slug</th><th>published</th><th></th></tr></thead>
+      <tbody>${posts.map(p => `<tr>
+        <td>
+          <div class="post-row-title">${esc(p.title)}</div>
+          <div class="post-row-excerpt">${esc(p.excerpt)}${p.excerpt && p.excerpt.length >= 219 ? '…' : ''}</div>
+        </td>
+        <td class="post-row-slug">${esc(p.slug)}</td>
+        <td class="mono">${fmtDate(p.publishedAt)}</td>
+        <td style="display:flex;gap:6px;align-items:center">
+          <a class="preview-link" href="/blog.html?post=${esc(p.slug)}" target="_blank">view ↗</a>
+          <button class="btn btn-danger btn-sm" style="padding:3px 10px" onclick="deletePost('${esc(p.id)}','${esc(p.title)}')">delete</button>
+        </td>
+      </tr>`).join('')}</tbody>
+    </table>
   `
 }
 
@@ -197,6 +338,97 @@ function renderSites(sites) {
       </tr>`).join('')}</tbody>
     </table>
   `
+}
+
+// ── blog compose ──────────────────────────────────────────────────────────────
+
+function renderMarkdownPreview(raw) {
+  let t = raw.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  t = t.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+    `<pre><code>${code.trimEnd()}</code></pre>`)
+  t = t.replace(/`([^`\n]+)`/g, '<code>$1</code>')
+  t = t.replace(/^### (.+)$/gm, '<h3>$1</h3>')
+  t = t.replace(/^## (.+)$/gm, '<h2>$1</h2>')
+  t = t.replace(/^# (.+)$/gm, '<h1>$1</h1>')
+  t = t.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>')
+  t = t.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+  t = t.replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+  t = t.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>')
+  t = t.replace(/^---$/gm, '<hr>')
+  t = t.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+  t = t.replace(/((?:^[*\-] .+\n?)+)/gm, m => {
+    const items = m.trim().split('\n').map(l => '<li>'+l.replace(/^[*\-] /,'')+' </li>').join('')
+    return '<ul>'+items+'</ul>'
+  })
+  const blocks = t.split(/\n{2,}/)
+  t = blocks.map(b => {
+    b = b.trim()
+    if (!b) return ''
+    if (/^<(h[1-6]|pre|ul|ol|blockquote|hr)/.test(b)) return b
+    return '<p>' + b.replace(/\n/g, '<br>') + '</p>'
+  }).filter(Boolean).join('\n')
+  return t || '<span style="color:var(--muted);font-size:11px">start typing to see a preview...</span>'
+}
+
+let previewTimer = null
+function updatePreview() {
+  clearTimeout(previewTimer)
+  previewTimer = setTimeout(() => {
+    const content = document.getElementById('postContent').value
+    document.getElementById('composePreview').innerHTML = renderMarkdownPreview(content)
+  }, 150)
+}
+
+async function publishPost() {
+  const title = document.getElementById('postTitle').value.trim()
+  const content = document.getElementById('postContent').value.trim()
+  const status = document.getElementById('composeStatus')
+  const btn = document.getElementById('publishBtn')
+  if (!title) { status.textContent = 'title is required'; status.className = 'compose-status err'; return }
+  if (!content) { status.textContent = 'content is required'; status.className = 'compose-status err'; return }
+
+  btn.disabled = true; btn.textContent = 'publishing...'
+  status.textContent = ''; status.className = 'compose-status'
+  try {
+    const d = await api('/api/admin/blog', {
+      method: 'POST',
+      body: JSON.stringify({ title, content })
+    })
+    if (d.error) {
+      status.textContent = d.error; status.className = 'compose-status err'
+      btn.disabled = false; btn.textContent = 'publish post →'
+      return
+    }
+    status.textContent = `published as /${d.slug}`
+    status.className = 'compose-status ok'
+    btn.disabled = false; btn.textContent = 'publish post →'
+    document.getElementById('postTitle').value = ''
+    document.getElementById('postContent').value = ''
+    document.getElementById('composePreview').innerHTML = '<span style="color:var(--muted);font-size:11px">start typing to see a preview...</span>'
+    const posts = await fetch('/api/blog').then(r => r.json())
+    renderPosts(posts)
+  } catch(e) {
+    if (e.message !== 'unauthorized') {
+      status.textContent = 'failed to publish'; status.className = 'compose-status err'
+      btn.disabled = false; btn.textContent = 'publish post →'
+    }
+  }
+}
+
+function clearCompose() {
+  document.getElementById('postTitle').value = ''
+  document.getElementById('postContent').value = ''
+  document.getElementById('composePreview').innerHTML = '<span style="color:var(--muted);font-size:11px">start typing to see a preview...</span>'
+  document.getElementById('composeStatus').textContent = ''
+}
+
+async function deletePost(id, title) {
+  if (!confirm(`delete "${title}"? this cannot be undone.`)) return
+  try {
+    await api('/api/admin/blog/' + id, { method: 'DELETE' })
+    const posts = await fetch('/api/blog').then(r => r.json())
+    renderPosts(posts)
+  } catch(e) { console.error(e) }
 }
 
 async function deleteUser(id, email) {
