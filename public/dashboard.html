@@ -242,6 +242,69 @@ tr:hover td{background:rgba(255,255,255,.02)}
 .terminal-error{color:var(--red);font-size:11px;margin-top:8px;display:none}
 .terminal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
 
+.req-detail-drawer{
+  position:fixed;top:0;right:0;bottom:0;width:300px;
+  background:var(--surface);border-left:1px solid var(--border2);
+  z-index:500;display:flex;flex-direction:column;
+  transform:translateX(100%);transition:transform .22s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+.req-detail-drawer.open{transform:translateX(0)}
+.req-detail-overlay{
+  position:fixed;inset:0;z-index:499;
+  background:rgba(0,0,0,0);pointer-events:none;transition:background .22s;
+}
+.req-detail-overlay.open{background:rgba(0,0,0,.35);pointer-events:all}
+.req-detail-head{
+  padding:14px 16px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+}
+.req-detail-title{font-family:var(--display);font-size:13px;font-weight:700;letter-spacing:-.2px}
+.req-detail-close{
+  background:none;border:1px solid var(--border);border-radius:3px;
+  color:var(--muted);font-size:14px;width:26px;height:26px;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  transition:all .15s;line-height:1;
+}
+.req-detail-close:hover{border-color:var(--border2);color:var(--text)}
+.req-detail-body{padding:16px;overflow-y:auto;flex:1}
+.req-detail-status{
+  display:flex;align-items:center;justify-content:center;
+  padding:20px 0 18px;border-bottom:1px solid var(--border);margin-bottom:16px;
+}
+.req-detail-status-inner{display:flex;flex-direction:column;align-items:center;gap:8px}
+.req-detail-status-tag{font-size:13px;padding:5px 14px}
+.req-detail-status-country{font-family:var(--display);font-size:22px;font-weight:700;letter-spacing:-.5px;text-align:center;margin-top:4px}
+.req-detail-status-ts{font-size:10px;color:var(--muted);font-family:var(--mono);margin-top:2px}
+.req-detail-section{margin-bottom:16px}
+.req-detail-section-label{font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.req-detail-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--border)}
+.req-detail-row:last-child{border-bottom:none}
+.req-detail-key{font-size:11px;color:var(--muted);flex-shrink:0;padding-top:1px}
+.req-detail-val{font-size:11px;color:var(--text2);text-align:right;word-break:break-word;max-width:170px}
+.req-detail-val.mono{font-family:var(--mono);color:var(--accent2);font-size:10px}
+.req-detail-ua-block{
+  background:var(--bg);border:1px solid var(--border);border-radius:3px;
+  padding:10px 12px;font-size:10px;font-family:var(--mono);color:var(--muted);
+  line-height:1.7;word-break:break-all;margin-top:8px;
+}
+.req-detail-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:3px;
+  padding:4px 8px;font-size:10px;color:var(--text2);margin:2px 2px 2px 0;
+}
+.req-detail-badge .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+tr.req-clickable{cursor:pointer}
+tr.req-clickable:hover td{background:rgba(255,255,255,.04)}
+tr.req-clickable.selected td{background:rgba(255,255,255,.05)}
+.req-card.req-clickable{cursor:pointer}
+.req-card.req-clickable:hover{background:rgba(255,255,255,.02)}
+.req-card.selected{background:rgba(255,255,255,.03)}
+@media(max-width:680px){
+  .req-detail-drawer{width:100%;border-left:none;border-top:1px solid var(--border2);top:auto;height:75vh;transform:translateY(100%)}
+  .req-detail-drawer.open{transform:translateY(0)}
+}
+
 .customize-group{background:var(--surface);border:1px solid var(--border);border-radius:4px;margin-bottom:12px;overflow:hidden}
 .customize-group-head{padding:11px 16px;border-bottom:1px solid var(--border);font-family:var(--display);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .customize-group-body{padding:14px 16px}
@@ -530,7 +593,14 @@ body.density-spacious td{padding:12px 14px}
 </main>
 </div>
 
-<div class="modal-bg" id="addSiteModal" onclick="closeAddSiteModal(event)">
+<div class="req-detail-overlay" id="reqDetailOverlay" onclick="closeReqDetail()"></div>
+<div class="req-detail-drawer" id="reqDetailDrawer">
+  <div class="req-detail-head">
+    <div class="req-detail-title">request detail</div>
+    <button class="req-detail-close" onclick="closeReqDetail()">×</button>
+  </div>
+  <div class="req-detail-body" id="reqDetailBody"></div>
+</div> onclick="closeAddSiteModal(event)">
   <div class="modal">
     <button class="modal-close" onclick="document.getElementById('addSiteModal').classList.remove('open')">×</button>
     <h3>add a new site</h3>
@@ -573,6 +643,9 @@ let sites = []
 let currentSiteId = null
 let allRequests = []
 let filteredRequests = []
+let activeReqList = []
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReqDetail() })
 
 const CUSTOMIZE_KEY = 'bw_customize'
 
@@ -1027,11 +1100,13 @@ async function loadRequests() {
 
 function renderRecentTable() {
   const recent = allRequests.slice(0, 10)
+  activeReqList = recent
   document.getElementById('recentReqsTable').innerHTML = buildTable(recent)
   document.getElementById('recentReqCards').innerHTML = buildCards(recent)
 }
 
 function renderAllTable() {
+  activeReqList = filteredRequests
   document.getElementById('allReqsTable').innerHTML = buildTable(filteredRequests)
   document.getElementById('allReqCards').innerHTML = buildCards(filteredRequests)
 }
@@ -1047,7 +1122,7 @@ function filterReqs(val) {
 function buildTable(reqs) {
   if (!reqs.length) return '<div class="empty-state">no requests yet.<br>embed the script on your site and visits will show up here.</div>'
   return `<table><thead><tr><th>location</th><th>detected as</th><th>status</th><th>time</th></tr></thead><tbody>${
-    reqs.map(r => `<tr>
+    reqs.map((r,i) => `<tr class="req-clickable" onclick="openReqDetail(${i},this)" data-idx="${i}">
       <td><span class="req-country">${esc(r.country)}</span></td>
       <td><span class="req-detected">${r.detected==='N/A'?'—':esc(r.detected)}</span></td>
       <td>${stag(r.status)}</td>
@@ -1058,7 +1133,7 @@ function buildTable(reqs) {
 
 function buildCards(reqs) {
   if (!reqs.length) return '<div class="empty-state">no requests yet.<br>embed the script on your site and visits will show up here.</div>'
-  return reqs.map(r => `<div class="req-card">
+  return reqs.map((r,i) => `<div class="req-card req-clickable" onclick="openReqDetail(${i},this)" data-idx="${i}">
     <div>
       <div class="req-card-country">${esc(r.country)}</div>
       <div class="req-card-meta">detected: ${r.detected==='N/A'?'—':esc(r.detected)}</div>
@@ -1077,6 +1152,166 @@ function fmt(ts) {
   return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())+' '+p(d.getHours())+':'+p(d.getMinutes())
 }
 function p(n){return String(n).padStart(2,'0')}
+
+function fmtFull(ts) {
+  const d = new Date(ts)
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  return days[d.getDay()]+', '+months[d.getMonth()]+' '+d.getDate()+' '+d.getFullYear()+
+    ' at '+p(d.getHours())+':'+p(d.getMinutes())+':'+p(d.getSeconds())
+}
+
+function parseUA(ua) {
+  if (!ua) return { browser: 'Unknown', os: 'Unknown', device: 'Unknown', raw: '' }
+  const s = ua
+  let browser = 'Unknown', os = 'Unknown', device = 'desktop'
+
+  if (/HeadlessChrome/i.test(s)) browser = 'Headless Chrome'
+  else if (/Edg\//i.test(s)) browser = 'Edge '+(/Edg\/([0-9]+)/.exec(s)||['','?'])[1]
+  else if (/OPR\/|Opera/i.test(s)) browser = 'Opera'
+  else if (/Firefox\/([0-9]+)/i.test(s)) browser = 'Firefox '+(s.match(/Firefox\/([0-9]+)/i)||['','?'])[1]
+  else if (/Chrome\/([0-9]+)/i.test(s) && !/Chromium/i.test(s)) browser = 'Chrome '+(s.match(/Chrome\/([0-9]+)/i)||['','?'])[1]
+  else if (/Chromium\/([0-9]+)/i.test(s)) browser = 'Chromium '+(s.match(/Chromium\/([0-9]+)/i)||['','?'])[1]
+  else if (/Safari\/([0-9]+)/i.test(s) && !/Chrome/i.test(s)) browser = 'Safari'
+  else if (/MSIE|Trident/i.test(s)) browser = 'Internet Explorer'
+  else if (/curl\//i.test(s)) browser = 'curl'
+  else if (/python/i.test(s)) browser = 'Python script'
+  else if (/wget/i.test(s)) browser = 'wget'
+  else if (/node-fetch|axios|got\//i.test(s)) browser = 'Node.js script'
+  else if (/bot|crawler|spider/i.test(s)) browser = 'Bot/Crawler'
+
+  if (/Windows NT 10/i.test(s)) os = 'Windows 10/11'
+  else if (/Windows NT 6\.3/i.test(s)) os = 'Windows 8.1'
+  else if (/Windows NT 6\.1/i.test(s)) os = 'Windows 7'
+  else if (/Windows/i.test(s)) os = 'Windows'
+  else if (/Mac OS X ([0-9_]+)/i.test(s)) {
+    const v = (s.match(/Mac OS X ([0-9_]+)/i)||['',''])[1].replace(/_/g,'.')
+    os = 'macOS '+v
+  }
+  else if (/Android ([0-9.]+)/i.test(s)) {
+    os = 'Android '+(s.match(/Android ([0-9.]+)/i)||['','?'])[1]
+    device = 'mobile'
+  }
+  else if (/iPhone OS ([0-9_]+)/i.test(s)) {
+    os = 'iOS '+(s.match(/iPhone OS ([0-9_]+)/i)||['','?'])[1].replace(/_/g,'.')
+    device = 'mobile'
+  }
+  else if (/iPad/i.test(s)) { os = 'iPadOS'; device = 'tablet' }
+  else if (/Linux/i.test(s)) os = 'Linux'
+  else if (/CrOS/i.test(s)) os = 'ChromeOS'
+
+  if (/Mobile/i.test(s) && device === 'desktop') device = 'mobile'
+  if (/Tablet/i.test(s)) device = 'tablet'
+  if (/bot|crawler|spider|headless/i.test(s)) device = 'bot'
+
+  return { browser, os, device, raw: ua }
+}
+
+function deviceIcon(d) {
+  return { mobile:'📱', tablet:'📟', bot:'🤖', desktop:'🖥' }[d] || '🖥'
+}
+
+let activeReqList = []
+
+function openReqDetail(idx, rowEl) {
+  const r = activeReqList[idx]
+  if (!r) return
+
+  document.querySelectorAll('.req-clickable.selected').forEach(el => el.classList.remove('selected'))
+  if (rowEl) rowEl.classList.add('selected')
+
+  const ua = parseUA(r.ua || '')
+  const statusColors = { passed: 'var(--green)', blocked: 'var(--red)', flagged: 'var(--yellow)' }
+  const statusColor = statusColors[r.status] || 'var(--muted)'
+
+  const detectedBadges = []
+  if (r.detected && r.detected !== 'N/A') {
+    const badgeColors = {
+      tor: 'var(--red)', headless: 'var(--red)', blocked: 'var(--red)',
+      datacenter: 'var(--yellow)', crawler: 'var(--muted)', vpn: 'var(--yellow)'
+    }
+    detectedBadges.push(`<span class="req-detail-badge"><span class="dot" style="background:${badgeColors[r.detected]||'var(--muted)'}"></span>${esc(r.detected)}</span>`)
+  }
+  if (ua.device !== 'desktop') {
+    detectedBadges.push(`<span class="req-detail-badge">${deviceIcon(ua.device)} ${ua.device}</span>`)
+  }
+
+  const since = (() => {
+    const diff = Date.now() - r.ts
+    if (diff < 60000) return Math.floor(diff/1000)+'s ago'
+    if (diff < 3600000) return Math.floor(diff/60000)+'m ago'
+    if (diff < 86400000) return Math.floor(diff/3600000)+'h ago'
+    return Math.floor(diff/86400000)+'d ago'
+  })()
+
+  const refId = r.id ? r.id.split('-')[0] : '—'
+
+  document.getElementById('reqDetailBody').innerHTML = `
+    <div class="req-detail-status">
+      <div class="req-detail-status-inner">
+        ${stag(r.status)}
+        <div class="req-detail-status-country">${esc(r.country)}</div>
+        <div class="req-detail-status-ts">${since} · ${fmtFull(r.ts)}</div>
+      </div>
+    </div>
+
+    ${detectedBadges.length ? `<div style="margin-bottom:16px">${detectedBadges.join('')}</div>` : ''}
+
+    <div class="req-detail-section">
+      <div class="req-detail-section-label">request</div>
+      <div class="req-detail-row">
+        <span class="req-detail-key">status</span>
+        <span class="req-detail-val" style="color:${statusColor};font-weight:600">${r.status}</span>
+      </div>
+      <div class="req-detail-row">
+        <span class="req-detail-key">detected as</span>
+        <span class="req-detail-val">${r.detected === 'N/A' ? '—' : esc(r.detected)}</span>
+      </div>
+      <div class="req-detail-row">
+        <span class="req-detail-key">country</span>
+        <span class="req-detail-val">${esc(r.country)}</span>
+      </div>
+      <div class="req-detail-row">
+        <span class="req-detail-key">timestamp</span>
+        <span class="req-detail-val mono">${fmt(r.ts)}</span>
+      </div>
+      <div class="req-detail-row">
+        <span class="req-detail-key">ref id</span>
+        <span class="req-detail-val mono">${refId}…</span>
+      </div>
+    </div>
+
+    <div class="req-detail-section">
+      <div class="req-detail-section-label">client</div>
+      <div class="req-detail-row">
+        <span class="req-detail-key">browser</span>
+        <span class="req-detail-val">${esc(ua.browser)}</span>
+      </div>
+      <div class="req-detail-row">
+        <span class="req-detail-key">os</span>
+        <span class="req-detail-val">${esc(ua.os)}</span>
+      </div>
+      <div class="req-detail-row">
+        <span class="req-detail-key">device type</span>
+        <span class="req-detail-val">${deviceIcon(ua.device)} ${ua.device}</span>
+      </div>
+    </div>
+
+    ${ua.raw ? `<div class="req-detail-section">
+      <div class="req-detail-section-label">user agent</div>
+      <div class="req-detail-ua-block">${esc(ua.raw)}</div>
+    </div>` : ''}
+  `
+
+  document.getElementById('reqDetailDrawer').classList.add('open')
+  document.getElementById('reqDetailOverlay').classList.add('open')
+}
+
+function closeReqDetail() {
+  document.getElementById('reqDetailDrawer').classList.remove('open')
+  document.getElementById('reqDetailOverlay').classList.remove('open')
+  document.querySelectorAll('.req-clickable.selected').forEach(el => el.classList.remove('selected'))
+}
 
 function renderInstall(site) {
   const key = esc(site.key)
@@ -1569,6 +1804,7 @@ function nav(page) {
   document.getElementById('pageSub').textContent = sub||(site?site.domain:'')
   if (page==='requests') renderAllTable()
   if (page==='sites') renderSitesGrid()
+  closeReqDetail()
   if (page==='account') {
     document.getElementById('acctName').textContent = currentUser?.name || '—'
     document.getElementById('acctEmail').textContent = currentUser?.email || '—'
