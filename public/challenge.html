@@ -177,7 +177,7 @@ function applyChallengeUi(ui) {
       const g = parseInt(hex.slice(3,5),16)
       const b = parseInt(hex.slice(5,7),16)
       document.getElementById('glowEl').style.background =
-        radial-gradient(circle,rgba(${r},${g},${b},.06) 0%,transparent 70%)
+        `radial-gradient(circle,rgba(${r},${g},${b},.06) 0%,transparent 70%)`
     }
   }
   if (ui.css) {
