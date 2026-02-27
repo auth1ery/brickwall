@@ -38,6 +38,7 @@ here are all the features documented for brickwall:
 - request detail drawer
 - bot allowlist
 - domain migration
+- ...and more!!!!!!!!!!!!!!
 
 ### contributing
 
