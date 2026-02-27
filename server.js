@@ -332,7 +332,7 @@ app.post('/api/sites', requireAuth, async (req, res) => {
     if (!name || !domain) return res.status(400).json({ error: 'missing fields' })
     const id = uuidv4()
     const key = 'bw_live_' + crypto.randomBytes(16).toString('hex')
-    const cleanDomain = domain.replace(/^https?:\/\//, '');
+    const cleanDomain = domain.replace(/^https?:\/\//, '').split('/')[0]
     const settings = { allowCrawlers: true, blockTor: false, blockVpn: false, challengeTtl: 24, challengeUi: {} }
     await pool.query('INSERT INTO sites (id, user_id, name, domain, key, active, settings) VALUES ($1, $2, $3, $4, $5, $6, $7)', [id, req.user.id, name, cleanDomain, key, true, JSON.stringify(settings)])
     res.json({ id, userId: req.user.id, name, domain: cleanDomain, key, createdAt: Date.now(), active: true, settings })
@@ -347,7 +347,7 @@ app.put('/api/sites/:id', requireAuth, async (req, res) => {
     let rotatedKey = false
     if (req.body.name !== undefined) site.name = req.body.name
     if (req.body.domain !== undefined) {
-      const newDomain = req.body.domain.replace(/^https?:\/\
+      const newDomain = req.body.domain.replace(/^https?:\/\//, '').split('/')[0].trim()
       if (!newDomain) return res.status(400).json({ error: 'invalid domain' })
       if (newDomain !== site.domain) { site.domain = newDomain; site.key = 'bw_live_' + crypto.randomBytes(16).toString('hex'); rotatedKey = true }
     }
@@ -376,7 +376,7 @@ app.post('/api/sites/:id/domain', requireAuth, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: 'not found' })
     const { domain } = req.body
     if (!domain || typeof domain !== 'string') return res.status(400).json({ error: 'missing domain' })
-    const cleanDomain = domain.replace(/^https?:\/\
+    const cleanDomain = domain.replace(/^https?:\/\//, '').split('/')[0].trim()
     if (!cleanDomain) return res.status(400).json({ error: 'invalid domain' })
     const newKey = 'bw_live_' + crypto.randomBytes(16).toString('hex')
     await pool.query('UPDATE sites SET domain = $1, key = $2 WHERE id = $3', [cleanDomain, newKey, req.params.id])
