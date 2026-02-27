@@ -472,8 +472,49 @@ body.density-spacious td{padding:12px 14px}
 
 .an-empty{text-align:center;padding:28px 20px;color:var(--muted);font-size:11px;line-height:1.8}
 
-@media(max-width:900px){
-  .stat-cards{grid-template-columns:repeat(2,1fr)}
+/* ── bot campaigns ───────────────────────────────────────── */
+.camp-top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.alert-rules-wrap{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px}
+.alert-rule-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:11px}
+.alert-rule-row:last-of-type{border-bottom:none}
+.alert-rule-desc{flex:1;color:var(--text2)}
+.alert-rule-status{font-size:9px;font-family:var(--mono);padding:2px 7px;border-radius:2px;flex-shrink:0}
+.alert-rule-status.ok{background:rgba(74,138,92,.15);color:var(--green)}
+.alert-rule-status.firing{background:rgba(196,74,58,.2);color:var(--red);animation:pulse-red 1.5s infinite}
+@keyframes pulse-red{0%,100%{opacity:1}50%{opacity:.55}}
+.alert-rule-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 2px;line-height:1;transition:color .15s;flex-shrink:0}
+.alert-rule-remove:hover{color:var(--red)}
+.alert-add-row{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--surface2);flex-wrap:wrap}
+.alert-add-fields{display:flex;align-items:center;gap:6px;flex:1;flex-wrap:wrap}
+.alert-select{font-size:10px;font-family:var(--mono);background:var(--bg);border:1px solid var(--border);color:var(--text2);padding:5px 8px;border-radius:3px;cursor:pointer}
+.alert-thresh-input{width:54px;font-size:11px;font-family:var(--mono);text-align:center}
+.alert-empty{padding:14px;font-size:11px;color:var(--muted);font-style:italic}
+
+.active-alert{display:flex;align-items:flex-start;gap:10px;background:rgba(196,74,58,.1);border:1px solid rgba(196,74,58,.3);border-radius:4px;padding:12px 14px;margin-bottom:8px}
+.active-alert-icon{font-size:14px;flex-shrink:0;margin-top:1px}
+.active-alert-title{font-size:12px;font-weight:600;color:var(--red);margin-bottom:3px;font-family:var(--display)}
+.active-alert-desc{font-size:11px;color:var(--text2);line-height:1.5}
+
+.campaign-card{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:8px}
+.campaign-card-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;gap:10px}
+.campaign-card-head:hover{background:rgba(255,255,255,.02)}
+.campaign-severity{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.campaign-severity.high{background:var(--red)}
+.campaign-severity.med{background:var(--yellow)}
+.campaign-severity.low{background:var(--muted)}
+.campaign-title{font-size:12px;font-weight:600;color:var(--text);flex:1;min-width:0}
+.campaign-meta{font-size:10px;color:var(--muted);flex-shrink:0;font-family:var(--mono)}
+.campaign-chevron{color:var(--muted);font-size:10px;flex-shrink:0;transition:transform .15s}
+.campaign-chevron.open{transform:rotate(90deg)}
+.campaign-body{display:none;padding:0 14px 12px;border-top:1px solid var(--border)}
+.campaign-body.open{display:block}
+.campaign-signals{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px;margin-top:10px}
+.campaign-signal{display:inline-flex;align-items:center;gap:4px;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:3px 8px;font-size:10px;font-family:var(--mono);color:var(--text2)}
+.campaign-req-list{display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.campaign-req-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:10px}
+.campaign-req-item:last-child{border-bottom:none}
+
+@media(max-width:680px){.alert-add-fields{gap:4px}.alert-select{font-size:9px;padding:4px 6px}}
   .analytics-grid-2{grid-template-columns:1fr}
   .an-stat-grid{grid-template-columns:repeat(2,1fr)}
 }
@@ -533,9 +574,11 @@ body.density-spacious td{padding:12px 14px}
   <div class="nav-item active" onclick="nav('overview')" id="nav-overview"><span class="icon">▦</span> overview</div>
   <div class="nav-item" onclick="nav('requests')" id="nav-requests"><span class="icon">◈</span> all requests</div>
   <div class="nav-item" onclick="nav('analytics')" id="nav-analytics"><span class="icon">◉</span> analytics</div>
-  <div class="sidebar-section">setup</div>
+  <div class="sidebar-section">site setup</div>
   <div class="nav-item" onclick="nav('install')" id="nav-install"><span class="icon">⌥</span> installation</div>
   <div class="nav-item" onclick="nav('settings')" id="nav-settings"><span class="icon">⚙</span> site settings</div>
+  <div class="nav-item" onclick="nav('campaigns')" id="nav-campaigns"><span class="icon">⚑</span> bot campaigns</div>
+  <div class="nav-item" onclick="nav('tokenaudit')" id="nav-tokenaudit"><span class="icon">◎</span> token audit</div>
   <div class="sidebar-section">account</div>
   <div class="nav-item" onclick="nav('sites')" id="nav-sites"><span class="icon">◫</span> manage sites</div>
   <div class="nav-item" onclick="nav('account')" id="nav-account"><span class="icon">⊘</span> account</div>
@@ -698,6 +741,115 @@ body.density-spacious td{padding:12px 14px}
     <div class="panel" id="panel-settings">
       <div class="settings-form" id="settingsWrap">
         <div class="empty-state">select a site to configure its settings.</div>
+      </div>
+    </div>
+
+    <!-- BOT CAMPAIGNS PANEL -->
+    <div class="panel" id="panel-campaigns">
+      <div class="camp-top-row">
+        <div>
+          <div style="font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:-.3px">bot campaigns</div>
+          <div style="color:var(--muted);font-size:11px;margin-top:2px" id="campSubtitle">coordinated attacks and alert rules</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadCampaigns()">↻ refresh</button>
+      </div>
+
+      <!-- alerts section -->
+      <div style="font-family:var(--display);font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text2);letter-spacing:-.1px">alert rules</div>
+      <div class="alert-rules-wrap" id="alertRulesWrap">
+        <div id="alertRulesList"></div>
+        <div class="alert-add-row">
+          <div class="alert-add-fields">
+            <select id="alertMetric" class="alert-select">
+              <option value="block_rate">block rate exceeds</option>
+              <option value="flagged_rate">flagged rate exceeds</option>
+              <option value="total_per_hour">requests/hr exceeds</option>
+              <option value="zero_traffic">zero traffic for</option>
+            </select>
+            <input type="number" id="alertThreshold" class="alert-thresh-input" value="40" min="1">
+            <select id="alertUnit" class="alert-select" style="width:56px">
+              <option value="%">%</option>
+              <option value="req">req</option>
+              <option value="hr">hr</option>
+            </select>
+            <span style="font-size:10px;color:var(--muted)">in</span>
+            <select id="alertWindow" class="alert-select" style="width:72px">
+              <option value="15">15 min</option>
+              <option value="60">1 hr</option>
+              <option value="360">6 hr</option>
+              <option value="1440">24 hr</option>
+            </select>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="addAlertRule()">+ add rule</button>
+        </div>
+      </div>
+
+      <!-- active alerts -->
+      <div id="activeAlertsBanner"></div>
+
+      <!-- campaigns section -->
+      <div style="font-family:var(--display);font-size:12px;font-weight:600;margin:18px 0 8px;color:var(--text2);letter-spacing:-.1px;display:flex;align-items:center;justify-content:space-between">
+        <span>detected campaigns</span>
+        <span style="font-size:10px;color:var(--muted);font-weight:400">clusters of coordinated bot activity</span>
+      </div>
+      <div id="campaignsList"><div class="an-empty" style="background:var(--surface);border:1px solid var(--border);border-radius:4px">no campaigns detected yet — campaigns appear when 3+ requests share a subnet, user agent, or time window within 10 minutes.</div></div>
+    </div>
+
+    <!-- TOKEN AUDIT PANEL -->
+    <div class="panel" id="panel-tokenaudit">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <div>
+          <div style="font-family:var(--display);font-size:15px;font-weight:700;letter-spacing:-.3px">token audit</div>
+          <div style="color:var(--muted);font-size:11px;margin-top:2px" id="tokenAuditSubtitle">token lifetime and re-challenge schedule</div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="loadTokenAudit()">↻ refresh</button>
+      </div>
+
+      <div class="an-stat-grid" id="tokenStatGrid" style="margin-bottom:10px">
+        <div class="an-stat"><div class="an-stat-label">est. valid tokens</div><div class="an-stat-val">—</div></div>
+        <div class="an-stat"><div class="an-stat-label">ttl setting</div><div class="an-stat-val">—</div></div>
+        <div class="an-stat"><div class="an-stat-label">expiring next hr</div><div class="an-stat-val">—</div></div>
+        <div class="an-stat"><div class="an-stat-label">avg daily humans</div><div class="an-stat-val">—</div></div>
+      </div>
+
+      <div class="analytics-grid-2" style="margin-bottom:10px">
+        <div class="analytics-block">
+          <div class="analytics-block-head">
+            <div class="analytics-block-title">re-challenge wave (next 24h)</div>
+            <div class="analytics-block-sub">est. tokens expiring per hour</div>
+          </div>
+          <div class="analytics-block-body" style="padding-bottom:8px">
+            <div id="tokenWaveChart" style="min-height:100px"></div>
+          </div>
+        </div>
+        <div class="analytics-block">
+          <div class="analytics-block-head">
+            <div class="analytics-block-title">token coverage</div>
+            <div class="analytics-block-sub">valid vs expired estimates</div>
+          </div>
+          <div class="analytics-block-body">
+            <div id="tokenCoverageDonut" class="donut-wrap"><div class="an-empty" style="width:100%;padding:16px 0">—</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="analytics-block" style="margin-bottom:10px">
+        <div class="analytics-block-head">
+          <div class="analytics-block-title">passes over time vs ttl window</div>
+          <div class="analytics-block-sub">green = in-window · grey = re-challenges (expired)</div>
+        </div>
+        <div class="analytics-block-body" style="padding-bottom:8px">
+          <div id="tokenTimelineChart" style="min-height:110px"></div>
+        </div>
+      </div>
+
+      <div class="analytics-block">
+        <div class="analytics-block-head">
+          <div class="analytics-block-title">token health metrics</div>
+        </div>
+        <div class="analytics-block-body">
+          <div id="tokenInsightList"><div class="an-empty">—</div></div>
+        </div>
       </div>
     </div>
 
@@ -1378,8 +1530,468 @@ function renderDensityBtns() {
 function renderCustomizePanel() { renderPresetGrid(); renderColorRows(); renderFontGrid(); renderDensityBtns() }
 
 // ── init ───────────────────────────────────────────────────────────
+// ── bot campaigns + alerts ─────────────────────────────────────────
+
+let alertRules = []
+const ALERT_STORAGE_KEY = 'bw_alert_rules'
+
+function loadAlertRules() {
+  try { alertRules = JSON.parse(localStorage.getItem(ALERT_STORAGE_KEY) || '[]') } catch { alertRules = [] }
+}
+
+function saveAlertRules() { localStorage.setItem(ALERT_STORAGE_KEY, JSON.stringify(alertRules)) }
+
+function addAlertRule() {
+  const metric = document.getElementById('alertMetric').value
+  const threshold = parseFloat(document.getElementById('alertThreshold').value) || 40
+  const unit = document.getElementById('alertUnit').value
+  const window = parseInt(document.getElementById('alertWindow').value) || 60
+  const id = Date.now().toString(36)
+  alertRules.push({ id, metric, threshold, unit, window })
+  saveAlertRules()
+  renderAlertRules()
+}
+
+function removeAlertRule(id) {
+  alertRules = alertRules.filter(r => r.id !== id)
+  saveAlertRules()
+  renderAlertRules()
+}
+
+function ruleLabel(r) {
+  const metricLabels = { block_rate:'block rate', flagged_rate:'flagged rate', total_per_hour:'requests/hr', zero_traffic:'zero traffic' }
+  const windowLabels = { 15:'15 min', 60:'1 hr', 360:'6 hr', 1440:'24 hr' }
+  if (r.metric === 'zero_traffic') return `zero traffic for ${windowLabels[r.window] || r.window + 'min'}`
+  return `${metricLabels[r.metric] || r.metric} exceeds ${r.threshold}${r.unit} in ${windowLabels[r.window] || r.window + 'min'}`
+}
+
+function evaluateRule(rule, reqs) {
+  const windowMs = rule.window * 60 * 1000
+  const since = Date.now() - windowMs
+  const recent = reqs.filter(r => r.ts > since)
+  if (rule.metric === 'zero_traffic') return recent.length === 0
+  if (rule.metric === 'block_rate') {
+    if (!recent.length) return false
+    const rate = recent.filter(r => r.status === 'blocked').length / recent.length * 100
+    return rate > rule.threshold
+  }
+  if (rule.metric === 'flagged_rate') {
+    if (!recent.length) return false
+    const rate = recent.filter(r => r.status === 'flagged').length / recent.length * 100
+    return rate > rule.threshold
+  }
+  if (rule.metric === 'total_per_hour') {
+    const perHour = recent.length / (rule.window / 60)
+    return perHour > rule.threshold
+  }
+  return false
+}
+
+function renderAlertRules() {
+  const list = document.getElementById('alertRulesList')
+  if (!list) return
+  if (!alertRules.length) {
+    list.innerHTML = '<div class="alert-empty">no alert rules yet — add one below</div>'
+    return
+  }
+  list.innerHTML = alertRules.map(r => {
+    const firing = evaluateRule(r, allRequests)
+    return `<div class="alert-rule-row">
+      <div class="alert-rule-desc">${esc(ruleLabel(r))}</div>
+      <span class="alert-rule-status ${firing ? 'firing' : 'ok'}">${firing ? '● firing' : '✓ ok'}</span>
+      <button class="alert-rule-remove" onclick="removeAlertRule('${r.id}')" title="remove">×</button>
+    </div>`
+  }).join('')
+}
+
+function renderActiveAlerts() {
+  const el = document.getElementById('activeAlertsBanner')
+  if (!el) return
+  const firing = alertRules.filter(r => evaluateRule(r, allRequests))
+  if (!firing.length) { el.innerHTML = ''; return }
+  el.innerHTML = firing.map(r => {
+    const windowLabels = { 15:'last 15 min', 60:'last hr', 360:'last 6 hr', 1440:'last 24 hr' }
+    const windowMs = r.window * 60 * 1000
+    const recent = allRequests.filter(x => x.ts > Date.now() - windowMs)
+    let detail = ''
+    if (r.metric === 'block_rate' && recent.length) {
+      const rate = Math.round(recent.filter(x => x.status === 'blocked').length / recent.length * 100)
+      detail = `${rate}% of ${recent.length} requests blocked in the ${windowLabels[r.window] || r.window + 'min'}`
+    } else if (r.metric === 'flagged_rate' && recent.length) {
+      const rate = Math.round(recent.filter(x => x.status === 'flagged').length / recent.length * 100)
+      detail = `${rate}% of ${recent.length} requests flagged in the ${windowLabels[r.window] || r.window + 'min'}`
+    } else if (r.metric === 'total_per_hour') {
+      const perHour = Math.round(recent.length / (r.window / 60))
+      detail = `${perHour} req/hr in the ${windowLabels[r.window]}, threshold is ${r.threshold}`
+    } else if (r.metric === 'zero_traffic') {
+      detail = `no requests logged in the ${windowLabels[r.window] || r.window + 'min'} — script may be broken`
+    }
+    return `<div class="active-alert">
+      <div class="active-alert-icon">⚠</div>
+      <div><div class="active-alert-title">alert: ${esc(ruleLabel(r))}</div><div class="active-alert-desc">${esc(detail)}</div></div>
+    </div>`
+  }).join('')
+}
+
+function detectCampaigns(reqs) {
+  if (!reqs || reqs.length < 3) return []
+  const TEN_MIN = 10 * 60 * 1000
+  const campaigns = []
+
+  // Group by /24 subnet (first 3 octets of IP — we don't have IPs, so cluster by country+detected+ua pattern)
+  // Since we don't store raw IPs in the frontend, cluster by: detected type + country + time proximity
+  const nonPassed = reqs.filter(r => r.status !== 'passed' || r.detected === 'headless' || r.detected === 'tor' || r.detected === 'datacenter')
+
+  // Cluster by detected type within time windows
+  const typeGroups = {}
+  nonPassed.forEach(r => {
+    const key = r.detected + '|' + r.country
+    if (!typeGroups[key]) typeGroups[key] = []
+    typeGroups[key].push(r)
+  })
+
+  Object.entries(typeGroups).forEach(([key, group]) => {
+    if (group.length < 3) return
+    // Find time clusters within the group
+    const sorted = [...group].sort((a,b) => a.ts - b.ts)
+    let clusterStart = 0
+    while (clusterStart < sorted.length) {
+      const windowEnd = sorted[clusterStart].ts + TEN_MIN
+      let end = clusterStart
+      while (end < sorted.length && sorted[end].ts <= windowEnd) end++
+      const cluster = sorted.slice(clusterStart, end)
+      if (cluster.length >= 3) {
+        const [detected, country] = key.split('|')
+        const blocked = cluster.filter(r => r.status === 'blocked').length
+        const flagged = cluster.filter(r => r.status === 'flagged').length
+        const severity = blocked >= cluster.length * 0.7 ? 'high' : flagged >= cluster.length * 0.4 ? 'med' : 'low'
+        const durationMin = Math.round((cluster[cluster.length-1].ts - cluster[0].ts) / 60000) || 1
+        campaigns.push({
+          id: key + clusterStart,
+          detected, country,
+          count: cluster.length,
+          blocked, flagged,
+          severity,
+          durationMin,
+          start: cluster[0].ts,
+          requests: cluster.slice(0, 8),
+        })
+        clusterStart = end
+      } else {
+        clusterStart++
+      }
+    }
+  })
+
+  return campaigns.sort((a, b) => {
+    const sev = { high: 2, med: 1, low: 0 }
+    return (sev[b.severity] - sev[a.severity]) || (b.count - a.count)
+  })
+}
+
+function renderCampaigns(campaigns) {
+  const el = document.getElementById('campaignsList')
+  if (!el) return
+  if (!campaigns.length) {
+    el.innerHTML = '<div class="an-empty" style="background:var(--surface);border:1px solid var(--border);border-radius:4px">no campaigns detected — campaigns appear when 3+ suspicious requests share a detection type, country, and time window within 10 minutes.</div>'
+    return
+  }
+
+  el.innerHTML = campaigns.map((c, i) => {
+    const since = (() => {
+      const diff = Date.now() - c.start
+      if (diff < 3600000) return Math.floor(diff/60000)+'m ago'
+      if (diff < 86400000) return Math.floor(diff/3600000)+'h ago'
+      return Math.floor(diff/86400000)+'d ago'
+    })()
+    const signals = []
+    if (c.detected && c.detected !== 'N/A') signals.push({ label: c.detected, color: c.detected === 'tor' ? '#9b59b6' : c.detected === 'headless' ? 'var(--red)' : 'var(--yellow)' })
+    signals.push({ label: c.country, color: 'var(--muted)' })
+    signals.push({ label: c.durationMin + ' min window', color: 'var(--muted)' })
+    signals.push({ label: c.blocked + ' blocked', color: 'var(--red)' })
+    if (c.flagged) signals.push({ label: c.flagged + ' flagged', color: 'var(--yellow)' })
+
+    const reqRows = c.requests.map(r => `
+      <div class="campaign-req-item">
+        <span style="color:var(--muted);font-family:var(--mono);width:80px;flex-shrink:0">${fmt(r.ts)}</span>
+        ${stag(r.status)}
+        <span style="color:var(--text2);flex:1">${esc(r.country)}</span>
+        <span style="color:var(--muted);font-family:var(--mono)">${r.detected === 'N/A' ? '—' : esc(r.detected)}</span>
+      </div>
+    `).join('')
+
+    return `<div class="campaign-card">
+      <div class="campaign-card-head" onclick="toggleCampaign('camp-${i}')">
+        <div class="campaign-severity ${c.severity}"></div>
+        <div class="campaign-title">${c.count} ${esc(c.detected !== 'N/A' ? c.detected : 'suspicious')} requests · ${esc(c.country)}</div>
+        <div class="campaign-meta">${since}</div>
+        <span class="campaign-chevron" id="chev-camp-${i}">▶</span>
+      </div>
+      <div class="campaign-body" id="camp-${i}">
+        <div class="campaign-signals">${signals.map(s => `<span class="campaign-signal" style="color:${s.color}">${esc(s.label)}</span>`).join('')}</div>
+        <div class="campaign-req-list">${reqRows}</div>
+        ${c.requests.length < c.count ? `<div style="font-size:10px;color:var(--muted);margin-top:6px;text-align:right">showing ${c.requests.length} of ${c.count} requests</div>` : ''}
+      </div>
+    </div>`
+  }).join('')
+}
+
+function toggleCampaign(id) {
+  const body = document.getElementById(id)
+  const chev = document.getElementById('chev-' + id)
+  if (!body) return
+  const open = body.classList.toggle('open')
+  if (chev) chev.classList.toggle('open', open)
+}
+
+async function loadCampaigns() {
+  if (!currentSiteId) return
+  loadAlertRules()
+  // ensure requests are loaded
+  if (!allRequests.length) await loadRequests()
+  const site = sites.find(s => s.id === currentSiteId)
+  document.getElementById('campSubtitle').textContent = (site ? site.domain + ' · ' : '') + 'coordinated attacks and alert rules'
+  renderAlertRules()
+  renderActiveAlerts()
+  const campaigns = detectCampaigns(allRequests)
+  renderCampaigns(campaigns)
+}
+
+// ── token audit ────────────────────────────────────────────────────
+
+async function loadTokenAudit() {
+  if (!currentSiteId) return
+  const site = sites.find(s => s.id === currentSiteId)
+  if (!site) return
+  document.getElementById('tokenAuditSubtitle').textContent = (site ? site.domain + ' · ' : '') + 'token lifetime and re-challenge schedule'
+  if (!allRequests.length) await loadRequests()
+  renderTokenAudit(site, allRequests)
+}
+
+function renderTokenAudit(site, reqs) {
+  const ttlHrs = site.settings.challengeTtl || 24
+  const ttlMs = ttlHrs * 3600000
+  const now = Date.now()
+
+  // Only count human passes (status=passed, not crawler/allowed bots)
+  const humanPasses = reqs.filter(r => r.status === 'passed')
+
+  // Estimate valid = passes within the last TTL window
+  const validPasses = humanPasses.filter(r => r.ts > now - ttlMs)
+  const expiredPasses = humanPasses.filter(r => r.ts <= now - ttlMs)
+
+  // Avg daily humans (last 14d)
+  const last14d = humanPasses.filter(r => r.ts > now - 14 * 86400000)
+  const avgDailyHumans = Math.round(last14d.length / 14)
+
+  // Expiring next hour: passes from (now - ttlMs) to (now - ttlMs + 1hr)
+  const expiringNextHr = humanPasses.filter(r => r.ts > now - ttlMs && r.ts <= now - ttlMs + 3600000)
+
+  // Re-challenge wave: for each hour in the next 24h, how many tokens expire?
+  const waveData = []
+  for (let h = 0; h < 24; h++) {
+    const windowStart = now - ttlMs + h * 3600000
+    const windowEnd = windowStart + 3600000
+    const count = humanPasses.filter(r => r.ts >= windowStart && r.ts < windowEnd).length
+    waveData.push({ hour: h, count })
+  }
+
+  // Stat cards
+  document.getElementById('tokenStatGrid').innerHTML = `
+    <div class="an-stat green">
+      <div class="an-stat-label">est. valid tokens</div>
+      <div class="an-stat-val" style="color:var(--green)">${fmtN(validPasses.length)}</div>
+      <div class="an-stat-sub">active right now</div>
+    </div>
+    <div class="an-stat">
+      <div class="an-stat-label">ttl setting</div>
+      <div class="an-stat-val">${ttlHrs}<span style="font-size:14px;font-weight:400;letter-spacing:0">h</span></div>
+      <div class="an-stat-sub"><a href="#" onclick="nav('settings');return false" style="color:var(--accent2);text-decoration:none">change in settings →</a></div>
+    </div>
+    <div class="an-stat yellow">
+      <div class="an-stat-label">expiring next hr</div>
+      <div class="an-stat-val" style="color:var(--yellow)">${fmtN(expiringNextHr.length)}</div>
+      <div class="an-stat-sub">will need re-challenge</div>
+    </div>
+    <div class="an-stat">
+      <div class="an-stat-label">avg daily humans</div>
+      <div class="an-stat-val">${fmtN(avgDailyHumans)}</div>
+      <div class="an-stat-sub">14-day average</div>
+    </div>
+  `
+
+  renderTokenWaveChart(waveData)
+  renderTokenCoverageDonut(validPasses.length, expiredPasses.length)
+  renderTokenTimeline(humanPasses, ttlMs)
+  renderTokenInsights(site, humanPasses, validPasses, ttlHrs, avgDailyHumans, waveData)
+}
+
+function renderTokenWaveChart(waveData) {
+  const el = document.getElementById('tokenWaveChart')
+  if (!el) return
+  const max = Math.max(...waveData.map(d => d.count), 1)
+  const W = 500, H = 100
+  const padL = 30, padR = 8, padT = 8, padB = 20
+  const chartW = W - padL - padR, chartH = H - padT - padB
+  const step = chartW / 24
+  const barW = Math.max(3, step * 0.72)
+
+  let grid = '', bars = '', labels = ''
+  for (let i = 0; i <= 3; i++) {
+    const y = padT + chartH * (1 - i / 3)
+    const val = Math.round(max * i / 3)
+    grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${(padL+chartW).toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(255,255,255,.05)" stroke-width="1"/>`
+    grid += `<text x="${(padL-4).toFixed(1)}" y="${(y+3).toFixed(1)}" text-anchor="end" font-size="8" fill="rgba(255,255,255,.22)">${val}</text>`
+  }
+
+  waveData.forEach((d, i) => {
+    const cx = padL + step * i + step / 2
+    const barH = (d.count / max) * chartH
+    const y = padT + chartH - barH
+    const isNow = i === 0
+    bars += `<rect x="${(cx - barW/2).toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${Math.max(barH,1).toFixed(1)}" fill="${isNow ? 'var(--yellow)' : 'var(--accent2)'}" opacity="${isNow ? '.9' : '.55'}" rx="1"/>`
+    if (i % 6 === 0) {
+      const label = i === 0 ? 'now' : '+' + i + 'h'
+      labels += `<text x="${cx.toFixed(1)}" y="${(padT+chartH+13).toFixed(1)}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.28)">${label}</text>`
+    }
+  })
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;display:block">${grid}${bars}${labels}</svg>`
+}
+
+function renderTokenCoverageDonut(valid, expired) {
+  const el = document.getElementById('tokenCoverageDonut')
+  if (!el) return
+  const total = valid + expired
+  if (!total) { el.innerHTML = '<div class="an-empty" style="width:100%;padding:16px 0">no passes recorded yet</div>'; return }
+
+  const segs = [
+    { label: 'valid tokens', count: valid, color: 'var(--green)' },
+    { label: 'expired tokens', count: expired, color: 'var(--border2)' },
+  ].filter(s => s.count > 0)
+
+  const size = 88, cx = 44, cy = 44, r = 36, inner = 22
+  let paths = '', angle = -Math.PI / 2
+  segs.forEach(seg => {
+    const frac = seg.count / total
+    const a = frac * 2 * Math.PI
+    const x1 = cx + r * Math.cos(angle), y1 = cy + r * Math.sin(angle)
+    const x2 = cx + r * Math.cos(angle+a), y2 = cy + r * Math.sin(angle+a)
+    const xi1 = cx + inner * Math.cos(angle), yi1 = cy + inner * Math.sin(angle)
+    const xi2 = cx + inner * Math.cos(angle+a), yi2 = cy + inner * Math.sin(angle+a)
+    const large = a > Math.PI ? 1 : 0
+    paths += `<path d="M${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large},1 ${x2.toFixed(2)},${y2.toFixed(2)} L${xi2.toFixed(2)},${yi2.toFixed(2)} A${inner},${inner} 0 ${large},0 ${xi1.toFixed(2)},${yi1.toFixed(2)} Z" fill="${seg.color}" opacity=".85"/>`
+    angle += a
+  })
+  const pct = Math.round(valid / total * 100)
+  paths += `<text x="${cx}" y="${cy-3}" text-anchor="middle" font-size="12" fill="rgba(255,255,255,.85)" font-weight="700">${pct}%</text>`
+  paths += `<text x="${cx}" y="${cy+9}" text-anchor="middle" font-size="7" fill="rgba(255,255,255,.32)">valid</text>`
+
+  el.innerHTML = `
+    <svg viewBox="0 0 ${size} ${size}" style="width:${size}px;height:${size}px;flex-shrink:0">${paths}</svg>
+    <div class="donut-legend">
+      ${segs.map(s => `<div class="donut-legend-item"><div class="donut-legend-dot" style="background:${s.color}"></div><div class="donut-legend-label">${s.label}</div><div class="donut-legend-pct">${Math.round(s.count/total*100)}%</div></div>`).join('')}
+    </div>
+  `
+}
+
+function renderTokenTimeline(humanPasses, ttlMs) {
+  const el = document.getElementById('tokenTimelineChart')
+  if (!el || !humanPasses.length) { if (el) el.innerHTML = '<div class="an-empty">no human passes recorded</div>'; return }
+
+  // Show last 7 days as timeline
+  const days = 7
+  const now = Date.now()
+  const since = now - days * 86400000
+  const recent = humanPasses.filter(r => r.ts > since)
+  if (!recent.length) { el.innerHTML = '<div class="an-empty">no passes in the last 7 days</div>'; return }
+
+  const W = 600, H = 110
+  const padL = 30, padR = 8, padT = 10, padB = 20
+  const chartW = W - padL - padR, chartH = H - padT - padB
+
+  // Map each pass as a point: x = time, y = random scatter for visibility
+  const totalMs = days * 86400000
+  let grid = '', dots = '', labels = ''
+
+  // Draw TTL boundary line — the line that moves left as time progresses (tokens older than TTL are expired)
+  const ttlX = padL + (1 - ttlMs / totalMs) * chartW
+  if (ttlX > padL && ttlX < padL + chartW) {
+    grid += `<line x1="${ttlX.toFixed(1)}" y1="${padT}" x2="${ttlX.toFixed(1)}" y2="${(padT+chartH).toFixed(1)}" stroke="var(--yellow)" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>`
+    grid += `<text x="${(ttlX+4).toFixed(1)}" y="${(padT+10).toFixed(1)}" font-size="8" fill="rgba(255,200,0,.5)">TTL boundary</text>`
+  }
+
+  // Day grid lines
+  for (let d = 0; d <= days; d++) {
+    const x = padL + (d / days) * chartW
+    grid += `<line x1="${x.toFixed(1)}" y1="${padT}" x2="${x.toFixed(1)}" y2="${(padT+chartH).toFixed(1)}" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`
+    if (d < days) {
+      const dayDate = new Date(since + d * 86400000)
+      labels += `<text x="${(x + chartW/days/2).toFixed(1)}" y="${(padT+chartH+13).toFixed(1)}" text-anchor="middle" font-size="8" fill="rgba(255,255,255,.25)">${p(dayDate.getMonth()+1)+'/'+p(dayDate.getDate())}</text>`
+    }
+  }
+
+  // Plot passes as dots, colored by whether still valid
+  recent.forEach((pass, i) => {
+    const x = padL + ((pass.ts - since) / totalMs) * chartW
+    const isValid = pass.ts > now - ttlMs
+    // Spread vertically with a seeded pseudo-random
+    const yFrac = ((i * 2654435761) % 1000) / 1000
+    const y = padT + 4 + yFrac * (chartH - 8)
+    const color = isValid ? 'var(--green)' : 'rgba(255,255,255,.15)'
+    dots += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="2.5" fill="${color}" opacity=".85"/>`
+  })
+
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:${H}px;display:block">${grid}${dots}${labels}</svg>`
+}
+
+function renderTokenInsights(site, humanPasses, validPasses, ttlHrs, avgDailyHumans, waveData) {
+  const el = document.getElementById('tokenInsightList')
+  if (!el) return
+  const now = Date.now()
+
+  const peakWaveHour = waveData.reduce((best, d) => d.count > best.count ? d : best, waveData[0])
+  const peakWaveStr = peakWaveHour.hour === 0 ? 'now' : 'in +' + peakWaveHour.hour + 'h (' + fmtN(peakWaveHour.count) + ' tokens)'
+
+  const avgHoursBeforeExpiry = humanPasses.length > 1
+    ? (() => {
+        const sorted = [...humanPasses].sort((a,b) => a.ts-b.ts)
+        // estimate unique visitors by grouping passes separated by > TTL
+        return ttlHrs // just show the configured TTL as the designed expiry
+      })()
+    : ttlHrs
+
+  const rechallengeRate = humanPasses.length > 0
+    ? (humanPasses.filter(r => {
+        // a re-challenge is a pass that occurs after a prior pass from the same context within 2x TTL
+        return false // can't determine without user identity — show as N/A
+      }).length)
+    : null
+
+  const last24h = humanPasses.filter(r => r.ts > now - 86400000).length
+  const last7d = humanPasses.filter(r => r.ts > now - 7 * 86400000).length
+
+  function row(k, v, cls) { return `<div class="insight-row"><div class="insight-key">${k}</div><div class="insight-val ${cls||''}">${v}</div></div>` }
+
+  el.innerHTML = [
+    row('current ttl setting', ttlHrs + ' hours'),
+    row('estimated valid tokens now', fmtN(validPasses.length), 'green'),
+    row('tokens expiring next hour', fmtN(waveData[0]?.count || 0), waveData[0]?.count > avgDailyHumans ? 'yellow' : ''),
+    row('peak re-challenge wave', esc(peakWaveStr), 'yellow'),
+    row('human passes last 24h', fmtN(last24h)),
+    row('human passes last 7d', fmtN(last7d)),
+    row('avg human passes / day', fmtN(avgDailyHumans)),
+    row('total all-time human passes', fmtN(humanPasses.length)),
+    row('ttl efficiency', ttlHrs >= 24 ? 'good — low re-challenge friction' : ttlHrs <= 4 ? 'very short — high re-challenge rate' : 'moderate', ttlHrs >= 24 ? 'green' : ttlHrs <= 4 ? 'red' : 'yellow'),
+    row('recommended ttl', avgDailyHumans > 500 ? '24h — high traffic, keep friction low' : avgDailyHumans > 50 ? '12–24h — balanced' : '6–12h — low traffic, tighter is fine'),
+  ].join('')
+}
+
+// ─────────────────────────────────────────────────────────────────────
+
 async function init() {
   loadCustomize()
+  loadAlertRules()
   try {
     const r = await fetch('/api/auth/me')
     if (!r.ok) { window.location.href = '/'; return }
@@ -1764,6 +2376,7 @@ function renderSettings(site) {
         </div>
       </div>
     </div>
+  ` + renderChallengeSettings(site) + `
     <div class="danger-zone">
       <h4>danger zone</h4>
       <div style="margin-bottom:14px">
@@ -1777,7 +2390,7 @@ function renderSettings(site) {
         <button class="btn btn-danger btn-sm" onclick="openDeleteAccount()">delete account</button>
       </div>
     </div>
-  ` + renderChallengeSettings(site)
+  `
 }
 
 const CHALLENGE_COLOR_VARS = [
@@ -2112,13 +2725,15 @@ async function doAddSite() {
 }
 
 const panelTitles = {
-  overview:  ['overview', ''],
-  requests:  ['all requests', 'every verification attempt'],
-  analytics: ['analytics', 'traffic, bots, and insights'],
-  install:   ['installation', 'embed brickwall on your site'],
-  settings:  ['site settings', 'configure protection options'],
-  sites:     ['manage sites', 'add, switch, or remove sites'],
-  account:   ['account', 'your profile and danger zone'],
+  overview:   ['overview', ''],
+  requests:   ['all requests', 'every verification attempt'],
+  analytics:  ['analytics', 'traffic, bots, and insights'],
+  install:    ['installation', 'embed brickwall on your site'],
+  settings:   ['site settings', 'configure protection options'],
+  campaigns:  ['bot campaigns', 'coordinated attacks and alert rules'],
+  tokenaudit: ['token audit', 'token lifetime and re-challenge schedule'],
+  sites:      ['manage sites', 'add, switch, or remove sites'],
+  account:    ['account', 'your profile and danger zone'],
 }
 
 function nav(page) {
@@ -2133,6 +2748,8 @@ function nav(page) {
   if (page==='requests') renderAllTable()
   if (page==='sites') renderSitesGrid()
   if (page==='analytics') loadAnalytics()
+  if (page==='campaigns') loadCampaigns()
+  if (page==='tokenaudit') loadTokenAudit()
   closeReqDetail()
   if (page==='account') {
     document.getElementById('acctName').textContent = currentUser?.name || '—'
