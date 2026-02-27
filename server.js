@@ -9,6 +9,8 @@ const { Pool } = require('pg')
 let geoip = null
 try { geoip = require('geoip-lite') } catch { console.warn('geoip-lite not installed — country lookup disabled. run: npm install geoip-lite') }
 
+// ah. server code. boutta make this the most messy gremlin ever
+
 const app = express()
 const PORT = process.env.PORT || 3000
 const SECRET = process.env.JWT_SECRET || (() => { console.warn('WARNING: JWT_SECRET not set'); return crypto.randomBytes(48).toString('hex') })()
