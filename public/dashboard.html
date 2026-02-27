@@ -9,7 +9,7 @@
 |_.__/|_|  |_|\___|_|\_\  \_/\_/ \__,_|_|_|
 -->
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>dashboard — brickwall</title>
 <link rel="stylesheet" href="/css/shared.css">
 <style>
@@ -307,10 +307,6 @@ tr.req-clickable.selected td{background:rgba(255,255,255,.05)}
 .req-card.req-clickable{cursor:pointer}
 .req-card.req-clickable:hover{background:rgba(255,255,255,.02)}
 .req-card.selected{background:rgba(255,255,255,.03)}
-@media(max-width:680px){
-  .req-detail-drawer{width:100%;border-left:none;border-top:1px solid var(--border2);top:auto;height:75vh;transform:translateY(100%)}
-  .req-detail-drawer.open{transform:translateY(0)}
-}
 
 .customize-group{background:var(--surface);border:1px solid var(--border);border-radius:4px;margin-bottom:12px;overflow:hidden}
 .customize-group-head{padding:11px 16px;border-bottom:1px solid var(--border);font-family:var(--display);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:8px}
@@ -422,7 +418,6 @@ body.density-spacious .stat-card{padding:20px 22px}
 body.density-spacious .sc-value{font-size:30px}
 body.density-spacious td{padding:12px 14px}
 
-/* ── analytics panel ─────────────────────────────────────── */
 .analytics-time-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .period-tabs{display:flex;border:1px solid var(--border);border-radius:3px;overflow:hidden}
 .period-tab{padding:6px 14px;font-size:10px;font-family:var(--mono);color:var(--muted);background:var(--bg);border:none;cursor:pointer;transition:all .15s}
@@ -479,7 +474,6 @@ body.density-spacious td{padding:12px 14px}
 
 .an-empty{text-align:center;padding:28px 20px;color:var(--muted);font-size:11px;line-height:1.8}
 
-/* ── bot campaigns ───────────────────────────────────────── */
 .camp-top-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 .alert-rules-wrap{background:var(--surface);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-bottom:10px}
 .alert-rule-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);font-size:11px}
@@ -521,18 +515,36 @@ body.density-spacious td{padding:12px 14px}
 .campaign-req-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-bottom:1px solid var(--border);font-size:10px}
 .campaign-req-item:last-child{border-bottom:none}
 
-@media(max-width:680px){.alert-add-fields{gap:4px}.alert-select{font-size:9px;padding:4px 6px}}
+.mobile-bottomnav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:var(--surface);border-top:1px solid var(--border);
+  padding:6px 0 calc(6px + env(safe-area-inset-bottom));
+  z-index:300;
+  grid-template-columns:repeat(5,1fr);
+}
+.mobile-bottomnav-item{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:6px 4px;font-size:9px;color:var(--muted);
+  cursor:pointer;border:none;background:none;font-family:var(--mono);
+  transition:color .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.mobile-bottomnav-item.active{color:var(--accent)}
+.mobile-bottomnav-icon{font-size:17px;line-height:1}
+
+@media(max-width:680px){
+  .req-detail-drawer{width:100%;border-left:none;border-top:1px solid var(--border2);top:auto;height:75vh;transform:translateY(100%)}
+  .req-detail-drawer.open{transform:translateY(0)}
   .analytics-grid-2{grid-template-columns:1fr}
   .an-stat-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:680px){
   .sidebar{position:fixed;left:-240px;top:0;bottom:0;width:240px;z-index:200;transition:left .25s ease}
   .sidebar.open{left:0;box-shadow:4px 0 24px rgba(0,0,0,.5)}
   .sidebar-close{display:block}
   .sidebar-overlay.open{display:block}
   .menu-btn{display:flex}
   .main{min-height:0}
-  .content{padding:14px}
+  .content{padding:14px;padding-bottom:80px}
   table{display:none}
   .req-cards{display:flex}
   .filter-input{width:120px}
@@ -544,13 +556,28 @@ body.density-spacious td{padding:12px 14px}
   .settings-ttl{gap:6px}
   .preset-grid{grid-template-columns:repeat(3,1fr)}
   .font-grid{grid-template-columns:repeat(2,1fr)}
+  .mobile-bottomnav{display:grid}
+  .modal-bg{align-items:flex-end;padding:0}
+  .modal{max-width:100%;border-radius:12px 12px 0 0;border-bottom:none}
+  .terminal-modal-bg{align-items:flex-end;padding:0}
+  .terminal-modal{border-radius:12px 12px 0 0;max-width:100%}
 }
+
 @media(max-width:440px){
-  .stat-cards{grid-template-columns:1fr 1fr}
+  .stat-cards{
+    display:flex;overflow-x:auto;gap:8px;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
+    padding-bottom:4px;
+  }
+  .stat-cards::-webkit-scrollbar{display:none}
+  .stat-card{min-width:130px;scroll-snap-align:start;flex-shrink:0}
   .sc-value{font-size:22px}
   .an-stat-val{font-size:20px}
   .topbar{padding:10px 14px}
-  .content{padding:12px}
+  .content{padding:12px;padding-bottom:80px}
+  #trafficChart,#hourlyChart,#tokenWaveChart{min-height:80px}
 }
 </style>
 </head>
@@ -614,7 +641,6 @@ body.density-spacious td{padding:12px 14px}
   </div>
   <div class="content">
 
-    <!-- OVERVIEW PANEL -->
     <div class="panel active" id="panel-overview">
       <div class="stat-cards" id="statCards">
         <div class="stat-card"><div class="sc-label">total requests</div><div class="sc-value">—</div></div>
@@ -632,7 +658,6 @@ body.density-spacious td{padding:12px 14px}
       </div>
     </div>
 
-    <!-- REQUESTS PANEL -->
     <div class="panel" id="panel-requests">
       <div class="req-table-wrap">
         <div class="req-table-head">
@@ -647,7 +672,6 @@ body.density-spacious td{padding:12px 14px}
       </div>
     </div>
 
-    <!-- ANALYTICS PANEL -->
     <div class="panel" id="panel-analytics">
       <div class="analytics-time-row">
         <div>
@@ -737,21 +761,18 @@ body.density-spacious td{padding:12px 14px}
       </div>
     </div>
 
-    <!-- INSTALL PANEL -->
     <div class="panel" id="panel-install">
       <div class="install-wrap" id="installWrap">
         <div class="empty-state">select or add a site to see installation instructions.</div>
       </div>
     </div>
 
-    <!-- SETTINGS PANEL -->
     <div class="panel" id="panel-settings">
       <div class="settings-form" id="settingsWrap">
         <div class="empty-state">select a site to configure its settings.</div>
       </div>
     </div>
 
-    <!-- BOT CAMPAIGNS PANEL -->
     <div class="panel" id="panel-campaigns">
       <div class="camp-top-row">
         <div>
@@ -761,7 +782,6 @@ body.density-spacious td{padding:12px 14px}
         <button class="btn btn-ghost btn-sm" onclick="loadCampaigns()">↻ refresh</button>
       </div>
 
-      <!-- alerts section -->
       <div style="font-family:var(--display);font-size:12px;font-weight:600;margin-bottom:8px;color:var(--text2);letter-spacing:-.1px">alert rules</div>
       <div class="alert-rules-wrap" id="alertRulesWrap">
         <div id="alertRulesList"></div>
@@ -791,10 +811,8 @@ body.density-spacious td{padding:12px 14px}
         </div>
       </div>
 
-      <!-- active alerts -->
       <div id="activeAlertsBanner"></div>
 
-      <!-- campaigns section -->
       <div style="font-family:var(--display);font-size:12px;font-weight:600;margin:18px 0 8px;color:var(--text2);letter-spacing:-.1px;display:flex;align-items:center;justify-content:space-between">
         <span>detected campaigns</span>
         <span style="font-size:10px;color:var(--muted);font-weight:400">clusters of coordinated bot activity</span>
@@ -802,7 +820,6 @@ body.density-spacious td{padding:12px 14px}
       <div id="campaignsList"><div class="an-empty" style="background:var(--surface);border:1px solid var(--border);border-radius:4px">no campaigns detected yet — campaigns appear when 3+ requests share a subnet, user agent, or time window within 10 minutes.</div></div>
     </div>
 
-    <!-- TOKEN AUDIT PANEL -->
     <div class="panel" id="panel-tokenaudit">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
         <div>
@@ -860,7 +877,6 @@ body.density-spacious td{padding:12px 14px}
       </div>
     </div>
 
-    <!-- SITES PANEL -->
     <div class="panel" id="panel-sites">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;gap:10px;flex-wrap:wrap">
         <div>
@@ -872,7 +888,6 @@ body.density-spacious td{padding:12px 14px}
       <div class="sites-grid" id="sitesGrid"></div>
     </div>
 
-    <!-- ACCOUNT PANEL -->
     <div class="panel" id="panel-account">
       <div class="settings-form">
         <div class="settings-group">
@@ -945,7 +960,24 @@ body.density-spacious td{padding:12px 14px}
 </main>
 </div>
 
-<!-- REQUEST DETAIL DRAWER -->
+<nav class="mobile-bottomnav" id="mobileBottomNav">
+  <button class="mobile-bottomnav-item active" id="mbnav-overview" onclick="nav('overview')">
+    <span class="mobile-bottomnav-icon">▦</span>overview
+  </button>
+  <button class="mobile-bottomnav-item" id="mbnav-requests" onclick="nav('requests')">
+    <span class="mobile-bottomnav-icon">◈</span>requests
+  </button>
+  <button class="mobile-bottomnav-item" id="mbnav-analytics" onclick="nav('analytics')">
+    <span class="mobile-bottomnav-icon">◉</span>analytics
+  </button>
+  <button class="mobile-bottomnav-item" id="mbnav-campaigns" onclick="nav('campaigns')">
+    <span class="mobile-bottomnav-icon">⚑</span>campaigns
+  </button>
+  <button class="mobile-bottomnav-item" id="mbnav-more" onclick="openSidebar()">
+    <span class="mobile-bottomnav-icon">⋯</span>more
+  </button>
+</nav>
+
 <div class="req-detail-overlay" id="reqDetailOverlay" onclick="closeReqDetail()"></div>
 <div class="req-detail-drawer" id="reqDetailDrawer">
   <div class="req-detail-head">
@@ -955,7 +987,6 @@ body.density-spacious td{padding:12px 14px}
   <div class="req-detail-body" id="reqDetailBody"></div>
 </div>
 
-<!-- ADD SITE MODAL -->
 <div class="modal-bg" id="addSiteModal" onclick="closeAddSiteModal(event)">
   <div class="modal">
     <button class="modal-close" onclick="document.getElementById('addSiteModal').classList.remove('open')">×</button>
@@ -967,7 +998,6 @@ body.density-spacious td{padding:12px 14px}
   </div>
 </div>
 
-<!-- TERMINAL CONFIRM MODAL -->
 <div class="terminal-modal-bg" id="terminalModal" onclick="if(event.target===this)closeTerminalModal()">
   <div class="terminal-modal">
     <div class="terminal-header">
@@ -1004,7 +1034,14 @@ let activeReqList = []
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReqDetail() })
 
-// ── analytics state ────────────────────────────────────────────────
+let touchStartX = 0
+document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX }, { passive: true })
+document.addEventListener('touchend', e => {
+  const diff = e.changedTouches[0].clientX - touchStartX
+  if (touchStartX < 30 && diff > 60) openSidebar()
+  if (diff < -60 && document.getElementById('sidebar').classList.contains('open')) closeSidebar()
+}, { passive: true })
+
 let analyticsPeriod = 14
 let analyticsData = null
 
@@ -1360,7 +1397,6 @@ function fmtN(n) {
   return String(num)
 }
 
-// ── customize ──────────────────────────────────────────────────────
 const CUSTOMIZE_KEY = 'bw_customize'
 
 const COLOR_VARS = [
@@ -1536,9 +1572,6 @@ function renderDensityBtns() {
 
 function renderCustomizePanel() { renderPresetGrid(); renderColorRows(); renderFontGrid(); renderDensityBtns() }
 
-// ── init ───────────────────────────────────────────────────────────
-// ── bot campaigns + alerts ─────────────────────────────────────────
-
 let alertRules = []
 const ALERT_STORAGE_KEY = 'bw_alert_rules'
 
@@ -1645,11 +1678,8 @@ function detectCampaigns(reqs) {
   const TEN_MIN = 10 * 60 * 1000
   const campaigns = []
 
-  // Group by /24 subnet (first 3 octets of IP — we don't have IPs, so cluster by country+detected+ua pattern)
-  // Since we don't store raw IPs in the frontend, cluster by: detected type + country + time proximity
   const nonPassed = reqs.filter(r => r.status !== 'passed' || r.detected === 'headless' || r.detected === 'tor' || r.detected === 'datacenter')
 
-  // Cluster by detected type within time windows
   const typeGroups = {}
   nonPassed.forEach(r => {
     const key = r.detected + '|' + r.country
@@ -1659,7 +1689,6 @@ function detectCampaigns(reqs) {
 
   Object.entries(typeGroups).forEach(([key, group]) => {
     if (group.length < 3) return
-    // Find time clusters within the group
     const sorted = [...group].sort((a,b) => a.ts - b.ts)
     let clusterStart = 0
     while (clusterStart < sorted.length) {
@@ -1754,7 +1783,6 @@ function toggleCampaign(id) {
 async function loadCampaigns() {
   if (!currentSiteId) return
   loadAlertRules()
-  // ensure requests are loaded
   if (!allRequests.length) await loadRequests()
   const site = sites.find(s => s.id === currentSiteId)
   document.getElementById('campSubtitle').textContent = (site ? site.domain + ' · ' : '') + 'coordinated attacks and alert rules'
@@ -1763,8 +1791,6 @@ async function loadCampaigns() {
   const campaigns = detectCampaigns(allRequests)
   renderCampaigns(campaigns)
 }
-
-// ── token audit ────────────────────────────────────────────────────
 
 async function loadTokenAudit() {
   if (!currentSiteId) return
@@ -1780,21 +1806,16 @@ function renderTokenAudit(site, reqs) {
   const ttlMs = ttlHrs * 3600000
   const now = Date.now()
 
-  // Only count human passes (status=passed, not crawler/allowed bots)
   const humanPasses = reqs.filter(r => r.status === 'passed')
 
-  // Estimate valid = passes within the last TTL window
   const validPasses = humanPasses.filter(r => r.ts > now - ttlMs)
   const expiredPasses = humanPasses.filter(r => r.ts <= now - ttlMs)
 
-  // Avg daily humans (last 14d)
   const last14d = humanPasses.filter(r => r.ts > now - 14 * 86400000)
   const avgDailyHumans = Math.round(last14d.length / 14)
 
-  // Expiring next hour: passes from (now - ttlMs) to (now - ttlMs + 1hr)
   const expiringNextHr = humanPasses.filter(r => r.ts > now - ttlMs && r.ts <= now - ttlMs + 3600000)
 
-  // Re-challenge wave: for each hour in the next 24h, how many tokens expire?
   const waveData = []
   for (let h = 0; h < 24; h++) {
     const windowStart = now - ttlMs + h * 3600000
@@ -1803,7 +1824,6 @@ function renderTokenAudit(site, reqs) {
     waveData.push({ hour: h, count })
   }
 
-  // Stat cards
   document.getElementById('tokenStatGrid').innerHTML = `
     <div class="an-stat green">
       <div class="an-stat-label">est. valid tokens</div>
@@ -1906,7 +1926,6 @@ function renderTokenTimeline(humanPasses, ttlMs) {
   const el = document.getElementById('tokenTimelineChart')
   if (!el || !humanPasses.length) { if (el) el.innerHTML = '<div class="an-empty">no human passes recorded</div>'; return }
 
-  // Show last 7 days as timeline
   const days = 7
   const now = Date.now()
   const since = now - days * 86400000
@@ -1917,18 +1936,15 @@ function renderTokenTimeline(humanPasses, ttlMs) {
   const padL = 30, padR = 8, padT = 10, padB = 20
   const chartW = W - padL - padR, chartH = H - padT - padB
 
-  // Map each pass as a point: x = time, y = random scatter for visibility
   const totalMs = days * 86400000
   let grid = '', dots = '', labels = ''
 
-  // Draw TTL boundary line — the line that moves left as time progresses (tokens older than TTL are expired)
   const ttlX = padL + (1 - ttlMs / totalMs) * chartW
   if (ttlX > padL && ttlX < padL + chartW) {
     grid += `<line x1="${ttlX.toFixed(1)}" y1="${padT}" x2="${ttlX.toFixed(1)}" y2="${(padT+chartH).toFixed(1)}" stroke="var(--yellow)" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>`
     grid += `<text x="${(ttlX+4).toFixed(1)}" y="${(padT+10).toFixed(1)}" font-size="8" fill="rgba(255,200,0,.5)">TTL boundary</text>`
   }
 
-  // Day grid lines
   for (let d = 0; d <= days; d++) {
     const x = padL + (d / days) * chartW
     grid += `<line x1="${x.toFixed(1)}" y1="${padT}" x2="${x.toFixed(1)}" y2="${(padT+chartH).toFixed(1)}" stroke="rgba(255,255,255,.04)" stroke-width="1"/>`
@@ -1938,11 +1954,9 @@ function renderTokenTimeline(humanPasses, ttlMs) {
     }
   }
 
-  // Plot passes as dots, colored by whether still valid
   recent.forEach((pass, i) => {
     const x = padL + ((pass.ts - since) / totalMs) * chartW
     const isValid = pass.ts > now - ttlMs
-    // Spread vertically with a seeded pseudo-random
     const yFrac = ((i * 2654435761) % 1000) / 1000
     const y = padT + 4 + yFrac * (chartH - 8)
     const color = isValid ? 'var(--green)' : 'rgba(255,255,255,.15)'
@@ -1959,21 +1973,6 @@ function renderTokenInsights(site, humanPasses, validPasses, ttlHrs, avgDailyHum
 
   const peakWaveHour = waveData.reduce((best, d) => d.count > best.count ? d : best, waveData[0])
   const peakWaveStr = peakWaveHour.hour === 0 ? 'now' : 'in +' + peakWaveHour.hour + 'h (' + fmtN(peakWaveHour.count) + ' tokens)'
-
-  const avgHoursBeforeExpiry = humanPasses.length > 1
-    ? (() => {
-        const sorted = [...humanPasses].sort((a,b) => a.ts-b.ts)
-        // estimate unique visitors by grouping passes separated by > TTL
-        return ttlHrs // just show the configured TTL as the designed expiry
-      })()
-    : ttlHrs
-
-  const rechallengeRate = humanPasses.length > 0
-    ? (humanPasses.filter(r => {
-        // a re-challenge is a pass that occurs after a prior pass from the same context within 2x TTL
-        return false // can't determine without user identity — show as N/A
-      }).length)
-    : null
 
   const last24h = humanPasses.filter(r => r.ts > now - 86400000).length
   const last7d = humanPasses.filter(r => r.ts > now - 7 * 86400000).length
@@ -1993,8 +1992,6 @@ function renderTokenInsights(site, humanPasses, validPasses, ttlHrs, avgDailyHum
     row('recommended ttl', avgDailyHumans > 500 ? '24h — high traffic, keep friction low' : avgDailyHumans > 50 ? '12–24h — balanced' : '6–12h — low traffic, tighter is fine'),
   ].join('')
 }
-
-// ─────────────────────────────────────────────────────────────────────
 
 async function init() {
   loadCustomize()
@@ -2743,11 +2740,18 @@ const panelTitles = {
   account:    ['account', 'your profile and danger zone'],
 }
 
+const MOBILE_NAV_PAGES = ['overview','requests','analytics','campaigns']
+
 function nav(page) {
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'))
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
   document.getElementById('panel-'+page).classList.add('active')
   document.getElementById('nav-'+page)?.classList.add('active')
+
+  document.querySelectorAll('.mobile-bottomnav-item').forEach(b => b.classList.remove('active'))
+  const mbnav = document.getElementById('mbnav-'+page)
+  if (mbnav) mbnav.classList.add('active')
+
   const [title, sub] = panelTitles[page] || [page, '']
   document.getElementById('pageTitle').textContent = title
   const site = sites.find(s => s.id===currentSiteId)
