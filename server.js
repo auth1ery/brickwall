@@ -332,7 +332,7 @@ app.post('/api/sites', requireAuth, async (req, res) => {
     if (!name || !domain) return res.status(400).json({ error: 'missing fields' })
     const id = uuidv4()
     const key = 'bw_live_' + crypto.randomBytes(16).toString('hex')
-    const cleanDomain = domain.replace(/^https?:\/\
+    const cleanDomain = domain.replace(/^https?:\/\//, '');
     const settings = { allowCrawlers: true, blockTor: false, blockVpn: false, challengeTtl: 24, challengeUi: {} }
     await pool.query('INSERT INTO sites (id, user_id, name, domain, key, active, settings) VALUES ($1, $2, $3, $4, $5, $6, $7)', [id, req.user.id, name, cleanDomain, key, true, JSON.stringify(settings)])
     res.json({ id, userId: req.user.id, name, domain: cleanDomain, key, createdAt: Date.now(), active: true, settings })
