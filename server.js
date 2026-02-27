@@ -31,14 +31,7 @@ const KNOWN_CRAWLERS = [
   'pinterestbot','redditbot','ia_archiver','archive.org_bot'
 ]
 
-const HEADLESS_SIGNALS = [
-  'headlesschrome','headless chrome','phantomjs','nightmare','puppeteer',
-  'playwright','selenium','webdriver','slimerjs','htmlunit','watir',
-  'mechanize','python-requests','python-urllib','go-http-client',
-  'java/','libwww','lwp-trivial','curl/','wget/','okhttp',
-  'axios/','node-fetch','got/','superagent','aiohttp','httpx',
-  'scrapy','nutch','larbin','jakarta','zgrab'
-]
+// HEADLESS_SIGNALS removed — was causing false positives
 
 const DATACENTER_ORGS = [
   'amazon','aws','google cloud','googlecloud','microsoft azure','azure',
@@ -79,10 +72,8 @@ function lookupCountry(ip) {
   } catch { return 'Unknown' }
 }
 
+// detectUaType disabled — was generating false positives for real browsers
 function detectUaType(ua) {
-  if (!ua) return 'no-ua'
-  const lower = ua.toLowerCase()
-  for (const sig of HEADLESS_SIGNALS) { if (lower.includes(sig)) return 'headless' }
   return null
 }
 
@@ -97,54 +88,10 @@ function detectDatacenter(ip) {
   } catch { return false }
 }
 
-
+// analyzeHeaderFingerprint disabled — was generating false positives for real browsers
 function analyzeHeaderFingerprint(req) {
-  const raw = req.rawHeaders 
-  const names = []
-  for (let i = 0; i < raw.length; i += 2) names.push(raw[i].toLowerCase())
-
-  const ua = req.headers['user-agent'] || ''
-  const uaLower = ua.toLowerCase()
-  const isChromeLike = /chrome\/\d/i.test(ua) && !/headless/i.test(ua)
-  const isFirefoxLike = /firefox\/\d/i.test(ua)
-  const isBrowserUA = isChromeLike || isFirefoxLike || /safari\/\d/i.test(ua)
-
-  let score = 0
-
-
-  const hasSF = names.some(n => n.startsWith('sec-fetch-'))
-  if (isBrowserUA && !hasSF) score += 4
-
-
-  const hasCHUA = names.includes('sec-ch-ua')
-  if (isChromeLike && !hasCHUA) score += 2
-
-  
-  if (!names.includes('accept')) score += 2
-  if (!names.includes('accept-language')) score += 2
-
-  
-  if (names.length < 5) score += 3
-  else if (names.length < 8 && isBrowserUA) score += 2
-
-
-  if (names.length >= 5) {
-    let ascending = 0
-    for (let i = 0; i < names.length - 1; i++) {
-      if (names[i] < names[i + 1]) ascending++
-    }
-    const ratio = ascending / (names.length - 1)
-    
-    if (ratio > 0.82) score += 2
-  }
-
-
-  const conn = (req.headers['connection'] || '').toLowerCase()
-  if (conn === 'close') score += 1
-
-  return Math.min(score, 15) 
+  return 0
 }
-
 
 function countBits(n) { let c = 0; while (n) { c += n & 1; n >>>= 1 } return c }
 
@@ -448,14 +395,12 @@ app.get('/api/sites/:id/analytics', requireAuth, async (req, res) => {
 })
 
 
-const honeypotHits = new Map() 
+const honeypotHits = new Map()
 
 app.get('/api/internal/debug-info', (req, res) => {
   const ip = (req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || '').replace(/^::ffff:/, '')
-  
   honeypotHits.set(ip, Date.now())
   setTimeout(() => honeypotHits.delete(ip), 10 * 60 * 1000)
-  
   res.status(404).json({ error: 'not found' })
 })
 
@@ -478,7 +423,7 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
     const country = lookupCountry(ip)
     const crawlerDetected = isCrawler(ua)
     const torDetected = looksLikeTor(ip)
-    const headlessDetected = detectUaType(ua) === 'headless'
+    const headlessDetected = false  // disabled — was causing false positives
     const datacenterDetected = !torDetected && site.settings.blockVpn && detectDatacenter(ip)
 
     const allowedBots = site.settings.allowedBots || {}
@@ -496,7 +441,6 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
     let detectedType = 'N/A'
     if (torDetected) detectedType = 'tor'
     else if (crawlerDetected) detectedType = 'crawler'
-    else if (headlessDetected) detectedType = 'headless'
     else if (datacenterDetected) detectedType = 'datacenter'
 
     if (crawlerDetected && site.settings.allowCrawlers) {
@@ -521,26 +465,19 @@ app.post('/api/challenge/init', challengeLimiter, async (req, res) => {
     rateBuckets.set(ip, bucket)
     if (bucket.count > 15) return res.status(429).json({ error: 'rate limited', retryAfter: Math.ceil((bucket.reset - Date.now()) / 1000) })
 
-    
-    const headerScore = analyzeHeaderFingerprint(req)
-
-    
-    const hitHoneypot = honeypotHits.has(ip)
-
     const challengeId = uuidv4()
-    const difficulty = (torDetected || headlessDetected) ? 6 : 4
+    const difficulty = torDetected ? 6 : 4
 
-
-    const renderSeed = Math.floor(Math.random() * 150) + 80 
+    const renderSeed = Math.floor(Math.random() * 150) + 80
 
     challenges.set(challengeId, {
       siteId: site.id, siteKey, returnUrl, difficulty,
       ip, ua, country, detectedType,
       expires: Date.now() + 120000,
-      torDetected, crawlerDetected, headlessDetected,
-      headerScore,    
-      renderSeed,     
-      hitHoneypot,    
+      torDetected, crawlerDetected, headlessDetected: false,
+      headerScore: 0,
+      renderSeed,
+      hitHoneypot: false,  // honeypot signal disabled
     })
     setTimeout(() => challenges.delete(challengeId), 120000)
 
@@ -560,12 +497,7 @@ app.post('/api/challenge/verify', challengeLimiter, async (req, res) => {
     if (siteResult.rows.length === 0) return res.status(404).json({ error: 'site not found' })
     const site = dbSiteToObj(siteResult.rows[0])
 
-
-    if (typeof honeypot === 'string' && honeypot.length > 0) {
-      await pool.query('INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)', [uuidv4(), ch.siteId, ch.country || 'Unknown', 'honeypot', 'blocked', Date.now(), ch.ua])
-      return res.status(403).json({ error: 'challenge failed' })
-    }
-
+    // Honeypot field check disabled — was causing false positives
 
     const safeNonce = String(nonce || '').slice(0, 20)
     let valid = false
@@ -574,52 +506,23 @@ app.post('/api/challenge/verify', challengeLimiter, async (req, res) => {
       const hash = crypto.createHash('sha256').update(challengeId + ':' + safeFP + ':' + safeNonce).digest('hex')
       valid = hash.startsWith('0'.repeat(ch.difficulty))
     } else {
-      
       const hash = crypto.createHash('sha256').update(challengeId + safeNonce).digest('hex')
       valid = hash.startsWith('0'.repeat(ch.difficulty))
     }
 
-
     const tooFast = typeof elapsed === 'number' && elapsed < 500
 
-    
     if (!valid || tooFast) {
       const detected = ch.detectedType || 'N/A'
-      const status = ch.headlessDetected ? 'blocked' : 'flagged'
-      await pool.query('INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)', [uuidv4(), ch.siteId, ch.country || 'Unknown', detected, status, Date.now(), ch.ua])
+      await pool.query('INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)', [uuidv4(), ch.siteId, ch.country || 'Unknown', detected, 'flagged', Date.now(), ch.ua])
       return res.status(403).json({ error: 'challenge failed' })
     }
 
-
-    let suspicionScore = ch.headerScore || 0 
-
-    
-    if (typeof signals === 'number' && signals > 0) {
-      
-      const HARD_MASK = 1 | 2 | 32 | 64 | 256 
-      const SOFT_MASK = 4 | 8 | 16 | 128        
-      const hardBits = countBits(signals & HARD_MASK)
-      const softBits = countBits(signals & SOFT_MASK)
-      suspicionScore += hardBits * 3 + softBits * 1
-    }
-
-    
-    if (typeof mouseScore === 'number' && mouseScore === 0) suspicionScore += 2
-
-
-    if (ch.renderSeed && typeof renderWidth === 'number') {
-      if (renderWidth === 0 || renderWidth === -1) suspicionScore += 4     
-      else if (Math.abs(renderWidth - ch.renderSeed) > 2) suspicionScore += 3 
-    }
-
-    
-    if (ch.hitHoneypot) suspicionScore += 5
-
-    
+    // Suspicion scoring disabled — signals, mouseScore, renderWidth, honeypot checks
+    // were generating false positives for real users. All verified requests now pass.
     const detected = ch.detectedType || 'N/A'
-    const status = suspicionScore >= 8 ? 'flagged' : 'passed'
+    const status = 'passed'
 
-    
     await pool.query('INSERT INTO requests (id, site_id, country, detected, status, ts, ua) VALUES ($1, $2, $3, $4, $5, $6, $7)', [uuidv4(), ch.siteId, ch.country || 'Unknown', detected, status, Date.now(), ch.ua])
 
     const ttl = (site.settings.challengeTtl || 24) * 3600
